@@ -1,0 +1,26 @@
+import { Collection } from "discord.js"
+import type { SlashCommand } from "./SlashCommand"
+import { REST as RESTClient } from '@discordjs/rest'
+import { RESTPostAPIApplicationCommandsJSONBody, Routes } from 'discord-api-types/v9'
+import { load } from "./util"
+
+export const Commands = new Collection<string, SlashCommand>()
+const CommandList: RESTPostAPIApplicationCommandsJSONBody[] = []
+for(const command of load<SlashCommand>(__dirname, './commands')){
+    Commands.set(command.data.name, command)
+    CommandList.push(command.data.toJSON())
+}
+const REST_VERSION = '9'
+const REST = new RESTClient({ version: REST_VERSION })
+interface RegistrationArgs {
+    token: string,
+    clientId: string,
+    guildId: string
+}
+export async function registerCommands(args: RegistrationArgs): Promise<void> {
+    const { token, clientId, guildId } = args
+    REST.setToken(token)
+    await REST.put(
+        Routes.applicationGuildCommands(clientId, guildId),
+        { body: CommandList })
+}

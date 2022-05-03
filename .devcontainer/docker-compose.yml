@@ -1,0 +1,36 @@
+version: '3'
+volumes:
+  sql-db:
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        INSTALL_ZSH: "false"
+    env_file:
+        - db.env
+    volumes:
+      - /var/run/docker.sock:/var/run/docker-host.sock
+      - ..:/workspace:cached
+
+    # Overrides default command so things don't shut down after the process ends.
+    entrypoint: /usr/local/share/docker-init.sh
+    command: sleep infinity
+  db:
+    image: postgres:14.2-alpine
+    env_file: db.env
+    environment:
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 30s
+    expose:
+      - '5432'
+    volumes:
+      - type: volume
+        source: sql-db
+        target: /var/lib/postgresql/data

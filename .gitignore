@@ -1,0 +1,7 @@
+build/
+node_modules/
+invite.url
+tsconfig.tsbuildinfo
+
+# base version present, up to the user for the rest
+config.json
