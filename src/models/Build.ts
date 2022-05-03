@@ -3,32 +3,32 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToMany } from "typeorm";
 @Entity()
 export class Build {
     @PrimaryGeneratedColumn()
-    id: number
+    id!: number
 
     @Column()
-    name: string
+    name!: string
 
     @Column()
-    createdBy: string
+    createdBy!: string
 
     @Column()
-    updatedBy: string
+    updatedBy!: string
 
     @Column()
-    createdAt: Date
+    createdAt!: Date
 
     @Column()
-    updatedAt: Date
+    updatedAt!: Date
 
     @ManyToMany(_type => BuildAlias, alias => alias.builds, { cascade: true })
-    aliases: BuildAlias[]
+    aliases!: BuildAlias[]
 }
 
 @Entity()
 export class BuildAlias {
     @PrimaryGeneratedColumn()
-    id: number
+    id!: number
 
     @ManyToMany(_type => Build, build => build.aliases)
-    builds: Build[]
+    builds!: Build[]
 }

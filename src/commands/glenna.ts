@@ -1,13 +1,13 @@
 import { SlashCommandBuilder } from "@discordjs/builders"
 import type { CommandInteraction } from "discord.js"
 import { SlashCommand, SlashSubcommand } from "../SlashCommand"
-import { load, randomFrom } from "../util"
+import { load } from "../util"
 
 const data = new SlashCommandBuilder()
     .setName('glenna')
     .setDescription('General info and management.')
 const subcommands = new Map<string, SlashSubcommand>()
-for(const subcommand of load<SlashSubcommand>(__dirname, 'glenna')){
+for(const subcommand of await load<SlashSubcommand>(import.meta, './glenna')){
     data.addSubcommand(builder => subcommand.builder(builder).setName(subcommand.name))
     subcommands.set(subcommand.name, subcommand)
 }

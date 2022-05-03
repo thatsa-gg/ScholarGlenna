@@ -12,7 +12,7 @@ watch:
 	$(TSC) --watch src
 
 run: $(PROJECT)
-	node .
+	node --es-module-specifier-resolution=node --experimental-import-meta-resolve .
 
 clean:
 	rm -rf build *.tsbuildinfo

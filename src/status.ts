@@ -1,6 +1,6 @@
 import { sleep, minutes, range, random, randomFrom } from './util'
 import type { ClientUser } from 'discord.js'
-import { VERSION } from '.';
+import { VERSION } from './properties';
 const statuses = [
     `Now updated to version ${VERSION}!`,
     `Why not browse my inventory while you're here?`,

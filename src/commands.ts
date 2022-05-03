@@ -6,7 +6,7 @@ import { load } from "./util"
 
 export const Commands = new Collection<string, SlashCommand>()
 const CommandList: RESTPostAPIApplicationCommandsJSONBody[] = []
-for(const command of load<SlashCommand>(__dirname, './commands')){
+for(const command of await load<SlashCommand>(import.meta, './commands')){
     Commands.set(command.data.name, command)
     CommandList.push(command.data.toJSON())
 }

@@ -1,6 +1,7 @@
 import { Temporal } from '@js-temporal/polyfill'
-import { readdirSync } from 'fs'
-import { resolve } from 'path/posix'
+import { readdir } from 'fs/promises'
+import { fileURLToPath } from 'url'
+import { dirname as pathDirname, resolve as pathResolve } from 'path/posix'
 
 export function minutes(minutes: number): Temporal.Duration {
     return new Temporal.Duration(0, 0, 0, 0, 0, minutes, 0, 0, 0, 0)
@@ -40,9 +41,20 @@ export function start(promise: Promise<void>): void {
 }
 
 
-export function load<T>(path: string, name: string): T[] {
-    const directory = resolve(path, name)
-    return readdirSync(directory, { 'withFileTypes': true })
+export function dirname(meta: ImportMeta): string {
+    const filename = fileURLToPath(meta.url)
+    return pathDirname(filename)
+}
+
+export function resolve(meta: ImportMeta, path: string): string {
+    return pathResolve(dirname(meta), path)
+}
+
+export async function load<T>(meta: ImportMeta, path: string): Promise<T[]> {
+    const directory = resolve(meta, path)
+    const files = await readdir(directory, { withFileTypes: true })
+    const results = await Promise.all(files
         .filter(a => a.isFile() && a.name.endsWith('.js'))
-        .map(a => require(resolve(directory, a.name)).default as T)
+        .map(a => import(pathResolve(directory, a.name)) as Promise<{ default: T }>))
+    return results.map(a => a.default)
 }

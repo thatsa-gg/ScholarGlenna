@@ -3,14 +3,11 @@
  */
 
 import { log, info, error } from 'console'
-import { resolve } from 'path/posix'
-import { DISCORD_TOKEN, OAUTH_CLIENT_ID } from '../config.json'
-import { version as VERSION } from '../package.json'
-export { version as VERSION } from '../package.json'
+import { DISCORD_TOKEN, OAUTH_CLIENT_ID, VERSION } from './properties'
 
 import { Client, Intents } from 'discord.js'
 import { updateStatus } from './status'
-import { start } from './util'
+import { resolve, start } from './util'
 import { Commands, registerCommands } from './commands'
 
 export const Glenna: Client = new Client({
@@ -26,7 +23,7 @@ Glenna.on('ready', async() => {
     Glenna.setMaxListeners(0)
     Glenna.user!.setActivity(`Starting up v.${VERSION}...`)
     await Glenna.user!.setUsername('ScholarGlenna')
-    await Glenna.user!.setAvatar(resolve(__dirname, '../resources/avatars/glenna.png'))
+    await Glenna.user!.setAvatar(resolve(import.meta, '../resources/avatars/glenna.png'))
 
     log('Registering commands...')
     const guilds = Glenna.guilds.cache.map(g => g)

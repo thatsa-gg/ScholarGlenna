@@ -1,4 +1,4 @@
-import { VERSION } from "../..";
+import { VERSION } from "../../properties";
 import { SlashSubcommand } from "../../SlashCommand";
 
 export default new SlashSubcommand({

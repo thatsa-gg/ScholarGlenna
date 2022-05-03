@@ -2,6 +2,7 @@
     "name": "glenna",
     "version": "PRERELEASE",
     "description": "Glenna Does Raids",
+    "type": "module",
     "main": "build/index.js",
     "author": "cofl",
     "license": "MIT",
