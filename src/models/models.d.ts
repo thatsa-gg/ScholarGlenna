@@ -1,5 +1,6 @@
 type DiscordGroup = string & { __TYPE__: "DISCORD_GROUP" }
 type DiscordChannel = string & { __TYPE__: "DISCORD_CHANNEL" }
+type BuildTag = string & { __TYPE__: "BuildTag" }
 interface User {
     discordId: string
     account: Account[]
@@ -65,6 +66,7 @@ interface Build extends Item {
     resources: URL[]
     notes: Note[]
     aliases: string[]
+    tags: BuildTag[]
 }
 declare enum CapabilityType {
     DPS,
@@ -134,4 +136,19 @@ interface Occurrence {
 interface Permissions {
     role: 'Mentor' | 'Moderator'
     group: DiscordGroup
+}
+
+interface RoleAssignment {
+    player: User
+    build: Build | BuildTag
+}
+
+interface EncounterComposition {
+    encounter: Encounter | EncounterSet
+    assignments: RoleAssignment[]
+}
+
+interface RoleComposition {
+    encounterCompositions: EncounterComposition[]
+    team: Team
 }
