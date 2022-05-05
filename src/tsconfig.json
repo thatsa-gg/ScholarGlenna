@@ -2,10 +2,26 @@
     "extends": "../configs/tsconfig.base.json",
     "compilerOptions": {
         "rootDir": ".",
+        "baseUrl": ".",
         "outDir": "../build",
         "resolveJsonModule": true,
+        "sourceMap": true,
         "noUnusedLocals": false,
-        "noUnusedParameters": false
+        "noUnusedParameters": false,
+        "paths": {
+            "@glenna/app": [
+                "app"
+            ],
+            "@glenna/bot": [
+                "bot"
+            ],
+            "@glenna/common": [
+                "common"
+            ],
+            "@glenna/util": [
+                "util"
+            ]
+        }
     },
     "references": [
         { "path": "../" }

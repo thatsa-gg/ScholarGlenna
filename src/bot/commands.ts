@@ -2,7 +2,7 @@ import { Collection } from "discord.js"
 import type { SlashCommand } from "./SlashCommand"
 import { REST as RESTClient } from '@discordjs/rest'
 import { RESTPostAPIApplicationCommandsJSONBody, Routes } from 'discord-api-types/v9'
-import { load } from "./util"
+import { load } from '@glenna/util'
 
 export const Commands = new Collection<string, SlashCommand>()
 const CommandList: RESTPostAPIApplicationCommandsJSONBody[] = []

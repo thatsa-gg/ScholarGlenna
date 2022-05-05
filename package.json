@@ -1,5 +1,6 @@
 {
     "name": "glenna",
+    "private": true,
     "version": "PRERELEASE",
     "description": "Glenna Does Raids",
     "type": "module",
@@ -7,6 +8,11 @@
     "author": "cofl",
     "license": "MIT",
     "dependencies": {
+        "@glenna/common": "file:build/common",
+        "@glenna/bot": "file:build/bot",
+        "@glenna/app": "file:build/app",
+        "@glenna/util": "file:build/util",
+        "fastify": "^3.29.0",
         "@discordjs/builders": "^0.13.0",
         "@discordjs/rest": "^0.4.1",
         "@js-temporal/polyfill": "^0.4.1",

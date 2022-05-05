@@ -1,3 +1,51 @@
+## components
+
+- Web App
+
+    Primary user-facing interface.
+    - Can create/delete/manage teams, servers, and leagues.
+    - Can select builds, build role compositions, and post compositions.
+    - Can set preferences.
+    - Can set away times.
+
+- Discord Bot
+
+    In-app management.
+
+    - Can add/remove team members.
+    - Can get user info.
+    - Can set preferences.
+    - can set away times.
+
+- API
+
+    Interfaces with Web App and Discord Bot to get/set info. Can do everything.
+
+- Database
+
+    Holds info.
+
+## key points
+
+- logs of moderator/owner actions
+- if a user leaves a server, update teams/notify moderators
+- Users (Discord User + GW2 Account Names or API Keys)
+
+    Users can have one or more *Builds.
+- Server (Discord Server)
+    - Team (has users, name, optional channel, optional group)
+
+        Server owners and moderators can manage teams.
+
+        Team leaders can manage teams.
+- League (optional Discord Server)
+    - *Teams
+
+        League owners and moderators can add and remove teams from the league.
+
+        Teams must apply to join a league.
+- Build (class, traits, gear, skills)
+
 ## things this should do
 
 - commands:

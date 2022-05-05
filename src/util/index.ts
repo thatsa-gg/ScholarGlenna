@@ -40,7 +40,6 @@ export function start(promise: Promise<void>): void {
     void promise
 }
 
-
 export function dirname(meta: ImportMeta): string {
     const filename = fileURLToPath(meta.url)
     return pathDirname(filename)

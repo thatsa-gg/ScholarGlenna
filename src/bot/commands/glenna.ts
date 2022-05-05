@@ -1,7 +1,7 @@
 import { SlashCommandBuilder } from "@discordjs/builders"
 import type { CommandInteraction } from "discord.js"
 import { SlashCommand, SlashSubcommand } from "../SlashCommand"
-import { load } from "../util"
+import { load } from '@glenna/util'
 
 const data = new SlashCommandBuilder()
     .setName('glenna')

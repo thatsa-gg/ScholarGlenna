@@ -1,5 +1,5 @@
-import { SlashSubcommand } from "../../SlashCommand";
-import { randomFrom } from "../../util";
+import { SlashSubcommand } from '../../SlashCommand'
+import { randomFrom } from '@glenna/util'
 
 export default new SlashSubcommand({
     name: 'quote',

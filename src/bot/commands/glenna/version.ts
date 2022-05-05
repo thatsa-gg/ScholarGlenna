@@ -1,5 +1,5 @@
-import { VERSION } from "../../properties";
-import { SlashSubcommand } from "../../SlashCommand";
+import { VERSION } from '@glenna/common'
+import { SlashSubcommand } from '../../SlashCommand'
 
 export default new SlashSubcommand({
     name: 'version',
