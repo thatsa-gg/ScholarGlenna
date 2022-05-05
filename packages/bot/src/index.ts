@@ -57,7 +57,7 @@ Glenna.on('interactionCreate', async interaction => {
     }
 })
 
-export async function main(): Promise<void> {
+export async function login(): Promise<void> {
     try {
         info("Logging in.")
         const reason = await Glenna.login(DISCORD_TOKEN)

@@ -12,11 +12,19 @@ volumes:
 # 6. Start APP
 services:
     app:
+        env_file:
+            - .env
     api:
+        env_file:
+            - .env
     bot:
+        env_file:
+            - .env
     postgres:
         image: postgres:14.2-alpine
-        env_file: db.env
+        env_file:
+            - .env
+            - db.env
         volumes:
             - type: volume
               source: sql-db
@@ -24,7 +32,9 @@ services:
     redis:
         image: 7.0-alpine
         # TODO: redis args (cmdline)
-        env_file: redis.env
+        env_file:
+            - .env
+            - redis.env
         volumes:
             - type: volume
               source: redis-db

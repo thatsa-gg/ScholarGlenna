@@ -1,9 +1,9 @@
 TSC=npx tsc
 PROJECT=glenna
-.PHONY: all $(PROJECT) build clean run
+.PHONY: all $(PROJECT) build clean run install
 
 $(PROJECT): build
-all: clean $(PROJECT)
+all: clean install $(PROJECT)
 
 build:
 	$(TSC) --build
@@ -14,5 +14,9 @@ watch:
 run: $(PROJECT)
 	node --es-module-specifier-resolution=node --experimental-import-meta-resolve .
 
+install:
+	pnpm install
+
 clean:
-	rm -rf build *.tsbuildinfo packages/*/dist
+	find packages -type d -name node_modules -prune -o -type f -name *.tsbuildinfo -exec rm {} \;
+	rm -rf build packages/*/dist *.tsbuildinfo

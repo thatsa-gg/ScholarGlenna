@@ -2,6 +2,7 @@
     "name": "@glenna/bot",
     "type": "module",
     "private": true,
+    "main": "dist/_entry.js",
     "dependencies": {
         "@discordjs/builders": "^0.13.0",
         "@discordjs/rest": "^0.4.1",
