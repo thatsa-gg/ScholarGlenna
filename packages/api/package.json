@@ -1,0 +1,10 @@
+{
+    "name": "@glenna/api",
+    "private": true,
+    "dependencies": {
+        "@glenna/common": "workspace:*",
+        "discord-api-types": "^0.32.1",
+        "discord.js": "^13.6.0",
+        "typeorm": "^0.3.6"
+    }
+}

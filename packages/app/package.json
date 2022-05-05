@@ -1,0 +1,9 @@
+{
+    "name": "@glenna/app",
+    "private": true,
+    "dependencies": {
+        "@glenna/api": "workspace:*",
+        "@glenna/common": "workspace:*",
+        "fastify": "^3.29.0"
+    }
+}

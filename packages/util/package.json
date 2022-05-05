@@ -1,0 +1,7 @@
+{
+    "name": "@glenna/util",
+    "private": true,
+    "dependencies": {
+        "@js-temporal/polyfill": "^0.4.1"
+    }
+}

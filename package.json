@@ -1,26 +1,15 @@
 {
-    "name": "glenna",
-    "private": true,
-    "version": "PRERELEASE",
-    "description": "Glenna Does Raids",
-    "type": "module",
-    "main": "build/index.js",
-    "author": "cofl",
-    "license": "MIT",
-    "dependencies": {
-        "@glenna/common": "file:build/common",
-        "@glenna/bot": "file:build/bot",
-        "@glenna/app": "file:build/app",
-        "@glenna/util": "file:build/util",
-        "fastify": "^3.29.0",
-        "@discordjs/builders": "^0.13.0",
-        "@discordjs/rest": "^0.4.1",
-        "@js-temporal/polyfill": "^0.4.1",
-        "discord-api-types": "^0.32.0",
-        "discord.js": "^13.6.0",
-        "typeorm": "^0.3.6"
-    },
-    "devDependencies": {
-        "typescript": "^4.6.4"
-    }
+  "name": "glenna",
+  "private": true,
+  "version": "PRERELEASE",
+  "description": "Glenna Does Raids",
+  "type": "module",
+  "main": "index.js",
+  "author": "cofl <cllacour@mtu.edu>",
+  "license": "MIT",
+  "repository": "https://github.com/cofl/ScholarGlenna.git",
+  "devDependencies": {
+    "@types/node": "^17.0.31",
+    "typescript": "^4.6.4"
+  }
 }
