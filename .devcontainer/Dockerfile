@@ -20,12 +20,15 @@ CMD [ "sleep", "infinity" ]
 RUN echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
     && echo "deb https://deb.nodesource.com/node_18.x $(lsb_release -cs) main" > /etc/apt/sources.list.d/nodesource.list \
     && echo "deb-src https://deb.nodesource.com/node_18.x $(lsb_release -cs) main" >> /etc/apt/sources.list.d/nodesource.list \
+    && echo "deb https://packages.redis.io/deb $(lsb_release -cs) main" > /etc/apt/sources.list.d/redis.list \
     && apt-key adv --fetch-keys https://www.postgresql.org/media/keys/ACCC4CF8.asc \
     && apt-key adv --fetch-keys https://deb.nodesource.com/gpgkey/nodesource.gpg.key \
+    && apt-key adv --fetch-keys https://packages.redis.io/gpg \
     && apt-get update \
     && apt-get install -y --no-install-recommends \
         gcc g++ make \
         nodejs=18.* \
         postgresql-client \
+        redis \
     && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/* \
     && corepack enable
