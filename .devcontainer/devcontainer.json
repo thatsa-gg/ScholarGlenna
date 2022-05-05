@@ -8,10 +8,13 @@
     },
     "settings": {},
     "extensions": [
-        "dbaeumer.vscode-eslint",
-        "ms-azuretools.vscode-docker",
-        "EditorConfig.EditorConfig"
-    ],
+		"dbaeumer.vscode-eslint",
+		"ms-azuretools.vscode-docker",
+		"EditorConfig.EditorConfig",
+		"eamodio.gitlens"
+	],
     "postCreateCommand": "make install",
-    "remoteUser": "vscode"
+    "remoteUser": "vscode",
+    "runArgs": ["--init", "--privileged"],
+    "overrideCommand": false
 }
