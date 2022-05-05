@@ -1,0 +1,11 @@
+{
+    "compilerOptions": {
+        "composite": true,
+        "resolveJsonModule": true,
+        "rootDir": "../../../"
+    },
+    "files": [
+        "../../../config.json",
+        "../../../package.json",
+    ]
+}

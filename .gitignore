@@ -1,8 +1,9 @@
 build/
+dist/
 node_modules/
 .pnpm-store/
 invite.url
-tsconfig.tsbuildinfo
+*.tsbuildinfo
 
 # base version present, up to the user for the rest
 config.json

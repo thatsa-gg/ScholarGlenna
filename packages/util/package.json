@@ -1,6 +1,9 @@
 {
     "name": "@glenna/util",
+    "type": "module",
     "private": true,
+    "main": "dist/index.js",
+    "types": "src/index.ts",
     "dependencies": {
         "@js-temporal/polyfill": "^0.4.1"
     }

@@ -1,9 +1,12 @@
 {
     "name": "@glenna/app",
+    "type": "module",
     "private": true,
     "dependencies": {
         "@glenna/api": "workspace:*",
         "@glenna/common": "workspace:*",
-        "fastify": "^3.29.0"
+        "@glenna/util": "workspace:*",
+        "fastify": "^3.29.0",
+        "node-fetch": "^3.2.4"
     }
 }

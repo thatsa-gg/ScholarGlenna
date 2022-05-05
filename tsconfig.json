@@ -1,5 +1,8 @@
 {
     "compilerOptions": {
+        "composite": true,
+        "disableSourceOfProjectReferenceRedirect": true,
+        "incremental": true,
         "resolveJsonModule": true,
         "alwaysStrict": true,
         "declaration": true,
@@ -24,16 +27,18 @@
         "experimentalDecorators": true,
         "lib": [
             "ES6"
-        ]
+        ],
+        /*"paths": {
+            "@glenna/api": [ "./packages/api/src" ],
+            "@glenna/app": [ "./packages/app/src" ],
+            "@glenna/bot": [ "./packages/bot/src" ],
+            "@glenna/common": [ "./packages/common/src" ],
+            "@glenna/util": [ "./packages/util/src" ]
+        }*/
     },
     "exclude": [
         "node_modules",
-        "**/*/dist",
-        "**/*/src"
-    ],
-    "files": [
-        "package.json",
-        "config.json"
+        "**/*/dist"
     ],
     "references": [
         { "path": "./packages/api/tsconfig.build.json" },

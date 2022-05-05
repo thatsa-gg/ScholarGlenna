@@ -25,13 +25,13 @@ App.get('/', async ({ query }, response) => {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 }
             })
-            const oauthData = await oauthRequest.json()
+            const oauthData = await oauthRequest.json() as any
             const userRequest = await fetch('https://discord.com/api/users/@me', {
                 headers: {
                     authorization: `${oauthData.token_type} ${oauthData.access_token}`
                 }
             })
-            const userdata = await userRequest.json()
+            const userdata = await userRequest.json() as any
             body = `Hello ${userdata.username}!<br/><img src="https://cdn.discordapp.com/avatars/${userdata.id}/${userdata.avatar}.png?size=64"/>`
         } catch(error){
             console.error(error)
