@@ -7,3 +7,6 @@ invite.url
 
 # base version present, up to the user for the rest
 config.json
+
+# junk
+.DS_Store

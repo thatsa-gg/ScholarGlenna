@@ -11,15 +11,15 @@ volumes:
 # 5. Start BOT
 # 6. Start APP
 services:
-    app:
-        env_file:
-            - .env
-    api:
-        env_file:
-            - .env
-    bot:
-        env_file:
-            - .env
+    #app:
+    #    env_file:
+    #        - .env
+    #api:
+    #    env_file:
+    #        - .env
+    #bot:
+    #    env_file:
+    #        - .env
     postgres:
         image: postgres:14.2-alpine
         env_file:

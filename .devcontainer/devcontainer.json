@@ -11,7 +11,8 @@
 		"dbaeumer.vscode-eslint",
 		"ms-azuretools.vscode-docker",
 		"EditorConfig.EditorConfig",
-		"eamodio.gitlens"
+		"eamodio.gitlens",
+		"svelte.svelte-vscode"
 	],
     "postCreateCommand": "make install",
     "remoteUser": "vscode",

@@ -1,7 +1,11 @@
 import { Temporal } from '@js-temporal/polyfill'
 import { readdir } from 'fs/promises'
 import { fileURLToPath } from 'url'
-import { dirname as pathDirname, resolve as pathResolve } from 'path/posix'
+import {
+    dirname as pathDirname,
+    resolve as pathResolve,
+    join as pathJoin
+} from 'path/posix'
 
 export function minutes(minutes: number): Temporal.Duration {
     return new Temporal.Duration(0, 0, 0, 0, 0, minutes, 0, 0, 0, 0)
@@ -49,11 +53,35 @@ export function resolve(meta: ImportMeta, path: string): string {
     return pathResolve(dirname(meta), path)
 }
 
-export async function load<T>(meta: ImportMeta, path: string): Promise<T[]> {
-    const directory = resolve(meta, path)
-    const files = await readdir(directory, { withFileTypes: true })
+export async function load<T>(meta: ImportMeta, path: string, recurse: boolean = false): Promise<T[]> {
+    const directory = [ resolve(meta, path) ]
+    const files: string[] = []
+    while(directory.length > 0){
+        const next = directory.shift()!
+        for(const file of await readdir(next, { withFileTypes: true })){
+            if(recurse && file.isDirectory())
+                directory.push(pathJoin(next, file.name))
+            else if(file.isFile() && file.name.endsWith('.js'))
+                files.push(pathResolve(next, file.name))
+        }
+    }
     const results = await Promise.all(files
-        .filter(a => a.isFile() && a.name.endsWith('.js'))
-        .map(a => import(pathResolve(directory, a.name)) as Promise<{ default: T }>))
+        .map(a => import(a) as Promise<{ default: T }>))
     return results.map(a => a.default)
+}
+
+export async function *loadAsync<T>(meta: ImportMeta, path: string, recurse: boolean = false): AsyncGenerator<T> {
+    const directory = [ resolve(meta, path) ]
+    while(directory.length > 0){
+        const next = directory.shift()!
+        for(const item of await readdir(next, { withFileTypes: true })){
+            const itemPath = pathJoin(next, item.name)
+            if(recurse && item.isDirectory())
+                directory.push(itemPath)
+            else if(item.isFile() && item.name.endsWith('.js')){
+                const content = await import(itemPath) as { default: T }
+                yield content.default
+            }
+        }
+    }
 }

@@ -23,7 +23,7 @@ Glenna.on('ready', async() => {
     Glenna.setMaxListeners(0)
     Glenna.user!.setActivity(`Starting up v.${VERSION}...`)
     await Glenna.user!.setUsername('ScholarGlenna')
-    await Glenna.user!.setAvatar(resolve(import.meta, '../../resources/avatars/glenna.png'))
+    await Glenna.user!.setAvatar(resolve(import.meta, '../../../resources/avatars/glenna.png'))
 
     log('Registering commands...')
     const guilds = Glenna.guilds.cache.map(g => g)
