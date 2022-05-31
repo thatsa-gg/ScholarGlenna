@@ -1,6 +1,6 @@
 TSC=npx tsc
 PROJECT=glenna
-.PHONY: all $(PROJECT) build clean run install svelte-dev svelte-build svelte-package svelte-preview svelte-prepare ts-build ts-dev
+.PHONY: all $(PROJECT) build clean run install svelte-dev svelte-build svelte-package svelte-preview svelte-prepare ts-build ts-dev init
 
 $(PROJECT): build
 all: clean install $(PROJECT)
@@ -15,6 +15,8 @@ install:
 clean:
 	find packages -type d -name node_modules -prune -o -type f -name *.tsbuildinfo -exec rm {} \;
 	rm -rf build packages/*/dist *.tsbuildinfo
+
+init: install
 
 ts-dev:
 	$(TSC) --watch
