@@ -33,16 +33,23 @@ importers:
 
   packages/app:
     specifiers:
+      '@glenna/common': workspace:*
       '@sveltejs/adapter-node': next
       '@sveltejs/kit': next
+      '@types/cookie': ^0.5.1
+      cookie: ^0.5.0
       svelte: ^3.44.0
       svelte-check: ^2.2.6
       svelte-preprocess: ^4.10.1
       tslib: ^2.3.1
       typescript: ~4.6.2
+    dependencies:
+      '@glenna/common': link:../common
+      cookie: 0.5.0
     devDependencies:
       '@sveltejs/adapter-node': 1.0.0-next.78
-      '@sveltejs/kit': 1.0.0-next.347_svelte@3.48.0
+      '@sveltejs/kit': 1.0.0-next.348_svelte@3.48.0
+      '@types/cookie': 0.5.1
       svelte: 3.48.0
       svelte-check: 2.7.1_svelte@3.48.0
       svelte-preprocess: 4.10.6_wwvk7nlptlrqo2czohjtk6eiqm
@@ -251,8 +258,8 @@ packages:
       tiny-glob: 0.2.9
     dev: true
 
-  /@sveltejs/kit/1.0.0-next.347_svelte@3.48.0:
-    resolution: {integrity: sha512-kxan2F8g9nM/4QzLINsPiZdLZLx6X2Tjg+Ft8KR2QPhHKCEQ3jlosnGTzmznt572PTg89UhiUhQWKK4IDk2nSA==}
+  /@sveltejs/kit/1.0.0-next.348_svelte@3.48.0:
+    resolution: {integrity: sha512-K9dfgzIbotWmbcdCsQ6ROGs9R+bsGWwmSdN6l6km1QV5esQehqg1UYHGD9q0VJsg4rJg/zmKVBYo0oBquSHPZw==}
     engines: {node: '>=16.7'}
     hasBin: true
     peerDependencies:
@@ -292,6 +299,10 @@ packages:
       vite: 2.9.9
     transitivePeerDependencies:
       - supports-color
+    dev: true
+
+  /@types/cookie/0.5.1:
+    resolution: {integrity: sha512-COUnqfB2+ckwXXSFInsFdOAWQzCCx+a5hq2ruyj+Vjund94RJQd4LG2u9hnvJrTgunKAaax7ancBYlDrNYxA0g==}
     dev: true
 
   /@types/node-fetch/2.6.1:
