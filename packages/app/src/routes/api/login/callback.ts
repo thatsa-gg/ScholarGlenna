@@ -13,17 +13,16 @@ type Params = {
 export const get: RequestHandler<Params> = async event => {
     const query = event.url.searchParams
     const code = query.get('code')!
-    const data: Record<string, string> = {
-        client_id: OAUTH_CLIENT_ID,
-        client_secret: OAUTH_CLIENT_SECRET,
-        grant_type: `authorization_code`,
-        redirect_uri: REDIRECT_URI,
-        code: code,
-        scope: AUTHORIZATION_SCOPES
-    }
     const request = await fetch(TOKEN_URI, {
         method: 'POST',
-        body: new URLSearchParams(data),
+        body: new URLSearchParams({
+            client_id: OAUTH_CLIENT_ID,
+            client_secret: OAUTH_CLIENT_SECRET,
+            grant_type: `authorization_code`,
+            redirect_uri: REDIRECT_URI,
+            code: code,
+            scope: AUTHORIZATION_SCOPES
+        }),
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded'
         }
@@ -35,8 +34,8 @@ export const get: RequestHandler<Params> = async event => {
         status: 302,
         headers: {
             'set-cookie': [
-                `access_token=${response.access_token}; Path=/; HttpOnly; SameSite=Strict; Expires=${accessExpiry}`,
-                `refresh_token=${response.refresh_token}; Path=/; HttpOnly; SameSite=Strict; Expires=${refreshExpiry}`,
+                `access_token=${response.access_token}; Path=/; HttpOnly; SameSite=Lax; Expires=${accessExpiry}`,
+                `refresh_token=${response.refresh_token}; Path=/; HttpOnly; SameSite=Lax; Expires=${refreshExpiry}`,
             ],
             Location: '/'
         }

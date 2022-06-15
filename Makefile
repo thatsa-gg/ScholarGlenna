@@ -24,7 +24,7 @@ ts-dev:
 ts-build:
 	$(TSC) --build
 
-svelte-dev:
+dev:
 	npm --prefix packages/app run dev
 
 svelte-build:

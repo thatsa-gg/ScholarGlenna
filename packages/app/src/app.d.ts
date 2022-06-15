@@ -2,13 +2,14 @@
 
 // See https://kit.svelte.dev/docs/types#app
 // for information about these interfaces
+type User = import('./lib/user').User
 declare namespace App {
-	interface Locals {
-        access_token?: string
+    interface Locals {
+        user?: User
     }
-	// interface Platform {}
-	interface Session {
-        user: false | import('./lib/user')
+    // interface Platform {}
+    interface Session {
+        user: false | User
     }
-	// interface Stuff {}
+    // interface Stuff {}
 }

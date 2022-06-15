@@ -17,15 +17,15 @@ export const get: RequestHandler = async event => {
                 error: 'No refresh token found'
             })
         }
-    const data: Record<string, string> = {
-        client_id: OAUTH_CLIENT_ID,
-        client_secret: OAUTH_CLIENT_SECRET,
-        grant_type: 'refresh_token',
-        code: refreshToken
-    }
+    console.log('refreshing with=', refreshToken)
     const request = await fetch(TOKEN_URI, {
         method: 'POST',
-        body: new URLSearchParams(data),
+        body: new URLSearchParams({
+            client_id: OAUTH_CLIENT_ID,
+            client_secret: OAUTH_CLIENT_SECRET,
+            grant_type: 'refresh_token',
+            refresh_token: refreshToken
+        }),
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded'
         }
@@ -37,18 +37,13 @@ export const get: RequestHandler = async event => {
             body: JSON.stringify({ response_error: response.error })
         }
     }
-    const accessExpiry = new Date(Date.now() + response.expires_in)
-    const refreshExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000)
     return {
         status: 200,
-        headers: {
-            'set-cookie': [
-                `access_token=${response.access_token}; Path=/; HttpOnly; SameSite=Strict; Expires=${accessExpiry}`,
-                `refresh_token=${response.refresh_token}; Path=/; HttpOnly; SameSite=Strict; Expires=${refreshExpiry}`,
-            ]
-        },
         body: JSON.stringify({
-            access_token: response.access_token
+            access_token: response.access_token,
+            refresh_token: response.refresh_token,
+            now: Date.now(),
+            expires_in: response.expires_in,
         })
     }
 }

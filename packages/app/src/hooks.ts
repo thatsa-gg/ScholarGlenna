@@ -1,49 +1,62 @@
-import type { GetSession } from '@sveltejs/kit'
-import type { User } from './lib/user'
+import type { GetSession, Handle } from '@sveltejs/kit'
 import { parse } from 'cookie'
+import { REFRESH_URI } from './lib/auth'
 
-/*export const handle: Handle = async ({ event, resolve }) => {
-    const cookies = parse(event.request.headers.get('cookie') ?? '')
-    event.locals['access_token'] = cookies['access_token']
-    return resolve(event)
-}*/
+const HANDLE_EXCLUDED_ROUTES = new Set<string>([
+    '/api/login',
+    '/api/login/callback',
+    '/api/login/refresh',
+    '/api/logout',
+])
 
-export const getSession: GetSession = async event => {
-    const { request } = event
-    const { headers } = request
-    const cookies = parse(event.request.headers.get('cookie') ?? '')
-    const refresh_token = cookies['refresh_token']
-    let access_token = cookies['access_token']
-    console.log({ headers })
-    if(refresh_token && !access_token){
-        const request = await fetch(`http://localhost:8080/api/login/refresh?code=${refresh_token}`)
-        console.log('refreshing:',request.status)
-        const response = await request.json()
-        console.log('refresh:',response)
-        if(response.access_token){
-            access_token = response.access_token
+export const handle: Handle = async ({ event, resolve }) => {
+    const { request, url, locals } = event
+    if(HANDLE_EXCLUDED_ROUTES.has(url.pathname))
+        return resolve(event)
+    const cookies = parse(request.headers.get('cookie') ?? '')
+    console.log('cookies', cookies)
+    const refreshToken = cookies['refresh_token']
+    let accessToken = cookies['access_token']
+    const newCookies = []
+    if(refreshToken && !accessToken){
+        const refresh = await fetch(`${REFRESH_URI}?code=${refreshToken}`)
+        const response = await refresh.json()
+        console.log('refreshing!', response)
+        if(response['access_token']){
+            accessToken = response['access_token']
+            newCookies.push(`access_token=${accessToken}; Path=/; HttpOnly; SameSite=Lax; Expires=${response['now'] + response['expires_in']}`)
+            if(response['refresh_token']){
+                newCookies.push(`refresh_token=${response['refresh_token']}; Path=/; HttpOnly; SameSite=Lax; Expires=${response['now'] + 24 * 60 * 60 * 1000}`)
+            }
         }
     }
-    if(access_token){
+
+    if(accessToken){
         const request = await fetch(`https://discord.com/api/v10/users/@me`, {
             headers: {
-                Authorization: `Bearer ${access_token}`
+                Authorization: `Bearer ${accessToken}`
             }
         })
         const response = await request.json()
-        console.log({ response })
         if(response.id){
-            return {
-                user: {
-                    id: response.id,
-                    username: response.userName,
-                    avatar: response.avatar,
-                    discriminator: response.discriminator
-                } as User
+            locals.user = {
+                id: response.id,
+                username: response.username,
+                avatar: response.avatar,
+                discriminator: response.discriminator
             }
         }
     }
+
+    const response = await resolve(event)
+    for(const cookie of newCookies)
+        response.headers.append('Set-Cookie', cookie)
+    return response
+}
+
+export const getSession: GetSession = async event => {
+    const { locals } = event
     return {
-        user: false
+        user: locals.user ?? false
     }
 }
