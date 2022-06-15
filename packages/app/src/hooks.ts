@@ -14,7 +14,6 @@ export const handle: Handle = async ({ event, resolve }) => {
     if(HANDLE_EXCLUDED_ROUTES.has(url.pathname))
         return resolve(event)
     const cookies = parse(request.headers.get('cookie') ?? '')
-    console.log('cookies', cookies)
     const refreshToken = cookies['refresh_token']
     let accessToken = cookies['access_token']
     const newCookies = []

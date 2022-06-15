@@ -1,17 +1,8 @@
 <script lang="ts" context="module">
-    import type { Load } from '@sveltejs/kit'
-    export const load: Load = ({ session }) => {
-        return {
-            props: {
-                user: session.user || false
-            }
-        }
-    }
+    import { session } from '$app/stores'
 </script>
 <script lang="ts">
-    import type { User } from '../lib/user'
-    export let user: User
-    console.log('user', user)
+    let user = $session.user
 </script>
 
 <h1>Welcome to SvelteKit</h1>

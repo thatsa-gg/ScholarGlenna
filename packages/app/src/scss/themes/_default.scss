@@ -1,0 +1,6 @@
+@mixin theme-default {
+    --primary-color: black;
+}
+:root {
+    @include theme-default();
+}
