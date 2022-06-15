@@ -1,9 +1,12 @@
 import type { RequestHandler } from '@sveltejs/kit'
 import {
     OAUTH_CLIENT_ID,
-    OAUTH_CLIENT_SECRET
-} from '@glenna/common'
-import { callbackUri } from './index'
+    OAUTH_CLIENT_SECRET,
+    REDIRECT_URI,
+    AUTHORIZATION_SCOPES,
+    TOKEN_URI
+} from '../../../lib/auth'
+
 export const get: RequestHandler = async event => {
     const query = event.url.searchParams
     const refreshToken = query.get('code')
@@ -20,7 +23,7 @@ export const get: RequestHandler = async event => {
         grant_type: 'refresh_token',
         code: refreshToken
     }
-    const request = await fetch('https://discord.com/api/oauth2/token', {
+    const request = await fetch(TOKEN_URI, {
         method: 'POST',
         body: new URLSearchParams(data),
         headers: {

@@ -1,9 +1,11 @@
 import type { RequestHandler } from '@sveltejs/kit'
 import {
     OAUTH_CLIENT_ID,
-    OAUTH_CLIENT_SECRET
-} from '@glenna/common'
-import { callbackUri } from './index'
+    OAUTH_CLIENT_SECRET,
+    REDIRECT_URI,
+    AUTHORIZATION_SCOPES,
+    TOKEN_URI
+} from '../../../lib/auth'
 
 type Params = {
     code: string
@@ -15,11 +17,11 @@ export const get: RequestHandler<Params> = async event => {
         client_id: OAUTH_CLIENT_ID,
         client_secret: OAUTH_CLIENT_SECRET,
         grant_type: `authorization_code`,
-        redirect_uri: callbackUri,
+        redirect_uri: REDIRECT_URI,
         code: code,
-        scope: 'identify guilds'
+        scope: AUTHORIZATION_SCOPES
     }
-    const request = await fetch('https://discord.com/api/oauth2/token', {
+    const request = await fetch(TOKEN_URI, {
         method: 'POST',
         body: new URLSearchParams(data),
         headers: {

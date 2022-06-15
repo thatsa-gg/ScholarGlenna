@@ -2,9 +2,5 @@
     "extends": "./config/tsconfig.base.json",
     "exclude": [ "./**/*" ],
     "references": [
-        { "path": "./packages/api/tsconfig.build.json" },
-        { "path": "./packages/bot/tsconfig.build.json" },
-        { "path": "./packages/common/tsconfig.build.json" },
-        { "path": "./packages/util/tsconfig.build.json" }
     ]
 }

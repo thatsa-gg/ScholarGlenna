@@ -38,3 +38,6 @@ svelte-preview:
 
 svelte-prepare:
 	npm --prefix packages/app run prepare
+
+sync:
+	npm --prefix packages/app run prepare

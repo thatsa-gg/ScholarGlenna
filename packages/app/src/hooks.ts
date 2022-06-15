@@ -1,4 +1,5 @@
-import type { GetSession, Handle } from '@sveltejs/kit'
+import type { GetSession } from '@sveltejs/kit'
+import type { User } from './lib/user'
 import { parse } from 'cookie'
 
 /*export const handle: Handle = async ({ event, resolve }) => {
@@ -8,12 +9,12 @@ import { parse } from 'cookie'
 }*/
 
 export const getSession: GetSession = async event => {
-    const { locals, request } = event
+    const { request } = event
     const { headers } = request
     const cookies = parse(event.request.headers.get('cookie') ?? '')
     const refresh_token = cookies['refresh_token']
     let access_token = cookies['access_token']
-    console.log({ locals, headers })
+    console.log({ headers })
     if(refresh_token && !access_token){
         const request = await fetch(`http://localhost:8080/api/login/refresh?code=${refresh_token}`)
         console.log('refreshing:',request.status)
@@ -26,7 +27,7 @@ export const getSession: GetSession = async event => {
     if(access_token){
         const request = await fetch(`https://discord.com/api/v10/users/@me`, {
             headers: {
-                Authorization: `Bearer ${locals.access_token}`
+                Authorization: `Bearer ${access_token}`
             }
         })
         const response = await request.json()
@@ -34,9 +35,11 @@ export const getSession: GetSession = async event => {
         if(response.id){
             return {
                 user: {
-                    // TODO: trim this down
-                    ...response
-                }
+                    id: response.id,
+                    username: response.userName,
+                    avatar: response.avatar,
+                    discriminator: response.discriminator
+                } as User
             }
         }
     }

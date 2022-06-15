@@ -6,7 +6,7 @@ invite.url
 *.tsbuildinfo
 
 # base version present, up to the user for the rest
-config.json
+config.env
 
 # junk
 .DS_Store

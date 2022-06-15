@@ -8,7 +8,7 @@ declare namespace App {
     }
 	// interface Platform {}
 	interface Session {
-        user: false | Record<string, string>
+        user: false | import('./lib/user')
     }
 	// interface Stuff {}
 }

@@ -1,7 +1,0 @@
-{
-    "name": "@glenna/common",
-    "type": "module",
-    "private": true,
-    "main": "dist/index.js",
-    "types": "src/index.ts"
-}
