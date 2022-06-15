@@ -17,7 +17,6 @@ export const get: RequestHandler = async event => {
                 error: 'No refresh token found'
             })
         }
-    console.log('refreshing with=', refreshToken)
     const request = await fetch(TOKEN_URI, {
         method: 'POST',
         body: new URLSearchParams({

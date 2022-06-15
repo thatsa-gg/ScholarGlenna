@@ -20,7 +20,6 @@ export const handle: Handle = async ({ event, resolve }) => {
     if(refreshToken && !accessToken){
         const refresh = await fetch(`${REFRESH_URI}?code=${refreshToken}`)
         const response = await refresh.json()
-        console.log('refreshing!', response)
         if(response['access_token']){
             accessToken = response['access_token']
             newCookies.push(`access_token=${accessToken}; Path=/; HttpOnly; SameSite=Lax; Expires=${response['now'] + response['expires_in']}`)
