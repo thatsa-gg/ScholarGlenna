@@ -21,12 +21,3 @@ export const AUTHORIZATION_SCOPES: string = [
     'identify',
     'guilds',
 ].join(' ')
-
-export const session = writable(null)
-export const logout = () => {
-    // TODO
-    session.set(null)
-}
-export const login = () => {
-    // TODO
-}

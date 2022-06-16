@@ -1,6 +1,6 @@
 <script lang="ts">
     import Fa from 'svelte-fa'
-    import { faDiscord } from '@fortawesome/free-brands-svg-icons'
+    import { faDiscord } from '@fortawesome/free-brands-svg-icons/index.es'
 </script>
 <div>
     <a
