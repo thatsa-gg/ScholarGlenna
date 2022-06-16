@@ -1,21 +1,29 @@
 {
-    "name": "Glenna",
-    "build": {
-        "dockerfile": "Dockerfile",
-        "args": {
-            "VARIANT": "bullseye"
+    "name": "Docker from Docker Compose",
+    "dockerComposeFile": [
+        "../docker/db.docker-compose.yml",
+        "docker-compose.yml"
+    ],
+    "service": "devcontainer",
+    "workspaceFolder": "/workspace",
+    "remoteEnv": {
+        "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "dbaeumer.vscode-eslint",
+                "ms-azuretools.vscode-docker",
+                "EditorConfig.EditorConfig",
+                "eamodio.gitlens",
+                "svelte.svelte-vscode"
+            ]
         }
     },
-    "settings": {},
-    "extensions": [
-		"dbaeumer.vscode-eslint",
-		"ms-azuretools.vscode-docker",
-		"EditorConfig.EditorConfig",
-		"eamodio.gitlens",
-		"svelte.svelte-vscode"
-	],
+
+    "forwardPorts": [
+        8080
+    ],
     "postCreateCommand": "make install",
-    "remoteUser": "vscode",
-    "runArgs": ["--init", "--privileged"],
-    "overrideCommand": false
+    "remoteUser": "vscode"
 }

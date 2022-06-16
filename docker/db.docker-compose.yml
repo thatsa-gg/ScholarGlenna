@@ -2,24 +2,7 @@ version: '3'
 volumes:
     sql-db:
     redis-db:
-
-# TODO:
-# 1. Start DB, redis
-# 2. Start init
-# 3. init performs migration
-# 4. Start API
-# 5. Start BOT
-# 6. Start APP
 services:
-    #app:
-    #    env_file:
-    #        - .env
-    #api:
-    #    env_file:
-    #        - .env
-    #bot:
-    #    env_file:
-    #        - .env
     postgres:
         image: postgres:14.2-alpine
         env_file:
@@ -30,11 +13,17 @@ services:
               source: sql-db
               target: /var/lib/postgresql/data
     redis:
-        image: 7.0-alpine
-        # TODO: redis args (cmdline)
+        image: redis:7.0-alpine
+        ports:
+            - '6379:6379'
+        expose:
+            - 6379
+        command: ["redis-server"]
+        hostname: redis
         env_file:
             - .env
             - redis.env
         volumes:
             - type: volume
               source: redis-db
+              target: /data

@@ -1,3 +1,6 @@
+## Dev Notes
+- You ***need*** to copy `config-sample.env` to `config.env` and initialize the variables to launch the dev container.
+
 ## components
 
 - Web App
