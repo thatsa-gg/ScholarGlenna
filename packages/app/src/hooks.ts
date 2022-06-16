@@ -52,7 +52,7 @@ export const handle: Handle = async ({ event, resolve }) => {
     return response
 }
 
-export const getSession: GetSession = async event => {
+export const getSession: GetSession = event => {
     const { locals } = event
     return {
         user: locals.user ?? false

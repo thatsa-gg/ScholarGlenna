@@ -2,8 +2,6 @@ import type { RequestHandler } from '@sveltejs/kit'
 import {
     OAUTH_CLIENT_ID,
     OAUTH_CLIENT_SECRET,
-    REDIRECT_URI,
-    AUTHORIZATION_SCOPES,
     TOKEN_URI
 } from '../../../lib/auth'
 

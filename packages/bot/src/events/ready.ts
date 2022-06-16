@@ -8,15 +8,15 @@ import { updateStatus } from '../status'
 export default listener('ready', {
     once: true,
     async execute(client){
-        log('Beginning startup...')
+        info('Beginning startup...')
         client.setMaxListeners(Infinity)
         client.user.setActivity(`Starting up v.${VERSION}`)
         await client.user.setUsername('ScholarGlenna')
 
-        log('Registering commands...')
+        info('Registering commands...')
         const guilds = client.guilds.cache.map(g => g)
         for(const { id, name } of guilds){
-            info(`\tRegistering commands on: ${name}`)
+            log(`\tRegistering commands on: ${name}`)
             await registerCommands({
                 token: DISCORD_TOKEN,
                 clientId: OAUTH_CLIENT_ID,
@@ -24,9 +24,9 @@ export default listener('ready', {
             })
         }
 
-        log('Initializing status...')
+        info('Initializing status...')
         start(updateStatus(client.user))
 
-        log('Startup complete!')
+        info('Startup complete!')
     }
 })
