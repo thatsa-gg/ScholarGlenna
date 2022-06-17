@@ -30,6 +30,7 @@ export const handle: Handle = async ({ event, resolve }) => {
     }
 
     if(accessToken){
+        // TODO: fetch or create user account here. Cache user account data.
         const request = await fetch(`https://discord.com/api/v10/users/@me`, {
             headers: {
                 Authorization: `Bearer ${accessToken}`

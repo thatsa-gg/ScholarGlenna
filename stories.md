@@ -1,4 +1,30 @@
 # I am a...
+## Developer, and I want to...
+- Deploy a new version of the app
+- Deploy a new version of the bot
+- Deploy a test instance of the app and bot
+
+## Discord Server Owner, and I want to...
+- Create a Guild in the app.
+    1. Invite the bot.
+    2. The bot scrapes the server for users and roles.
+        - Roles with permission to update user roles can manage statics (guild moderators).
+    3. The bot posts a link to the Guild on the app in the system message channel, or the first channel it has write access to.
+- Remove my Guild from the app.
+    1. Kick the bot.
+    2. Go to the Guild on the app. Access the settings, then "delete".
+    3. Confirm deletion.
+- Delegate guild-level permissions (admin group).
+- Perform all actions of Guild Moderators.
+
+## Guild Moderator, and I want to...
+- Create a new Team.
+- Remove a Team.
+- Add a user to a Team.
+- Remove a user from a Team.
+- Approve a user request to join a Team.
+- Deny a user request to join a team.
+
 ## Administrator, and I want to...
 ### Ban a User
 ### Ban a Server
