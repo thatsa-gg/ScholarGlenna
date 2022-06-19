@@ -1,12 +1,20 @@
 import type { RequestHandler } from '@sveltejs/kit'
+import { destroySession } from '$lib/session'
+import { parse } from 'cookie'
 
-export const get: RequestHandler = async() => ({
-    status: 302,
-    headers: {
-        Location: '/',
-        'set-cookie': [
-            `access_token=deleted; Path=/; Max-Age=-1`,
-            `refresh_token=deleted; Path=/; Max-Age=-1`,
-        ]
+// TODO: destroy session in redis
+export const get: RequestHandler = async event => {
+    const cookies = parse(event.request.headers.get('cookie') ?? '')
+    const sessionID = cookies['session_id']
+    if(sessionID)
+        await destroySession(sessionID)
+    return {
+        status: 302,
+        headers: {
+            Location: '/',
+            'set-cookie': [
+                `session_id=deleted; Path=/; HttpOnly; SameSite=Lax; Max-Age=-1`
+            ]
+        }
     }
-})
+}

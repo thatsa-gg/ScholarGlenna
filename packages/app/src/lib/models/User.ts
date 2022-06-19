@@ -1,3 +1,4 @@
+import 'reflect-metadata'
 import type { DiscordUserInfo } from '$lib/discord-rest'
 import type { APIUser } from 'discord-api-types/v10'
 import { Entity, Index, Column, PrimaryGeneratedColumn } from 'typeorm'
@@ -8,7 +9,7 @@ export class User {
     id: number = null!
 
     @Index({ unique: true })
-    @Column()
+    @Column({ type: 'varchar' })
     snowflake: APIUser['id'] = null!
 
     @Column({ type: 'varchar', length: 32 })
@@ -17,7 +18,7 @@ export class User {
     @Column({ type: 'char', length: 4 })
     discriminator: APIUser['discriminator'] = null!
 
-    @Column()
+    @Column({ type: 'varchar' })
     avatar: APIUser['avatar'] = null
 
     constructor(info?: DiscordUserInfo){

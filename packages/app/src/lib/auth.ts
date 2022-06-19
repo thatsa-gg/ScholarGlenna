@@ -57,3 +57,27 @@ export async function authorizeUser(code: string | null): Promise<Authorization>
         expires_in: response.expires_in
     }
 }
+
+export type Reauthorization = Partial<Authorization> & Omit<Authorization, 'refresh_token'>
+export async function reauthorizeUser(refreshToken: string): Promise<Reauthorization> {
+    const request = await fetch(TOKEN_URI, {
+        method: 'POST',
+        body: new URLSearchParams({
+            client_id: OAUTH_CLIENT_ID,
+            client_secret: OAUTH_CLIENT_SECRET,
+            grant_type: 'refresh_token',
+            refresh_token: refreshToken
+        }),
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+    })
+    const response = await request.json()
+    if(response.error)
+        throw new Error(response.error)
+    return {
+        access_token: response.access_token,
+        refresh_token: response.refresh_token || refreshToken,
+        expires_in: response.expires_in
+    }
+}
