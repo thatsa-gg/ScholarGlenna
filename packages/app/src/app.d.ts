@@ -2,7 +2,7 @@
 
 // See https://kit.svelte.dev/docs/types#app
 // for information about these interfaces
-type User = import('./lib/user').User
+type User = import('./lib/user').IUser
 declare namespace App {
     interface Locals {
         user?: User

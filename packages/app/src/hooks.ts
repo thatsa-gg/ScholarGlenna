@@ -1,6 +1,7 @@
 import type { GetSession, Handle } from '@sveltejs/kit'
 import { parse } from 'cookie'
 import { REFRESH_URI } from './lib/auth'
+import { getUserInfo } from './lib/discord-rest'
 
 const HANDLE_EXCLUDED_ROUTES = new Set<string>([
     '/api/login',
@@ -29,24 +30,8 @@ export const handle: Handle = async ({ event, resolve }) => {
         }
     }
 
-    if(accessToken){
-        // TODO: fetch or create user account here. Cache user account data.
-        const request = await fetch(`https://discord.com/api/v10/users/@me`, {
-            headers: {
-                Authorization: `Bearer ${accessToken}`
-            }
-        })
-        const response = await request.json()
-        if(response.id){
-            locals.user = {
-                id: response.id,
-                username: response.username,
-                avatar: response.avatar,
-                discriminator: response.discriminator
-            }
-        }
-    }
-
+    if(accessToken)
+        locals.user = await getUserInfo(accessToken)
     const response = await resolve(event)
     for(const cookie of newCookies)
         response.headers.append('Set-Cookie', cookie)

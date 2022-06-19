@@ -1,43 +1,33 @@
 import type { RequestHandler } from '@sveltejs/kit'
-import {
-    OAUTH_CLIENT_ID,
-    OAUTH_CLIENT_SECRET,
-    REDIRECT_URI,
-    AUTHORIZATION_SCOPES,
-    TOKEN_URI
-} from '../../../lib/auth'
+import { authorizeUser } from '$lib/auth'
+import { createSession } from '$lib/session'
 
 type Params = {
     code: string
 }
 export const get: RequestHandler<Params> = async event => {
     const query = event.url.searchParams
-    const code = query.get('code')!
-    const request = await fetch(TOKEN_URI, {
-        method: 'POST',
-        body: new URLSearchParams({
-            client_id: OAUTH_CLIENT_ID,
-            client_secret: OAUTH_CLIENT_SECRET,
-            grant_type: `authorization_code`,
-            redirect_uri: REDIRECT_URI,
-            code: code,
-            scope: AUTHORIZATION_SCOPES
-        }),
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
+    const code = query.get('code') ?? null
+    try {
+        const authorization = await authorizeUser(code)
+        const session = await createSession(authorization)
+        const accessExpiry = new Date(Date.now() + authorization.expires_in)
+        const refreshExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000)
+        return {
+            status: 302,
+            headers: {
+                'set-cookie': [
+                    `access_token=${authorization.access_token}; Path=/; HttpOnly; SameSite=Lax; Expires=${accessExpiry}`,
+                    `refresh_token=${authorization.refresh_token}; Path=/; HttpOnly; SameSite=Lax; Expires=${refreshExpiry}`,
+                ],
+                Location: '/'
+            }
         }
-    })
-    const response = await request.json()
-    const accessExpiry = new Date(Date.now() + response.expires_in)
-    const refreshExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000)
-    return {
-        status: 302,
-        headers: {
-            'set-cookie': [
-                `access_token=${response.access_token}; Path=/; HttpOnly; SameSite=Lax; Expires=${accessExpiry}`,
-                `refresh_token=${response.refresh_token}; Path=/; HttpOnly; SameSite=Lax; Expires=${refreshExpiry}`,
-            ],
-            Location: '/'
+    } catch(error){
+        return {
+            status: 500,
+            body: (error as Error).message
         }
+        // TODO
     }
 }
