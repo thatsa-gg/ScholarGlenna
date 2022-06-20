@@ -15,42 +15,34 @@ importers:
       '@discordjs/rest': ^0.5.0
       '@fortawesome/fontawesome-svg-core': ^6.1.1
       '@fortawesome/free-brands-svg-icons': ^6.1.1
+      '@glenna/common': workspace:*
       '@sveltejs/adapter-node': next
       '@sveltejs/kit': next
       '@types/cookie': ^0.5.1
-      '@types/uuid': ^8.3.4
       cookie: ^0.5.0
       discord-api-types: ^0.34.0
       dotenv: ^16.0.1
-      pg: ^8.7.3
       redis: ^4.1.0
-      reflect-metadata: ^0.1.13
       sass: ^1.49.11
       svelte: ^3.44.0
       svelte-check: ^2.7.1
       svelte-fa: ^3.0.2
       svelte-preprocess: ^4.10.5
       tslib: ^2.3.1
-      typeorm: ^0.3.6
       typescript: ^4.7.2
-      uuid: ^8.3.2
     dependencies:
       '@discordjs/rest': 0.5.0
       '@fortawesome/fontawesome-svg-core': 6.1.1
       '@fortawesome/free-brands-svg-icons': 6.1.1
+      '@glenna/common': link:../common
       cookie: 0.5.0
       discord-api-types: 0.34.0
       dotenv: 16.0.1
-      pg: 8.7.3
       redis: 4.1.0
-      reflect-metadata: 0.1.13
-      typeorm: 0.3.6_pg@8.7.3+redis@4.1.0
-      uuid: 8.3.2
     devDependencies:
       '@sveltejs/adapter-node': 1.0.0-next.78
       '@sveltejs/kit': 1.0.0-next.350_sass@1.52.3+svelte@3.48.0
       '@types/cookie': 0.5.1
-      '@types/uuid': 8.3.4
       sass: 1.52.3
       svelte: 3.48.0
       svelte-check: 2.7.2_sass@1.52.3+svelte@3.48.0
@@ -74,6 +66,23 @@ importers:
       discord-api-types: 0.32.1
       discord.js: 13.8.0
       typeorm: 0.3.6
+
+  packages/common:
+    specifiers:
+      '@types/uuid': ^8.3.4
+      discord-api-types: ^0.34.0
+      pg: ^8.7.3
+      reflect-metadata: ^0.1.13
+      typeorm: ^0.3.6
+      uuid: ^8.3.2
+    dependencies:
+      discord-api-types: 0.34.0
+      pg: 8.7.3
+      reflect-metadata: 0.1.13
+      typeorm: 0.3.6_pg@8.7.3
+      uuid: 8.3.2
+    devDependencies:
+      '@types/uuid': 8.3.4
 
   packages/util:
     specifiers:
@@ -1656,7 +1665,7 @@ packages:
       - supports-color
     dev: false
 
-  /typeorm/0.3.6_pg@8.7.3+redis@4.1.0:
+  /typeorm/0.3.6_pg@8.7.3:
     resolution: {integrity: sha512-DRqgfqcelMiGgWSMbBmVoJNFN2nPNA3EeY2gC324ndr2DZoGRTb9ILtp2oGVGnlA+cu5zgQ6it5oqKFNkte7Aw==}
     engines: {node: '>= 12.9.0'}
     hasBin: true
@@ -1726,7 +1735,6 @@ packages:
       js-yaml: 4.1.0
       mkdirp: 1.0.4
       pg: 8.7.3
-      redis: 4.1.0
       reflect-metadata: 0.1.13
       sha.js: 2.4.11
       tslib: 2.4.0

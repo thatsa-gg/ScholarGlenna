@@ -1,7 +1,13 @@
 import 'reflect-metadata'
-import type { DiscordUserInfo } from '$lib/discord-rest'
 import type { APIUser } from 'discord-api-types/v10'
 import { Entity, Index, Column, PrimaryGeneratedColumn } from 'typeorm'
+
+export interface DiscordUserInfo {
+    id: string
+    username: string
+    discriminator: string
+    avatar: string
+}
 
 @Entity()
 export class User {

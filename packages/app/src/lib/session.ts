@@ -1,8 +1,6 @@
-import type { UUID } from './UUID'
-import { authorizeUser, reauthorizeUser, REFRESH_URI, type Authorization } from './auth'
-import { createUUID } from './UUID'
+import { Users, UUID } from '@glenna/common'
+import { reauthorizeUser, type Authorization } from './auth'
 import { client } from './redis'
-import { Users } from './database'
 import { getUserInfo } from './discord-rest'
 
 export interface Session {
@@ -24,7 +22,7 @@ export type SessionID = UUID & { __TYPE__: 'SessionID' }
 export const SESSION_EXPIRATION_DURATION_SECONDS = 30 * 24 * 60 * 60
 
 export async function createSession(authorization: Authorization): Promise<Required<Session>> {
-    const sessionID = createUUID() as SessionID
+    const sessionID = UUID.create() as SessionID
     const [ accessKey, refreshKey, userKey ] = getKeys(sessionID)
     const discordUser = await getUserInfo(authorization.access_token)
     const appUser = await Users.findOrCreate(discordUser)

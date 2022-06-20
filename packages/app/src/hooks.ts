@@ -1,4 +1,6 @@
-import 'reflect-metadata'
+import { initializeDatabase } from '@glenna/common'
+await initializeDatabase()
+
 import type { GetSession, Handle } from '@sveltejs/kit'
 import { parse } from 'cookie'
 import { getUserInfo } from '$lib/discord-rest'
