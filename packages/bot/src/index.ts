@@ -1,5 +1,5 @@
 import { log, info, error } from 'console'
-import { DISCORD_TOKEN, VERSION } from './config'
+import { DISCORD_TOKEN, VERSION } from './config.js'
 
 import { Client, Intents } from 'discord.js'
 import { load } from '@glenna/util'
@@ -13,7 +13,8 @@ export const Glenna: Client = new Client({
         Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
     ]
 })
-
+//Glenna.on('guildCreate', guild => console.log('joining guild', guild))
+//Glenna.on('apiResponse', (_request, response) => console.log('received API response', response))
 log('Registering events...')
 for(const { name, once, execute } of await load<EventListener | EventListener[]>(import.meta, './events').then(a => a.flat())){
     log(`\tRegistering handler for event "${name}"${!once?'':' (once)'}`)

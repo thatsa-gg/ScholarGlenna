@@ -1,4 +1,4 @@
-import { SlashSubcommand } from "../../SlashCommand";
+import { SlashSubcommand } from '../../SlashCommand.js'
 
 export default new SlashSubcommand({
     name: 'github',

@@ -22,7 +22,6 @@ importers:
       cookie: ^0.5.0
       discord-api-types: ^0.34.0
       dotenv: ^16.0.1
-      redis: ^4.1.0
       sass: ^1.49.11
       svelte: ^3.44.0
       svelte-check: ^2.7.1
@@ -38,7 +37,6 @@ importers:
       cookie: 0.5.0
       discord-api-types: 0.34.0
       dotenv: 16.0.1
-      redis: 4.1.0
     devDependencies:
       '@sveltejs/adapter-node': 1.0.0-next.78
       '@sveltejs/kit': 1.0.0-next.350_sass@1.52.3+svelte@3.48.0
@@ -58,28 +56,28 @@ importers:
       '@glenna/util': workspace:*
       discord-api-types: ^0.32.1
       discord.js: ^13.6.0
-      typeorm: ^0.3.6
     dependencies:
       '@discordjs/builders': 0.13.0
       '@discordjs/rest': 0.4.1
       '@glenna/util': link:../util
       discord-api-types: 0.32.1
       discord.js: 13.8.0
-      typeorm: 0.3.6
 
   packages/common:
     specifiers:
       '@types/uuid': ^8.3.4
       discord-api-types: ^0.34.0
       pg: ^8.7.3
+      redis: ^4.1.0
       reflect-metadata: ^0.1.13
       typeorm: ^0.3.6
       uuid: ^8.3.2
     dependencies:
       discord-api-types: 0.34.0
       pg: 8.7.3
+      redis: 4.1.0
       reflect-metadata: 0.1.13
-      typeorm: 0.3.6_pg@8.7.3
+      typeorm: 0.3.6_pg@8.7.3+redis@4.1.0
       uuid: 8.3.2
     devDependencies:
       '@types/uuid': 8.3.4
@@ -1586,86 +1584,7 @@ packages:
   /tslib/2.4.0:
     resolution: {integrity: sha512-d6xOpEDfsi2CZVlPQzGeux8XMwLT9hssAsaPYExaQMuYskwb+x1x7J371tWlbBdWHroy99KnVB6qIkUbs5X3UQ==}
 
-  /typeorm/0.3.6:
-    resolution: {integrity: sha512-DRqgfqcelMiGgWSMbBmVoJNFN2nPNA3EeY2gC324ndr2DZoGRTb9ILtp2oGVGnlA+cu5zgQ6it5oqKFNkte7Aw==}
-    engines: {node: '>= 12.9.0'}
-    hasBin: true
-    peerDependencies:
-      '@google-cloud/spanner': ^5.18.0
-      '@sap/hana-client': ^2.11.14
-      better-sqlite3: ^7.1.2
-      hdb-pool: ^0.1.6
-      ioredis: ^4.28.3
-      mongodb: ^3.6.0
-      mssql: ^6.3.1
-      mysql2: ^2.2.5
-      oracledb: ^5.1.0
-      pg: ^8.5.1
-      pg-native: ^3.0.0
-      pg-query-stream: ^4.0.0
-      redis: ^3.1.1 || ^4.0.0
-      sql.js: ^1.4.0
-      sqlite3: ^5.0.2
-      ts-node: ^10.7.0
-      typeorm-aurora-data-api-driver: ^2.0.0
-    peerDependenciesMeta:
-      '@google-cloud/spanner':
-        optional: true
-      '@sap/hana-client':
-        optional: true
-      better-sqlite3:
-        optional: true
-      hdb-pool:
-        optional: true
-      ioredis:
-        optional: true
-      mongodb:
-        optional: true
-      mssql:
-        optional: true
-      mysql2:
-        optional: true
-      oracledb:
-        optional: true
-      pg:
-        optional: true
-      pg-native:
-        optional: true
-      pg-query-stream:
-        optional: true
-      redis:
-        optional: true
-      sql.js:
-        optional: true
-      sqlite3:
-        optional: true
-      ts-node:
-        optional: true
-      typeorm-aurora-data-api-driver:
-        optional: true
-    dependencies:
-      '@sqltools/formatter': 1.2.3
-      app-root-path: 3.0.0
-      buffer: 6.0.3
-      chalk: 4.1.2
-      cli-highlight: 2.1.11
-      date-fns: 2.28.0
-      debug: 4.3.4
-      dotenv: 16.0.1
-      glob: 7.2.3
-      js-yaml: 4.1.0
-      mkdirp: 1.0.4
-      reflect-metadata: 0.1.13
-      sha.js: 2.4.11
-      tslib: 2.4.0
-      uuid: 8.3.2
-      xml2js: 0.4.23
-      yargs: 17.5.1
-    transitivePeerDependencies:
-      - supports-color
-    dev: false
-
-  /typeorm/0.3.6_pg@8.7.3:
+  /typeorm/0.3.6_pg@8.7.3+redis@4.1.0:
     resolution: {integrity: sha512-DRqgfqcelMiGgWSMbBmVoJNFN2nPNA3EeY2gC324ndr2DZoGRTb9ILtp2oGVGnlA+cu5zgQ6it5oqKFNkte7Aw==}
     engines: {node: '>= 12.9.0'}
     hasBin: true
@@ -1735,6 +1654,7 @@ packages:
       js-yaml: 4.1.0
       mkdirp: 1.0.4
       pg: 8.7.3
+      redis: 4.1.0
       reflect-metadata: 0.1.13
       sha.js: 2.4.11
       tslib: 2.4.0

@@ -1,9 +1,9 @@
-import { listener } from '../EventListener'
-import { DISCORD_TOKEN, OAUTH_CLIENT_ID, VERSION } from '../config'
+import { listener } from '../EventListener.js'
+import { DISCORD_TOKEN, OAUTH_CLIENT_ID, VERSION } from '../config.js'
 import { info, log } from 'console'
 import { start } from '@glenna/util'
-import { registerCommands } from '../commands'
-import { updateStatus } from '../status'
+import { registerCommands } from '../commands.js'
+import { updateStatus } from '../status.js'
 
 export default listener('ready', {
     once: true,

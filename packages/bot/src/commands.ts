@@ -1,5 +1,5 @@
 import { Collection } from "discord.js"
-import type { SlashCommand } from "./SlashCommand"
+import type { SlashCommand } from "./SlashCommand.js"
 import { REST as RESTClient } from '@discordjs/rest'
 import { RESTPostAPIApplicationCommandsJSONBody, Routes } from 'discord-api-types/v9'
 import { load } from '@glenna/util'

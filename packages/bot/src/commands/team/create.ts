@@ -1,5 +1,5 @@
-import { ChannelType } from "discord-api-types/v10";
-import { SlashSubcommand } from "../../SlashCommand";
+import { ChannelType } from 'discord-api-types/v10'
+import { SlashSubcommand } from '../../SlashCommand.js'
 
 export default new SlashSubcommand({
     name: 'create',

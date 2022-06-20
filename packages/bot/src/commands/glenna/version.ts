@@ -1,5 +1,5 @@
-import { VERSION } from '../../config'
-import { SlashSubcommand } from '../../SlashCommand'
+import { VERSION } from '../../config.js'
+import { SlashSubcommand } from '../../SlashCommand.js'
 
 export default new SlashSubcommand({
     name: 'version',

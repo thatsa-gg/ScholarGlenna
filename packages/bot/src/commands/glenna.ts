@@ -1,6 +1,6 @@
-import { SlashCommandBuilder } from "@discordjs/builders"
-import type { CommandInteraction } from "discord.js"
-import { SlashCommand, SlashSubcommand } from "../SlashCommand"
+import { SlashCommandBuilder } from '@discordjs/builders'
+import type { CommandInteraction } from 'discord.js'
+import { SlashCommand, SlashSubcommand } from '../SlashCommand.js'
 import { load } from '@glenna/util'
 
 const data = new SlashCommandBuilder()

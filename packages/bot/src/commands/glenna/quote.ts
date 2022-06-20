@@ -1,4 +1,4 @@
-import { SlashSubcommand } from '../../SlashCommand'
+import { SlashSubcommand } from '../../SlashCommand.js'
 import { randomFrom } from '@glenna/util'
 
 export default new SlashSubcommand({

@@ -1,5 +1,5 @@
-import { listener } from '../EventListener'
-import { Commands } from '../commands'
+import { listener } from '../EventListener.js'
+import { Commands } from '../commands.js'
 import { error } from 'console'
 
 export default listener('interactionCreate', {

@@ -10,4 +10,4 @@ export const OAUTH_CLIENT_ID: string = _OAUTH_CLIENT_ID
 export const OAUTH_CLIENT_SECRET: string = _OAUTH_CLIENT_SECRET
 export const DISCORD_TOKEN: string = _DISCORD_TOKEN
 
-export const VERSION = require('../../../package.json').VERSION
+export const VERSION = "0.0.1" // TODO: load this from the package.json

@@ -1,6 +1,6 @@
 import { sleep, minutes, range, random, randomFrom } from '@glenna/util'
 import type { ClientUser } from 'discord.js'
-import { VERSION } from './config'
+import { VERSION } from './config.js'
 const statuses = [
     `Now updated to version ${VERSION}!`,
     `Why not browse my inventory while you're here?`,

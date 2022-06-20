@@ -9,8 +9,8 @@ import { getSession as getSessionState } from '$lib/session'
 const HANDLE_EXCLUDED_ROUTES = new Set<string>([
     '/api/login',
     '/api/login/callback',
-    '/api/login/refresh',
     '/api/logout',
+    '/api/invite',
 ])
 
 export const handle: Handle = async ({ event, resolve }) => {

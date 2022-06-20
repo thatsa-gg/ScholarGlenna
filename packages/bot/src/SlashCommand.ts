@@ -1,6 +1,6 @@
-import type { SlashCommandSubcommandBuilder } from "@discordjs/builders";
-import type { RESTPostAPIApplicationCommandsJSONBody } from "discord-api-types/v9";
-import type { CommandInteraction } from "discord.js";
+import type { SlashCommandSubcommandBuilder } from '@discordjs/builders'
+import type { RESTPostAPIApplicationCommandsJSONBody } from 'discord-api-types/v9'
+import type { CommandInteraction } from 'discord.js'
 
 export class SlashCommand {
     data: { name: string, toJSON(): RESTPostAPIApplicationCommandsJSONBody }

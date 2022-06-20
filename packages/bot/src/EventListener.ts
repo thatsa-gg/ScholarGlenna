@@ -6,7 +6,7 @@ export class EventListener<K extends keyof ClientEvents = keyof ClientEvents> {
     execute: (...args: ClientEvents[K]) => Awaitable<void>
     constructor(args: Required<EventListener<K>>){
         this.name = args.name
-        this.once = args.once ?? false
+        this.once = args.once
         this.execute = args.execute
     }
 }
@@ -14,7 +14,7 @@ export class EventListener<K extends keyof ClientEvents = keyof ClientEvents> {
 export function listener<K extends keyof ClientEvents>(name: K, options: Omit<EventListener<K>, "name">){
     return new EventListener<K>({
         name,
-        once: options.once ?? false,
+        once: options.once || false,
         execute: options.execute
     })
 }
