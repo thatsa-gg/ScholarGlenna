@@ -1,5 +1,6 @@
 import { DataSource } from 'typeorm'
-import { User, DiscordUserInfo } from '../models/User.js'
+import * as User from '../models/User.js'
+import * as Guild from '../models/Guild.js'
 
 import {
     POSTGRES_HOST,
@@ -16,19 +17,15 @@ export const AppDataSource = await new DataSource({
     password: POSTGRES_PASSWORD,
     database: POSTGRES_DB,
     entities: [
-        User,
+        User.User,
+        Guild.Guild,
     ],
     synchronize: true, // TODO: disable this for production
     logging: false,
 }).initialize()
 
 export { User, DiscordUserInfo } from '../models/User.js'
-export const Users = AppDataSource.getRepository(User).extend({
-    async findOrCreate(info: DiscordUserInfo): Promise<User> {
-        // TODO: make this more efficient and use a stored procedure
-        const user = await this.findOneBy({ snowflake: info.id })
-        if(user)
-            return user
-        return await this.save(new User(info))
-    }
-})
+export const Users = User.getRepository(AppDataSource)
+
+export { Guild } from '../models/Guild.js'
+export const Guilds = Guild.getRepository(AppDataSource)

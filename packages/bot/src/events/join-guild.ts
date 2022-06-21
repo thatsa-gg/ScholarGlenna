@@ -1,3 +1,4 @@
+import { Guilds } from '@glenna/common'
 import { listener } from '../EventListener.js'
 import { registerCommands } from '../commands.js'
 import { DISCORD_TOKEN, OAUTH_CLIENT_ID } from '../config.js'
@@ -6,7 +7,8 @@ import { log, info } from 'console'
 export default listener('guildCreate', {
     async execute(guild){
         log(`Joining guild: "${guild.name}" (${guild.id})`)
-        // TODO: fetch and store guild and member data
+        const guildEntity = await Guilds.findOrCreate(guild)
+        log(`Created guild: ${guildEntity.id} = ${guildEntity.snowflake}`)
         log(`Registering commands on "${guild.name}" (${guild.id})`)
         await registerCommands({
             token: DISCORD_TOKEN,

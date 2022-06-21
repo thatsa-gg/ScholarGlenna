@@ -1,6 +1,6 @@
 import 'reflect-metadata'
 import type { APIUser } from 'discord-api-types/v10'
-import { Entity, Index, Column, PrimaryGeneratedColumn } from 'typeorm'
+import { Entity, Index, Column, PrimaryGeneratedColumn, DataSource } from 'typeorm'
 
 export interface DiscordUserInfo {
     id: string
@@ -24,7 +24,7 @@ export class User {
     @Column({ type: 'char', length: 4 })
     discriminator: APIUser['discriminator'] = null!
 
-    @Column({ type: 'varchar' })
+    @Column({ type: 'varchar', nullable: true })
     avatar: APIUser['avatar'] = null
 
     constructor(info?: DiscordUserInfo){
@@ -36,3 +36,13 @@ export class User {
         }
     }
 }
+
+export const getRepository = (source: DataSource) => source.getRepository(User).extend({
+    async findOrCreate(info: DiscordUserInfo): Promise<User> {
+        // TODO: make this more efficient and use a stored procedure
+        const user = await this.findOneBy({ snowflake: info.id })
+        if(user)
+            return user
+        return await this.save(new User(info))
+    }
+})

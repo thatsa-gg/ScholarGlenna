@@ -53,12 +53,14 @@ importers:
     specifiers:
       '@discordjs/builders': ^0.13.0
       '@discordjs/rest': ^0.4.1
+      '@glenna/common': workspace:*
       '@glenna/util': workspace:*
       discord-api-types: ^0.32.1
       discord.js: ^13.6.0
     dependencies:
       '@discordjs/builders': 0.13.0
       '@discordjs/rest': 0.4.1
+      '@glenna/common': link:../common
       '@glenna/util': link:../util
       discord-api-types: 0.32.1
       discord.js: 13.8.0
@@ -67,6 +69,7 @@ importers:
     specifiers:
       '@types/uuid': ^8.3.4
       discord-api-types: ^0.34.0
+      discord.js: ^13.6.0
       pg: ^8.7.3
       redis: ^4.1.0
       reflect-metadata: ^0.1.13
@@ -74,6 +77,7 @@ importers:
       uuid: ^8.3.2
     dependencies:
       discord-api-types: 0.34.0
+      discord.js: 13.8.0
       pg: 8.7.3
       redis: 4.1.0
       reflect-metadata: 0.1.13

@@ -1,9 +1,9 @@
 import { listener } from '../EventListener.js'
 import { DISCORD_TOKEN, OAUTH_CLIENT_ID, VERSION } from '../config.js'
 import { info, log } from 'console'
-import { start } from '@glenna/util'
+//import { start } from '@glenna/util'
 import { registerCommands } from '../commands.js'
-import { updateStatus } from '../status.js'
+//import { updateStatus } from '../status.js'
 
 export default listener('ready', {
     once: true,
@@ -24,8 +24,8 @@ export default listener('ready', {
             })
         }
 
-        info('Initializing status...')
-        start(updateStatus(client.user))
+        //info('Initializing status...')
+        //start(updateStatus(client.user))
 
         info('Startup complete!')
     }

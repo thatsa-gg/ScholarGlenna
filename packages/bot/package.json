@@ -7,6 +7,7 @@
         "@discordjs/builders": "^0.13.0",
         "@discordjs/rest": "^0.4.1",
         "@glenna/util": "workspace:*",
+        "@glenna/common": "workspace:*",
         "discord-api-types": "^0.32.1",
         "discord.js": "^13.6.0"
     }
