@@ -1,11 +1,13 @@
 /// <reference types="@sveltejs/kit" />
+/// <reference types="@glenna/common" />
+
+type Profile = import('@glenna/common').Profile
 
 // See https://kit.svelte.dev/docs/types#app
 // for information about these interfaces
-type User = import('./lib/user').IUser
 declare namespace App {
     interface Locals {
-        user?: User
+        user?: Profile | null
     }
     // interface Platform {}
     interface Session {

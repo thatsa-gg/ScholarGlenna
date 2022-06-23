@@ -85,3 +85,30 @@ export async function *loadAsync<T>(meta: ImportMeta, path: string, recurse: boo
         }
     }
 }
+
+type Executor<T> = (resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => void
+export class LazyPromise<T> extends Promise<T> {
+    #executor: Executor<T>
+    #promise: Promise<T> | null = null
+    constructor(executor: Executor<T>){
+        super(resolve => { resolve(undefined!) })
+        this.#executor = executor
+    }
+
+    then<TResult1 = T, TResult2 = never>(
+        onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | null | undefined,
+        onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null | undefined
+    ): Promise<TResult1 | TResult2> {
+        this.#promise ??= new Promise<T>(this.#executor)
+        return this.#promise.then(onfulfilled, onrejected)
+    }
+
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | null | undefined): Promise<T | TResult> {
+        this.#promise ??= new Promise<T>(this.#executor)
+        return this.#promise.catch(onrejected)
+    }
+
+    static from<T>(fn: () => T): LazyPromise<T> {
+        return new LazyPromise(resolve => resolve(fn()))
+    }
+}

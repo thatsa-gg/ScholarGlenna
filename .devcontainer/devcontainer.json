@@ -17,7 +17,8 @@
 				"EditorConfig.EditorConfig",
 				"eamodio.gitlens",
 				"svelte.svelte-vscode",
-				"amodio.toggle-excluded-files"
+				"amodio.toggle-excluded-files",
+				"Tobermory.es6-string-html"
 			]
         }
     },

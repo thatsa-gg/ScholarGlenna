@@ -1,9 +1,8 @@
 import { listener } from '../EventListener.js'
 import { DISCORD_TOKEN, OAUTH_CLIENT_ID, VERSION } from '../config.js'
 import { info, log } from 'console'
-//import { start } from '@glenna/util'
 import { registerCommands } from '../commands.js'
-//import { updateStatus } from '../status.js'
+import { AppDataSource } from '../index.js'
 
 export default listener('ready', {
     once: true,
@@ -15,7 +14,10 @@ export default listener('ready', {
 
         info('Registering commands...')
         const guilds = client.guilds.cache.map(g => g)
-        for(const { id, name } of guilds){
+        for(const guild of guilds){
+            const { id, name } = guild
+            log(`\tUpdating server import for: ${name}`)
+            //await AppDataSource.Guilds.import(guild)
             log(`\tRegistering commands on: ${name}`)
             await registerCommands({
                 token: DISCORD_TOKEN,

@@ -5,6 +5,9 @@ import { Client, Intents } from 'discord.js'
 import { load } from '@glenna/util'
 import type { EventListener } from './EventListener'
 
+import { AppDataSource as _AppDataSource } from '@glenna/common'
+export const AppDataSource = await _AppDataSource
+
 export const Glenna: Client = new Client({
     intents: [
         Intents.FLAGS.GUILDS,

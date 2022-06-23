@@ -1,7 +1,5 @@
-import { DataSource } from 'typeorm'
-import * as User from '../models/User.js'
-import * as Guild from '../models/Guild.js'
-
+import { LazyPromise } from '@glenna/util'
+import postgres from 'postgres'
 import {
     POSTGRES_HOST,
     POSTGRES_PORT,
@@ -9,23 +7,24 @@ import {
     POSTGRES_USER,
     POSTGRES_PASSWORD
 } from '../env.js'
-export const AppDataSource = await new DataSource({
-    type: 'postgres',
-    host: POSTGRES_HOST,
-    port: POSTGRES_PORT,
-    username: POSTGRES_USER,
-    password: POSTGRES_PASSWORD,
-    database: POSTGRES_DB,
-    entities: [
-        User.User,
-        Guild.Guild,
-    ],
-    synchronize: true, // TODO: disable this for production
-    logging: false,
-}).initialize()
+import { UserRepository } from './UserRepository.js'
+import { ProfileRepository } from './ProfileRepository.js'
 
-export { User, DiscordUserInfo } from '../models/User.js'
-export const Users = User.getRepository(AppDataSource)
+export type DataSource = {
+    Users: UserRepository
+    Profiles: ProfileRepository
+}
+export const AppDataSource: LazyPromise<DataSource> = LazyPromise.from(() => {
+    const sql = postgres({
+        host: POSTGRES_HOST,
+        port: POSTGRES_PORT,
+        user: POSTGRES_USER,
+        password: POSTGRES_PASSWORD,
+        database: POSTGRES_DB,
+    })
 
-export { Guild } from '../models/Guild.js'
-export const Guilds = Guild.getRepository(AppDataSource)
+    const dataSource: DataSource = {} as DataSource
+    dataSource.Users = new UserRepository(sql, dataSource)
+    dataSource.Profiles = new ProfileRepository(sql, dataSource)
+    return dataSource
+})

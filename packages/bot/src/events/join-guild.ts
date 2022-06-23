@@ -1,14 +1,14 @@
-import { Guilds } from '@glenna/common'
 import { listener } from '../EventListener.js'
 import { registerCommands } from '../commands.js'
 import { DISCORD_TOKEN, OAUTH_CLIENT_ID } from '../config.js'
 import { log, info } from 'console'
+import { AppDataSource } from '../index.js'
 
 export default listener('guildCreate', {
     async execute(guild){
         log(`Joining guild: "${guild.name}" (${guild.id})`)
-        const guildEntity = await Guilds.findOrCreate(guild)
-        log(`Created guild: ${guildEntity.id} = ${guildEntity.snowflake}`)
+        //const guildEntity = await AppDataSource.Guilds.findOrCreate(guild)
+        //log(`Created guild: ${guildEntity.id} = ${guildEntity.snowflake}`)
         log(`Registering commands on "${guild.name}" (${guild.id})`)
         await registerCommands({
             token: DISCORD_TOKEN,

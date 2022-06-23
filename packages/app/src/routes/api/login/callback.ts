@@ -23,7 +23,10 @@ export const get: RequestHandler<Params> = async event => {
     } catch(error){
         return {
             status: 500,
-            body: JSON.stringify({ error: error instanceof Error ? error.message: error })
+            body: JSON.stringify({
+                error: error instanceof Error ? error.message: error,
+                trace: error instanceof Error ? error.stack : null
+            })
         }
     }
 }

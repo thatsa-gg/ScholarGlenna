@@ -1,48 +1,26 @@
-import 'reflect-metadata'
-import type { APIUser } from 'discord-api-types/v10'
-import { Entity, Index, Column, PrimaryGeneratedColumn, DataSource } from 'typeorm'
+import { DiscordEntity } from './DBEntity.js'
+import type { UserInfo as DBUserInfo } from '../database/UserRepository.js'
 
-export interface DiscordUserInfo {
-    id: string
+interface UserInfo {
+    snowflake: string
     username: string
-    discriminator: string
-    avatar: string
+    discriminator: number
 }
 
-@Entity()
-export class User {
-    @PrimaryGeneratedColumn()
-    id: number = null!
+export type User = UserInfo
+export namespace User {
+    export function isUser(candidate: any): candidate is User {
+        return candidate && candidate instanceof User
+    }
+    export class User extends DiscordEntity implements UserInfo {
+        username: string
+        discriminator: number
+        get displayName(){ return `${this.username}#${this.discriminator.toString().padStart(4, '0')}` }
 
-    @Index({ unique: true })
-    @Column({ type: 'varchar' })
-    snowflake: APIUser['id'] = null!
-
-    @Column({ type: 'varchar', length: 32 })
-    username: APIUser['username'] = null!
-
-    @Column({ type: 'char', length: 4 })
-    discriminator: APIUser['discriminator'] = null!
-
-    @Column({ type: 'varchar', nullable: true })
-    avatar: APIUser['avatar'] = null
-
-    constructor(info?: DiscordUserInfo){
-        if(info){
-            this.snowflake = info.id
-            this.username = info.username
-            this.discriminator = info.discriminator
-            this.avatar = info.avatar
+        constructor(properties: DBUserInfo){
+            super({ id: properties.user_id, ...properties })
+            this.username = properties.username
+            this.discriminator = properties.discriminator
         }
     }
 }
-
-export const getRepository = (source: DataSource) => source.getRepository(User).extend({
-    async findOrCreate(info: DiscordUserInfo): Promise<User> {
-        // TODO: make this more efficient and use a stored procedure
-        const user = await this.findOneBy({ snowflake: info.id })
-        if(user)
-            return user
-        return await this.save(new User(info))
-    }
-})

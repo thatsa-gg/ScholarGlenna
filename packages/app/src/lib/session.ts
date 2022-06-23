@@ -1,4 +1,4 @@
-import { Users, UUID, RedisClient } from '@glenna/common'
+import { AppDataSource, UUID, RedisClient } from '@glenna/common'
 import { reauthorizeUser, type Authorization } from './auth'
 import { getUserInfo } from './discord-rest'
 
@@ -9,7 +9,7 @@ export interface Session {
     expiration?: Date
 }
 
-const FIELD_USER_ID = 'userID'
+const FIELD_PROFILE_ID = 'profileID'
 const FIELD_REFRESH_TOKEN = 'refreshToken'
 type Keys = [ accessKey: string, sessionKey: string ]
 function getKeys(sessionID: SessionID): Keys {
@@ -22,21 +22,22 @@ export type SessionID = UUID & { __TYPE__: 'SessionID' }
 export const SESSION_EXPIRATION_DURATION_SECONDS = 30 * 24 * 60 * 60
 
 export async function createSession(authorization: Authorization): Promise<Required<Session>> {
+    const { Profiles } = await AppDataSource
     const sessionID = UUID.create() as SessionID
     const [ accessKey, sessionKey ] = getKeys(sessionID)
     const discordUser = await getUserInfo(authorization.access_token)
-    const appUser = await Users.findOrCreate(discordUser)
+    const appProfile = await Profiles.findOrCreate(discordUser)
     await Promise.all([
         RedisClient.set(accessKey, authorization.access_token, { EX: authorization.expires_in }),
         RedisClient.hSet(sessionKey, {
-            [FIELD_USER_ID]: appUser.id,
+            [FIELD_PROFILE_ID]: appProfile.id,
             [FIELD_REFRESH_TOKEN]: authorization.refresh_token
         }),
         RedisClient.expire(sessionKey, SESSION_EXPIRATION_DURATION_SECONDS),
     ])
     return {
         id: sessionID,
-        userId: appUser.id,
+        userId: appProfile.id,
         accessToken: authorization.access_token,
         expiration: new Date(Date.now() + SESSION_EXPIRATION_DURATION_SECONDS * 1000),
     }
@@ -46,7 +47,7 @@ export async function getSession(sessionID: string): Promise<Session | null> {
     const [ accessKey, sessionKey ] = getKeys(sessionID as SessionID)
     const [ accessToken, sessionData ] = await Promise.all([
         RedisClient.get(accessKey),
-        RedisClient.hmGet(sessionKey, [ FIELD_USER_ID, FIELD_REFRESH_TOKEN ])
+        RedisClient.hmGet(sessionKey, [ FIELD_PROFILE_ID, FIELD_REFRESH_TOKEN ])
     ])
     const [ refreshToken, userId ] = sessionData
     if(!userId)
