@@ -15,14 +15,14 @@ export default listener('ready', {
         info('Registering commands...')
         const guilds = client.guilds.cache.map(g => g)
         for(const guild of guilds){
-            const { id, name } = guild
-            log(`\tUpdating server import for: ${name}`)
-            //await AppDataSource.Guilds.import(guild)
-            log(`\tRegistering commands on: ${name}`)
+            const entity = await AppDataSource.Guilds.updateOrRestore(guild, { create: true })
+            log(`\tUpdating server import for: ${entity.name}`)
+            await AppDataSource.Guilds.import(entity, guild)
+            log(`\tRegistering commands on: ${entity.name}`)
             await registerCommands({
                 token: DISCORD_TOKEN,
                 clientId: OAUTH_CLIENT_ID,
-                guildId: id
+                guildId: entity.snowflake
             })
         }
 

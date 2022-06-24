@@ -7,6 +7,7 @@ import type { EventListener } from './EventListener'
 
 import { AppDataSource as _AppDataSource } from '@glenna/common'
 export const AppDataSource = await _AppDataSource
+import './commands.js'
 
 export const Glenna: Client = new Client({
     intents: [
@@ -16,10 +17,19 @@ export const Glenna: Client = new Client({
         Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
     ]
 })
-//Glenna.on('guildCreate', guild => console.log('joining guild', guild))
-//Glenna.on('apiResponse', (_request, response) => console.log('received API response', response))
+
+import joinGuild from './events/join-guild.js'
+import leaveGuild from './events/leave-guild.js'
+import onCommand from './events/on-command.js'
+import ready from './events/ready.js'
+
 log('Registering events...')
-for(const { name, once, execute } of await load<EventListener | EventListener[]>(import.meta, './events').then(a => a.flat())){
+for(const { name, once, execute } of [
+    joinGuild,
+    leaveGuild,
+    onCommand,
+    ready
+] as EventListener[]){
     log(`\tRegistering handler for event "${name}"${!once?'':' (once)'}`)
     if(once)
         Glenna.once(name, execute)

@@ -10,5 +10,8 @@
         "@glenna/common": "workspace:*",
         "discord-api-types": "^0.32.1",
         "discord.js": "^13.6.0"
+    },
+    "scripts": {
+        "bot": "node ."
     }
 }

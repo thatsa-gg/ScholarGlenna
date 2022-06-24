@@ -1,9 +1,6 @@
 import { prerendering } from '$app/env'
-import { AppDataSource } from '@glenna/common'
-if(!prerendering){
-    // initialize DB
-    void await AppDataSource
-}
+import { AppDataSource as _AppDataSource } from '@glenna/common'
+const AppDataSource = prerendering ? null! : await _AppDataSource
 
 import type { GetSession, Handle } from '@sveltejs/kit'
 import { parse } from 'cookie'
@@ -22,13 +19,21 @@ export const handle: Handle = prerendering
     const { request, url, locals } = event
     if(HANDLE_EXCLUDED_ROUTES.has(url.pathname))
         return resolve(event)
+
     const cookies = parse(request.headers.get('cookie') ?? '')
     const sessionID = cookies['session_id']
     if(!sessionID)
         return resolve(event)
+
     const session = await getSessionState(sessionID)
-    if(session)
-        locals.user = await (await AppDataSource).Profiles.get(session.userId)
+    if(!session)
+        return new Response(null, { status: 303, headers: { Location: '/api/logout' }})
+
+    const profile = await AppDataSource.Profiles.get(session.profileId)
+    if(!profile)
+        return new Response(null, { status: 303, headers: { Location: '/api/logout' } })
+
+    locals.user = profile.getLocalProfile()
     return resolve(event)
 }
 

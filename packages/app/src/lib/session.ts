@@ -4,7 +4,7 @@ import { getUserInfo } from './discord-rest'
 
 export interface Session {
     id: SessionID
-    userId: number
+    profileId: number
     accessToken: string
     expiration?: Date
 }
@@ -37,7 +37,7 @@ export async function createSession(authorization: Authorization): Promise<Requi
     ])
     return {
         id: sessionID,
-        userId: appProfile.id,
+        profileId: appProfile.id,
         accessToken: authorization.access_token,
         expiration: new Date(Date.now() + SESSION_EXPIRATION_DURATION_SECONDS * 1000),
     }
@@ -47,21 +47,21 @@ export async function getSession(sessionID: string): Promise<Session | null> {
     const [ accessKey, sessionKey ] = getKeys(sessionID as SessionID)
     const [ accessToken, sessionData ] = await Promise.all([
         RedisClient.get(accessKey),
-        RedisClient.hmGet(sessionKey, [ FIELD_PROFILE_ID, FIELD_REFRESH_TOKEN ])
+        RedisClient.hmGet(sessionKey, [ FIELD_REFRESH_TOKEN, FIELD_PROFILE_ID ])
     ])
-    const [ refreshToken, userId ] = sessionData
-    if(!userId)
+    const [ refreshToken, profileId ] = sessionData
+    if(!profileId)
         return null
     if(!accessToken)
-        return await refreshSession(sessionID as SessionID, Number.parseInt(userId), refreshToken)
+        return await refreshSession(sessionID as SessionID, Number.parseInt(profileId), refreshToken)
     return {
         id: sessionID as SessionID,
-        userId: Number.parseInt(userId),
+        profileId: Number.parseInt(profileId),
         accessToken
     }
 }
 
-export async function refreshSession(sessionID: SessionID, userId: number, refreshToken: string | null): Promise<Session> {
+export async function refreshSession(sessionID: SessionID, profileId: number, refreshToken: string | null): Promise<Session> {
     const [ accessKey, sessionKey ] = getKeys(sessionID)
     if(!refreshToken){
         await RedisClient.del([ accessKey, sessionKey ])
@@ -78,7 +78,7 @@ export async function refreshSession(sessionID: SessionID, userId: number, refre
     }
 
     return {
-        id: sessionID, userId,
+        id: sessionID, profileId,
         accessToken: authorization.access_token
     }
 }

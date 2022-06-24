@@ -1,7 +1,6 @@
 import type { RequestHandler } from '@sveltejs/kit'
 import { AUTHORIZATION_URI, OAUTH_CLIENT_ID } from '../../lib/auth'
 
-// TODO: destroy session in redis
 export const get: RequestHandler = async () => {
     return {
         status: 302,

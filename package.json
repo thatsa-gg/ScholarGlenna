@@ -14,6 +14,7 @@
   },
   "packageManager": "pnpm@7.0.0",
   "scripts": {
-    "migrate": "pnpm --prefix packages/common run migrate"
+    "migrate": "pnpm --prefix packages/common run migrate",
+    "bot": "pnpm --prefix packages/bot run bot"
   }
 }

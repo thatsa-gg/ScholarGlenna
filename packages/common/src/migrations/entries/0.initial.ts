@@ -27,12 +27,13 @@ export default new Migration(0, 'initial', {
                 profile_id serial primary key,
                 user_id integer not null unique references Users(user_id),
                 avatar varchar not null,
-                ${ dateColumns }
+                created_at timestamp with time zone not null default now(),
+                updated_at timestamp with time zone not null default now()
             )
         `
 
         await sql`
-            create materialized view UserProfiles as select
+            create view UserProfiles as select
                 profile_id,
                 user_id,
                 snowflake,
@@ -40,8 +41,7 @@ export default new Migration(0, 'initial', {
                 discriminator,
                 avatar,
                 Profiles.updated_at,
-                Profiles.created_at,
-                Profiles.deleted_at
+                Profiles.created_at
             from
                 Profiles inner join Users using(user_id)
         `
@@ -51,6 +51,7 @@ export default new Migration(0, 'initial', {
                 account_id serial primary key,
                 user_id integer not null references Users(user_id),
                 api_key text,
+                main boolean not null default FALSE,
                 verified boolean not null default FALSE,
                 ${ dateColumns }
             )
@@ -61,7 +62,12 @@ export default new Migration(0, 'initial', {
                 guild_id serial primary key,
                 snowflake snowflake unique not null,
                 name text not null,
-                moderatorRole varchar default null,
+                icon varchar,
+                description text,
+                preferred_locale varchar(5) not null,
+                owner_id integer references Users(user_id),
+                manager_id integer references Profiles(profile_id),
+                moderator_role snowflake default null,
                 ${ dateColumns }
             )
         `
@@ -105,11 +111,20 @@ export default new Migration(0, 'initial', {
         `
 
         await sql`
+            create type TeamStatus as enum (
+                'Created',
+                'Open',
+                'Retired'
+            )
+        `
+
+        await sql`
             create table TeamMembers (
                 member_id serial primary key,
                 team_id integer not null references Teams(team_id),
                 user_id integer not null references Users(user_id),
                 role TeamMemberRole not null default 'Member',
+                status TeamStatus not null default 'Created',
                 ${ dateColumns }
             )
         `
