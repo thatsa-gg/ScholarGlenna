@@ -1,7 +1,7 @@
-import type { Sql } from 'postgres'
+import type { Sql, TransactionSql, Helper } from 'postgres'
 import type { DataSource } from './index.js'
 import { User } from '../models/User.js'
-import type { API } from '../models/API.js'
+import type { User as DiscordUser } from 'discord.js'
 
 export interface UserInfo {
     user_id: number
@@ -12,50 +12,93 @@ export interface UserInfo {
     created_at: Date
     deleted_at: Date | null
 }
+type UpdateUserInfo = Omit<UserInfo, 'snowflake' | 'created_at' | 'updated_at'>
+
+const UserColumns: (keyof UserInfo)[] = [
+    'user_id',
+    'snowflake',
+    'username',
+    'discriminator',
+    'created_at',
+    'updated_at',
+    'deleted_at'
+]
 
 export class UserRepository {
     #sql: Sql<{}>
-    #dataSource: DataSource
-    constructor(sql: Sql<{}>, dataSource: DataSource){
+    constructor(sql: Sql<{}>, _dataSource: DataSource){
         this.#sql = sql
-        this.#dataSource = dataSource
     }
 
-    async create(info: API.DiscordUserInfo): Promise<User.User> {
-        const [ user ] = await this.#sql<{ user_id: number }[]>`
-            insert into Users ${this.#sql({
-                snowflake: info.id,
-                username: info.username,
-                discriminator: info.discriminator
-            })} returning user_id
+    async create(source: DiscordUser, options?: { transaction?: TransactionSql<{}> }): Promise<User.User> {
+        const sql = options?.transaction ?? this.#sql
+        const [ user ] = await sql<[ UserInfo ]>`
+            insert into Users ${sql({
+                snowflake: source.id,
+                username: source.username,
+                discriminator: source.discriminator
+            })} returning ${sql(UserColumns)}
         `
-        if(typeof user?.user_id !== 'number')
+        if(!user)
             throw new Error(`Fatal database error ocurred while trying to register new user entity.`)
-        return (await this.get(user.user_id))!
+        return new User.User(user)
     }
 
-    async get(id: number): Promise<User.User | null> {
-        const [ user ] = await this.#sql<UserInfo[]>`
-            select * from Users where user_id = ${id}
+    async get(id: number, options?: { transaction?: TransactionSql<{}> }): Promise<User.User | null> {
+        const sql = options?.transaction ?? this.#sql
+        const [ user ] = await sql<UserInfo[]>`
+            select ${sql(UserColumns)} from Users where user_id = ${id}
         `
         if(!user)
             return null
         return new User.User(user)
     }
 
-    async getBySnowflake(snowflake: string): Promise<User.User | null> {
-        const [ user ] = await this.#sql<UserInfo[]>`
-            select * from Users where snowflake = ${snowflake}
+    async getBySnowflake(snowflake: string, options?: { transaction?: TransactionSql<{}> }): Promise<User.User | null> {
+        const sql = options?.transaction ?? this.#sql
+        const [ user ] = await sql<UserInfo[]>`
+            select ${sql(UserColumns)} from Users where snowflake = ${snowflake}
         `
         if(!user)
             return null
         return new User.User(user)
     }
 
-    async findOrCreate(info: API.DiscordUserInfo): Promise<User.User> {
-        const user = await this.getBySnowflake(info.id)
-        if(user)
-            return user
-        return await this.create(info)
+    async update(source: DiscordUser, target: UpdateUserInfo | User.User, options?: { restore?: boolean, transaction?: TransactionSql<{}> }): Promise<User.User> {
+        const sql = options?.transaction ?? this.#sql
+        const properties = {} as Record<keyof UpdateUserInfo | 'updated_at', string | number | Helper<any> | null>
+        if(target.username !== source.username)
+            properties.username = source.username
+        const discriminator = Number.parseInt(source.discriminator)
+        if(target.discriminator !== discriminator)
+            properties.discriminator = discriminator
+        const userId = target instanceof User.User ? target.id : target.user_id
+        if(Object.keys(properties).length > 0){
+            properties.updated_at = sql(`now()`)
+            const [ user ] = await sql<[ UserInfo ]>`update Users set ${sql(properties)} where user_id = ${userId} returning ${sql(UserColumns)}`
+            if(!user)
+                throw new Error(`Could not update non-existent user "${target.username}" (id: ${userId})`)
+            return new User.User(user)
+        }
+        const user = await this.get(userId, { transaction: options?.transaction })
+        if(!user)
+            throw new Error(`Could not update non-existent user "${target.username}" (id: ${userId}) (no changes)`)
+        return user
+    }
+
+    async findOrCreate(source: DiscordUser, options?: { transaction?: TransactionSql<{}> }): Promise<User.User> {
+        const user = await this.getBySnowflake(source.id, { transaction: options?.transaction })
+        if(!user)
+            return await this.create(source, { transaction: options?.transaction })
+        if(user.deletedAt)
+            return await this.update(source, user, { restore: true, transaction: options?.transaction })
+        return user
+    }
+
+    async bulkImport(users: IterableIterator<DiscordUser>, transaction: TransactionSql<{}>){
+        // TODO: more efficient
+        for(const user of users){
+            await this.findOrCreate(user, { transaction })
+        }
     }
 }

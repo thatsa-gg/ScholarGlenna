@@ -111,10 +111,10 @@ export default new Migration(0, 'initial', {
         `
 
         await sql`
-            create type TeamVisiblity as enum (
-                'Public',
-                'Protected',
-                'Members'
+            create type Visibility as enum (
+                'Public',    -- always visible
+                'Protected', -- only visible if in the same group
+                'Members'    -- always private (basic team info may still be available in some groups)
             )
         `
 
@@ -124,7 +124,7 @@ export default new Migration(0, 'initial', {
                 team_id integer not null references Teams(team_id),
                 user_id integer not null references Users(user_id),
                 role TeamMemberRole not null default 'Member',
-                visibility TeamVisibility not null default 'Guild',
+                visibility Visibility not null default 'Protected',
                 ${ dateColumns }
             )
         `

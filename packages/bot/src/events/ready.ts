@@ -14,10 +14,19 @@ export default listener('ready', {
 
         info('Registering commands...')
         const guilds = client.guilds.cache.map(g => g)
+        log(`\tCleaning up old guilds...`)
+        log()
+        log(`\tID        Snowflake           Name`)
+        log(`\t----------------------------------------`)
+        const deletedGuilds = await AppDataSource.Guilds.delete({ except: Array.from(client.guilds.cache.keys()) })
+        if(deletedGuilds.length === 0)
+            log(`\t(none)`)
+        else for(const guild of deletedGuilds)
+            log(`\t${guild.id.toString().padEnd(9)} ${guild.snowflake.padEnd(19)} ${guild.name}`)
+        log()
         for(const guild of guilds){
-            const entity = await AppDataSource.Guilds.updateOrRestore(guild, { create: true })
-            log(`\tUpdating server import for: ${entity.name}`)
-            await AppDataSource.Guilds.import(entity, guild)
+            log(`\tUpdating server import for: ${guild.name}`)
+            const entity = await AppDataSource.Guilds.import(guild)
             log(`\tRegistering commands on: ${entity.name}`)
             await registerCommands({
                 token: DISCORD_TOKEN,

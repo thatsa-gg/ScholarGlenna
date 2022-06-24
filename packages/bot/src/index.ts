@@ -1,23 +1,15 @@
 import { log, info, error } from 'console'
-import { DISCORD_TOKEN, VERSION } from './config.js'
-
-import { Client, Intents } from 'discord.js'
-import { load } from '@glenna/util'
+import { VERSION } from './config.js'
 import type { EventListener } from './EventListener'
 
-import { AppDataSource as _AppDataSource } from '@glenna/common'
+import {
+    AppDataSource as _AppDataSource,
+    Discord
+} from '@glenna/common'
 export const AppDataSource = await _AppDataSource
 import './commands.js'
 
-export const Glenna: Client = new Client({
-    intents: [
-        Intents.FLAGS.GUILDS,
-        Intents.FLAGS.GUILD_MEMBERS,
-        Intents.FLAGS.GUILD_MESSAGES,
-        Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
-    ]
-})
-
+export const Glenna = Discord.createClient()
 import joinGuild from './events/join-guild.js'
 import leaveGuild from './events/leave-guild.js'
 import onCommand from './events/on-command.js'
@@ -40,7 +32,7 @@ for(const { name, once, execute } of [
 export async function login(): Promise<void> {
     try {
         info("Logging in.")
-        const reason = await Glenna.login(DISCORD_TOKEN)
+        const reason = await Discord.login(Glenna)
         log(reason)
         info("Login successful.")
         info(`GlennaBot v.${VERSION} running.`)

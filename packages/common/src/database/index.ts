@@ -10,11 +10,13 @@ import {
 import { UserRepository } from './UserRepository.js'
 import { ProfileRepository } from './ProfileRepository.js'
 import { GuildRepository } from './GuildRepository.js'
+import { GuildMemberRepository } from './GuildMemberRepository.js'
 
 export type DataSource = {
     Users: UserRepository
     Profiles: ProfileRepository
     Guilds: GuildRepository
+    GuildMembers: GuildMemberRepository
 }
 export const AppDataSource: LazyPromise<DataSource> = LazyPromise.from(() => {
     const sql = postgres({
@@ -29,5 +31,6 @@ export const AppDataSource: LazyPromise<DataSource> = LazyPromise.from(() => {
     dataSource.Users = new UserRepository(sql, dataSource)
     dataSource.Profiles = new ProfileRepository(sql, dataSource)
     dataSource.Guilds = new GuildRepository(sql, dataSource)
+    dataSource.GuildMembers = new GuildMemberRepository(sql, dataSource)
     return dataSource
 })

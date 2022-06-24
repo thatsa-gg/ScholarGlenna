@@ -1,8 +1,9 @@
-import type { Sql } from 'postgres'
+import type { Sql, TransactionSql } from 'postgres'
 import type { DataSource } from './index.js'
 import { User } from '../models/User.js'
 import { Profile } from '../models/Profile.js'
 import type { API } from '../models/API.js'
+import type { User as DiscordUser } from 'discord.js'
 
 export interface UserProfileInfo {
     profile_id: number
@@ -15,6 +16,17 @@ export interface UserProfileInfo {
     created_at: Date
     deleted_at: Date | null
 }
+const UserProfileColumns: (keyof UserProfileInfo)[] = [
+    'profile_id',
+    'user_id',
+    'snowflake',
+    'username',
+    'discriminator',
+    'avatar',
+    'created_at',
+    'updated_at',
+    'deleted_at',
+]
 
 export class ProfileRepository {
     #sql: Sql<{}>
@@ -24,19 +36,17 @@ export class ProfileRepository {
         this.#dataSource = dataSource
     }
 
-    async create(user: User.User, info: API.DiscordUserInfo): Promise<Profile.Profile> {
-        const [ profile ] = await this.#sql<{ profile_id: number }[]>`
+    async create(user: User.User, source: DiscordUser, options?: { transaction?: TransactionSql<{}> }): Promise<Profile.Profile> {
+        const sql = options?.transaction ?? this.#sql
+        const [ profile ] = await sql<UserProfileInfo[]>`
             insert into Profiles ${this.#sql({
                 user_id: user.id,
-                avatar: info.avatar
-            })} returning profile_id
+                avatar: source.avatar
+            })} returning ${sql(UserProfileColumns)}
         `
-        if(typeof profile?.profile_id !== 'number')
+        if(!profile)
             throw new Error(`Fatal database error ocurred while trying to register new user profile.`)
-        const entity = await this.get(profile.profile_id)
-        if(!entity)
-            throw new Error(`Could not load profile data for ID ${profile.profile_id}`)
-        return entity
+        return new Profile.Profile(profile)
     }
 
     async get(id: number): Promise<Profile.Profile | null> {
@@ -60,11 +70,11 @@ export class ProfileRepository {
         return new Profile.Profile(profile)
     }
 
-    async findOrCreate(info: API.DiscordUserInfo): Promise<Profile.Profile> {
-        const user = await this.#dataSource.Users.findOrCreate(info)
+    async findOrCreate(source: DiscordUser): Promise<Profile.Profile> {
+        const user = await this.#dataSource.Users.findOrCreate(source)
         const profile = await this.getForUser(user)
         if(profile)
             return profile
-        return await this.create(user, info)
+        return await this.create(user, source)
     }
 }
