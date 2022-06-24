@@ -113,7 +113,7 @@ export default new Migration(0, 'initial', {
         await sql`
             create type TeamVisiblity as enum (
                 'Public',
-                'Guild',
+                'Protected',
                 'Members'
             )
         `
