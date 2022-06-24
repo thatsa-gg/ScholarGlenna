@@ -111,10 +111,10 @@ export default new Migration(0, 'initial', {
         `
 
         await sql`
-            create type TeamStatus as enum (
-                'Created',
-                'Open',
-                'Retired'
+            create type TeamVisiblity as enum (
+                'Public',
+                'Guild',
+                'Members'
             )
         `
 
@@ -124,7 +124,7 @@ export default new Migration(0, 'initial', {
                 team_id integer not null references Teams(team_id),
                 user_id integer not null references Users(user_id),
                 role TeamMemberRole not null default 'Member',
-                status TeamStatus not null default 'Created',
+                visibility TeamVisibility not null default 'Guild',
                 ${ dateColumns }
             )
         `
