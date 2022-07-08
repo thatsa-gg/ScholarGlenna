@@ -31,29 +31,8 @@ export async function migrate(options: Partial<MigrationOptions>){
     }
 
     console.log('[common] Running migrations.', options)
-    {
-        // initialize DB
-        console.log('[common] Connecting to database host.')
-        const sql = postgres({
-            host: POSTGRES_HOST,
-            port: POSTGRES_PORT,
-            user: POSTGRES_USER,
-            password: POSTGRES_PASSWORD,
-            debug: options.debug
-        })
-        if(options.reset){
-            console.log('[common-init] Reset requested, dropping database.', POSTGRES_DB)
-            await sql`drop database ${ sql(POSTGRES_DB) }`
-        }
-        const result = await sql`select datname from pg_database where datname=${ POSTGRES_DB }`
-        if(result.length < 1){
-            console.log('[common-init] Creating database.', POSTGRES_DB)
-            await sql`create database ${ sql(POSTGRES_DB) }`
-        }
-        await sql.end()
-    }
-
-    console.log('[common] Reconnecting to database.', POSTGRES_DB)
+    // initialize DB
+    console.log('[common] Connecting to database host.')
     const sql = postgres({
         host: POSTGRES_HOST,
         port: POSTGRES_PORT,
@@ -62,6 +41,11 @@ export async function migrate(options: Partial<MigrationOptions>){
         database: POSTGRES_DB,
         debug: options.debug
     })
+    if(options.reset){
+        console.log('[common-init] Reset requested, dropping database.', POSTGRES_DB)
+        await sql`drop schema public cascade`
+        await sql`create schema public`
+    }
 
     console.log('[common-init] Ensuring Migrations table exists.')
     await sql`

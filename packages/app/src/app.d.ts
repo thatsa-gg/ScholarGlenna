@@ -11,7 +11,7 @@ declare namespace App {
     }
     // interface Platform {}
     interface Session {
-        user: false | User
+        user: false | LocalProfile
     }
     // interface Stuff {}
 }

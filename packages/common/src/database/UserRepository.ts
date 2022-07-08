@@ -1,5 +1,5 @@
-import type { Sql, TransactionSql, Helper } from 'postgres'
-import type { DataSource } from './index.js'
+import type { Sql, Helper } from 'postgres'
+import type { DataSource, Transactable } from './index.js'
 import { User } from '../models/User.js'
 import type { User as DiscordUser } from 'discord.js'
 
@@ -30,7 +30,7 @@ export class UserRepository {
         this.#sql = sql
     }
 
-    async create(source: DiscordUser, options?: { transaction?: TransactionSql<{}> }): Promise<User.User> {
+    async create(source: DiscordUser, options?: Transactable): Promise<User.User> {
         const sql = options?.transaction ?? this.#sql
         const [ user ] = await sql<[ UserInfo ]>`
             insert into Users ${sql({
@@ -44,7 +44,7 @@ export class UserRepository {
         return new User.User(user)
     }
 
-    async get(id: number, options?: { transaction?: TransactionSql<{}> }): Promise<User.User | null> {
+    async get(id: number, options?: Transactable): Promise<User.User | null> {
         const sql = options?.transaction ?? this.#sql
         const [ user ] = await sql<UserInfo[]>`
             select ${sql(UserColumns)} from Users where user_id = ${id}
@@ -54,7 +54,7 @@ export class UserRepository {
         return new User.User(user)
     }
 
-    async getBySnowflake(snowflake: string, options?: { transaction?: TransactionSql<{}> }): Promise<User.User | null> {
+    async getBySnowflake(snowflake: string, options?: Transactable): Promise<User.User | null> {
         const sql = options?.transaction ?? this.#sql
         const [ user ] = await sql<UserInfo[]>`
             select ${sql(UserColumns)} from Users where snowflake = ${snowflake}
@@ -64,7 +64,7 @@ export class UserRepository {
         return new User.User(user)
     }
 
-    async update(source: DiscordUser, target: UpdateUserInfo | User.User, options?: { restore?: boolean, transaction?: TransactionSql<{}> }): Promise<User.User> {
+    async update(source: DiscordUser, target: UpdateUserInfo | User.User, options?: Transactable & { restore?: boolean }): Promise<User.User> {
         const sql = options?.transaction ?? this.#sql
         const properties = {} as Record<keyof UpdateUserInfo | 'updated_at', string | number | Helper<any> | null>
         if(target.username !== source.username)
@@ -86,19 +86,10 @@ export class UserRepository {
         return user
     }
 
-    async findOrCreate(source: DiscordUser, options?: { transaction?: TransactionSql<{}> }): Promise<User.User> {
+    async findOrCreate(source: DiscordUser, options?: Transactable): Promise<User.User> {
         const user = await this.getBySnowflake(source.id, { transaction: options?.transaction })
         if(!user)
             return await this.create(source, { transaction: options?.transaction })
-        if(user.deletedAt)
-            return await this.update(source, user, { restore: true, transaction: options?.transaction })
-        return user
-    }
-
-    async bulkImport(users: IterableIterator<DiscordUser>, transaction: TransactionSql<{}>){
-        // TODO: more efficient
-        for(const user of users){
-            await this.findOrCreate(user, { transaction })
-        }
+        return await this.update(source, user, { restore: true, transaction: options?.transaction })
     }
 }

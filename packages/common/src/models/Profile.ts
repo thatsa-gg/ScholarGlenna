@@ -8,6 +8,7 @@ interface ProfileInfo extends User {
 
 export type LocalProfile = Pick<Profile, 'avatar' | 'username' | 'discriminator' | 'snowflake'> & {
     displayName: string
+    user_id: number
 }
 
 export type Profile = ProfileInfo
@@ -26,6 +27,7 @@ export namespace Profile {
         getUser(dataSource: DataSource){ return dataSource.Users.get(this.#user_id) }
         getLocalProfile(): LocalProfile {
             return {
+                user_id: this.#user_id,
                 avatar: this.avatar,
                 username: this.username,
                 discriminator: this.discriminator,

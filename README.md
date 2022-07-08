@@ -100,3 +100,14 @@
             - set <role> <group>: set a group to be of a certain role
         - version: get the current version.
         - github: get the url to the repo
+
+# Routes
+
+- `/`: landing page, dashboard if signed in
+- `/guild/[id]`: public guild info.
+    - If guild is open and user is not a member, show guild invite link.
+    - If signed in and can manage, show links for settings and show options
+- `/teams/[id]`: public team info.
+    - If a member of the guild, show invite options if open.
+    - Otherwise (if invite options are open, and guild is open, show guild invite)
+    - If signed in and can manage, show links for settings and roster, and show options

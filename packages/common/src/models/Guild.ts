@@ -5,10 +5,10 @@ import type { DataSource } from '../database/index.js'
 import type { Profile } from './Profile.js'
 
 interface GuildInfo {
+    alias: string
     name: string
+    managerRole: string | null
     moderatorRole: string | null
-    ownerId: number
-    managerId: number
 }
 
 export type Guild = GuildInfo
@@ -17,29 +17,38 @@ export namespace Guild {
         return candidate && candidate instanceof Guild
     }
     export class Guild extends DiscordEntity implements GuildInfo {
+        alias: string
         name: string
         icon: string | null
         description: string | null
         preferredLocale: string
+        managerRole: string | null
         moderatorRole: string | null
-        ownerId: number
-        managerId: number
         async getOwner(dataSource: DataSource): Promise<User.User | null> {
-            return dataSource.Users.get(this.ownerId)
+            // TODO
+            return null
         }
         async getManager(dataSource: DataSource): Promise<Profile.Profile | null> {
-            return dataSource.Profiles.get(this.managerId)
+            // TODO
+            return null
         }
 
         constructor(properties: DBGuildInfo){
             super({ id: properties.guild_id, ...properties })
+            this.alias = properties.alias
             this.name = properties.name
-            this.ownerId = properties.owner_id
-            this.managerId = properties.manager_id
+            this.managerRole = properties.manager_role
             this.moderatorRole = properties.moderator_role
             this.icon = properties.icon
             this.description = properties.description
             this.preferredLocale = properties.preferred_locale
+        }
+        json(){
+            return {
+                id: this.id,
+                name: this.name,
+                alias: this.alias,
+            }
         }
     }
 }

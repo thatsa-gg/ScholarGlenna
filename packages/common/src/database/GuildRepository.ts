@@ -1,21 +1,24 @@
-import type { Sql, TransactionSql, Helper } from 'postgres'
-import type { DataSource } from './index.js'
+import type { Sql, Helper } from 'postgres'
+import type { DataSource, Transactable } from './index.js'
 import { Guild } from '../models/Guild.js'
+import type { User } from '../models/User.js'
 import {
     Guild as DiscordGuild,
     GuildMember as DiscordGuildMember,
+    Role as DiscordRole,
     Snowflake
 } from 'discord.js'
 
+export type GuildManagerRole = 'Owner' | 'Manager' | 'Moderator'
 export interface GuildInfo {
     guild_id: number
     snowflake: string
+    alias: string
     name: string
     icon: string | null
     description: string | null
     preferred_locale: string
-    owner_id: number
-    manager_id: number
+    manager_role: string | null
     moderator_role: string | null
     created_at: Date
     updated_at: Date
@@ -27,12 +30,11 @@ type DeletionSummary = { id: number, snowflake: string, name: string }
 const GuildColumns: (keyof GuildInfo)[] = [
     'guild_id',
     'snowflake',
+    'alias',
     'name',
     'icon',
     'description',
     'preferred_locale',
-    'owner_id',
-    'manager_id',
     'moderator_role',
     'created_at',
     'updated_at',
@@ -47,25 +49,28 @@ export class GuildRepository {
         this.#dataSource = dataSource
     }
 
-    async create(source: DiscordGuild, options?: { transaction?: TransactionSql<{}> }): Promise<Guild.Guild> {
+    async create(source: DiscordGuild, options?: Transactable): Promise<Guild.Guild> {
         const sql = options?.transaction ?? this.#sql
         const owner = await this.#dataSource.Users.findOrCreate((await source.fetchOwner()).user, { transaction: options?.transaction })
         const [ guild ] = await sql<[ GuildInfo ]>`
             insert into Guilds ${sql({
                 snowflake: source.id,
+                alias: BigInt(source.id).toString(36),
                 name: source.name,
                 icon: source.icon || null,
                 description: source.description || null,
                 preferred_locale: source.preferredLocale,
-                owner_id: owner.id,
             })} returning ${sql(GuildColumns)}
         `
         if(!guild)
             throw new Error(`Fatal database error ocurred while trying to register new guild.`)
-        return new Guild.Guild(guild)
+        const entity = new Guild.Guild(guild)
+        if(!await this.setRole(entity, owner, 'Owner', { transaction: sql }))
+            throw new Error(`Fatal database error ocurred while trying to set guild owner role for guild ${entity.id} (owner ${owner.id})`)
+        return entity
     }
 
-    async get(id: number, options?: { transaction?: TransactionSql<{}> }): Promise<Guild.Guild | null> {
+    async get(id: number, options?: Transactable): Promise<Guild.Guild | null> {
         const sql = options?.transaction ?? this.#sql
         const [ guild ] = await sql<GuildInfo[]>`
             select ${sql(GuildColumns)} from Guilds where guild_id = ${id}
@@ -75,7 +80,7 @@ export class GuildRepository {
         return new Guild.Guild(guild)
     }
 
-    async getBySnowflake(snowflake: string, options?: { transaction?: TransactionSql<{}> }): Promise<Guild.Guild | null> {
+    async getBySnowflake(snowflake: string, options?: Transactable): Promise<Guild.Guild | null> {
         const sql = options?.transaction ?? this.#sql
         const [ guild ] = await sql<GuildInfo[]>`
             select ${sql(GuildColumns)} from Guilds where snowflake = ${snowflake}
@@ -85,7 +90,26 @@ export class GuildRepository {
         return new Guild.Guild(guild)
     }
 
-    async findOrCreate(source: DiscordGuild, options?: { transaction?: TransactionSql<{}> }): Promise<Guild.Guild> {
+    async lookup(id: string, options?: Transactable): Promise<Guild.Guild | null> {
+        const sql = options?.transaction ?? this.#sql
+        const [ guild ] = await sql<GuildInfo[]>`select ${sql(GuildColumns)} from Guilds where deleted_at is null and alias = lower(${id})`
+        if(!guild)
+            return null
+        return new Guild.Guild(guild)
+    }
+
+    getForUser(user: User.User, options?: Transactable): Promise<Guild.Guild[]>;
+    getForUser(user: number, options?: Transactable): Promise<Guild.Guild[]>;
+    async getForUser(user: User.User | number, options?: Transactable): Promise<Guild.Guild[]> {
+        const sql = options?.transaction ?? this.#sql
+        const userId = typeof user === 'number' ? user : user.id
+        const guilds = await sql<GuildInfo[]>`
+            select ${sql(GuildColumns)} from UserMemberships inner join Guilds using (guild_id) where UserMemberships.user_id = ${userId}
+        `
+        return guilds.map(info => new Guild.Guild(info))
+    }
+
+    async findOrCreate(source: DiscordGuild, options?: Transactable): Promise<Guild.Guild> {
         const guild = await this.getBySnowflake(source.id, { transaction: options?.transaction })
         if(!guild)
             return await this.create(source, { transaction: options?.transaction })
@@ -94,7 +118,7 @@ export class GuildRepository {
         return guild
     }
 
-    async update(source: DiscordGuild, target: UpdateGuildInfo | Guild.Guild, options?: { restore?: boolean, transaction?: TransactionSql<{}> }): Promise<Guild.Guild> {
+    async update(source: DiscordGuild, target: UpdateGuildInfo | Guild.Guild, options?: Transactable & { restore?: boolean }): Promise<Guild.Guild> {
         const sql = options?.transaction ?? this.#sql
         const properties = {} as Record<keyof UpdateGuildInfo | 'updated_at', string | number | Helper<any> | null>
         if(target.name !== source.name)
@@ -108,15 +132,21 @@ export class GuildRepository {
                 properties.deleted_at = null
             if(target.preferredLocale !== source.preferredLocale)
                 properties.preferred_locale = source.preferredLocale
+            if(target.managerRole && !await source.roles.fetch(target.managerRole))
+                properties.manager_role = null
+            if(target.moderatorRole && !await source.roles.fetch(target.moderatorRole))
+                properties.moderator_role = null
         } else {
             if(target.deleted_at && options?.restore)
                 properties.deleted_at = null
             if(target.preferred_locale !== source.preferredLocale)
                 properties.preferred_locale = source.preferredLocale
+            if(target.manager_role && !await source.roles.fetch(target.manager_role))
+                properties.manager_role = null
+            if(target.moderator_role && !await source.roles.fetch(target.moderator_role))
+                properties.moderator_role = null
         }
-        // TODO: owner_id
-        // TOOD: manager_id
-        // TODO: moderator_role
+        // TODO: update owner
         const guildId = target instanceof Guild.Guild ? target.id : target.guild_id
         if(Object.keys(properties).length > 0){
             properties.updated_at = sql(`now()`)
@@ -131,10 +161,10 @@ export class GuildRepository {
         return guild
     }
 
-    delete(target: Guild.Guild, options?: { transaction?: TransactionSql<{}> }): Promise<DeletionSummary[]>
-    delete(source: DiscordGuild, options?: { transaction?: TransactionSql<{}> }): Promise<DeletionSummary[]>
-    delete(target: { except: Snowflake | Snowflake[] }, options?: { transaction?: TransactionSql<{}> }): Promise<DeletionSummary[]>
-    async delete(target: Guild.Guild | DiscordGuild | { except: Snowflake | Snowflake[]}, options?: { transaction?: TransactionSql<{}> }): Promise<DeletionSummary[]> {
+    delete(target: Guild.Guild, options?: Transactable): Promise<DeletionSummary[]>
+    delete(source: DiscordGuild, options?: Transactable): Promise<DeletionSummary[]>
+    delete(target: { except: Snowflake | Snowflake[] }, options?: Transactable): Promise<DeletionSummary[]>
+    async delete(target: Guild.Guild | DiscordGuild | { except: Snowflake | Snowflake[]}, options?: Transactable): Promise<DeletionSummary[]> {
         const sql = options?.transaction ?? this.#sql
         return await sql.begin(async sql => {
             if(target instanceof Guild.Guild)
@@ -158,6 +188,34 @@ export class GuildRepository {
         // need to consider what happens w/ leagues when a guild is deleted. Does the team get removed? Marked as expiring?
     }
 
+    async setRole(guild: Guild.Guild, user: User.User, role: GuildManagerRole, options?: Transactable): Promise<boolean> {
+        const sql = options?.transaction ?? this.#sql
+        const result = await sql`
+            insert into GuildManagers ${sql({
+                guild_id: guild.id,
+                user_id: user.id,
+                role
+            })} on conflict on constraint manager_unique_per_guild do update set role = ${role}
+        `
+        return result.count > 0
+    }
+
+    async clearRole(guild: Guild.Guild, user: User.User, options?: Transactable): Promise<boolean> {
+        const sql = options?.transaction ?? this.#sql
+        const result = await sql`
+            delete from GuildManagers where guild_id = ${guild.id} and user_id = ${user.id}
+        `
+        return result.count > 0
+    }
+
+    async getRole(guild: Guild.Guild, user: User.User, options?: Transactable): Promise<GuildManagerRole | false> {
+        const sql = options?.transaction ?? this.#sql
+        const [ result ] = await sql<[{ role: GuildManagerRole }]>`select role from GuildManagers where guild_id = ${guild.id} and user_id = ${user.id}`
+        if(!result)
+            return false
+        return result.role
+    }
+
     async import(source: DiscordGuild): Promise<Guild.Guild> {
         return await this.#sql.begin(async sql => {
             const [ guildExists ] = await sql<UpdateGuildInfo[]>`
@@ -167,56 +225,67 @@ export class GuildRepository {
                     icon,
                     description,
                     preferred_locale,
-                    owner_id,
-                    manager_id,
+                    manager_role,
                     moderator_role,
                     deleted_at
-                from Guilds where snowflake = ${source.id}`
+                from Guilds where snowflake = ${source.id}
+            `
+            if(guildExists){
+                // TODO: clean up old owner
+                if(!guildExists.manager_role){
+                    const users = await sql<{ user_id: number }[]>`
+                        delete from
+                            GuildManagers
+                        where
+                            guild_id = ${guildExists.guild_id}
+                            and role = 'Manager' returning user_id
+                    `
+                    // TODO: delete old user entries if they're not used anywhere else
+                } else {
+                    // TODO: clean up old managers
+                }
+                if(!guildExists.moderator_role){
+                    const users = await sql<{ user_id: number }[]>`
+                        delete from
+                            GuildManagers
+                        where
+                            guild_id = ${guildExists.guild_id}
+                            and role = 'Moderator' returning user_id
+                    `
+                    // TODO: delete old user entries if they're not used anywhere else
+                } else {
+                    // TODO: clean up old moderators
+                }
+                // at this point, all old data should be purged.
+            }
+
+            // these will also create the owner user entity if it doesn't exist
             const guild = guildExists
                 ? await this.update(source, guildExists, { restore: true, transaction: sql })
                 : await this.create(source, { transaction: sql })
-            const members = await source.members.fetch()
-            await this.bulkImportMembers(guild, members.values(), sql)
-            // TODO: validate teams, roles, manager, owner
+
+            if(guild.managerRole){
+                const role = await source.roles.fetch(guild.managerRole)
+                if(role){
+                    for(const member of role.members.values()){
+                        const user = await this.#dataSource.Users.findOrCreate(member.user, { transaction: sql })
+                        if(!await this.setRole(guild, user, 'Manager', { transaction: sql }))
+                            throw new Error(`Fatal database error ocurred while trying to set Manager role for guild ${guild.id} on user ${user.id}.`)
+                    }
+                }
+            }
+            if(guild.moderatorRole){
+                const role = await source.roles.fetch(guild.moderatorRole)
+                if(role){
+                    for(const member of role.members.values()){
+                        const user = await this.#dataSource.Users.findOrCreate(member.user, { transaction: sql })
+                        if(!await this.setRole(guild, user, 'Moderator', { transaction: sql }))
+                            throw new Error(`Fatal database error ocurred while trying to set Moderator role for guild ${guild.id} on user ${user.id}.`)
+                    }
+                }
+            }
+            // TODO: validate teams
             return guild
         })
-    }
-
-    async bulkImportMembers(guild: Guild.Guild, members: IterableIterator<DiscordGuildMember>, transaction: TransactionSql<{}>){
-        // TODO: more efficient
-        const sql = transaction
-        await sql`
-            create temporary table KeepMembers (
-                member_id integer primary key
-            )
-        `
-        for(const member of members){
-            const user = await this.#dataSource.Users.findOrCreate(member.user, { transaction })
-            const entity = await this.#dataSource.GuildMembers.findOrCreate(user, guild, member, { transaction })
-            await sql`insert into KeepMembers ${sql({
-                member_id: entity.id
-            })}`
-        }
-        const removedMemberUsers = await sql<{ user_id: number }[]>`
-            update GuildMembers set deleted_at = now() where
-                guild_id = ${guild.id} and
-                member_id not in (select member_id from KeepMembers)
-            returning user_id
-        `
-        await sql`drop table KeepMembers`
-        if(removedMemberUsers.length > 0){
-            await sql`
-                create temporary table CheckUsers (
-                    user_id integer primary key
-                )
-            `
-            await sql`insert into CheckUsers ${sql(removedMemberUsers)}`
-            await sql`
-                update Users set deleted_at = now() where
-                    user_id in (select user_id from CheckUsers
-                        where user_id not in (select user_id from Profiles))
-            `
-            await sql`drop table CheckUsers`
-        }
     }
 }

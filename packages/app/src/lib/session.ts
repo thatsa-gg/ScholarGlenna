@@ -26,7 +26,7 @@ export async function createSession(authorization: Authorization): Promise<Requi
     const sessionID = UUID.create() as SessionID
     const [ accessKey, sessionKey ] = getKeys(sessionID)
     const discordUser = await getUserInfo(authorization.access_token)
-    const appProfile = await Profiles.findOrCreate(discordUser)
+    const appProfile = await Profiles.import(discordUser)
     await Promise.all([
         RedisClient.set(accessKey, authorization.access_token, { EX: authorization.expires_in }),
         RedisClient.hSet(sessionKey, {
