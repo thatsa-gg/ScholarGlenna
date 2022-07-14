@@ -102,15 +102,23 @@ export default new Migration(0, 'initial', {
             create table Teams (
                 team_id serial primary key,
                 guild_id integer not null references Guilds(guild_id) on delete cascade,
-                role snowflake unique not null,
+                alias varchar(32) not null,
                 name text not null,
                 description text,
-                time timestamp with time zone not null,
-                duration time not null,
+                role snowflake unique default null,
+                channel snowflake default null,
                 color integer default null,
                 icon varchar default null,
-                channel snowflake default null,
                 ${ dateColumns }
+            )
+        `
+
+        await sql`
+            create table TeamTimes (
+                time_id serial primary key,
+                team_id integer references Teams(team_id),
+                time timestamp with time zone not null,
+                duration time not null
             )
         `
 
