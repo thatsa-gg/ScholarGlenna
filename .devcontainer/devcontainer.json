@@ -7,19 +7,21 @@
     "service": "devcontainer",
     "workspaceFolder": "/workspace",
     "remoteEnv": {
-        "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
+        "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}",
+        "PATH": "${containerEnv:PATH}:${containerWorkspaceFolder}/node_modules/.bin"
     },
     "customizations": {
         "vscode": {
             "extensions": [
-				"dbaeumer.vscode-eslint",
-				"ms-azuretools.vscode-docker",
-				"EditorConfig.EditorConfig",
-				"eamodio.gitlens",
-				"svelte.svelte-vscode",
-				"amodio.toggle-excluded-files",
-				"Tobermory.es6-string-html"
-			]
+                "dbaeumer.vscode-eslint",
+                "ms-azuretools.vscode-docker",
+                "EditorConfig.EditorConfig",
+                "eamodio.gitlens",
+                "svelte.svelte-vscode",
+                "amodio.toggle-excluded-files",
+                "Tobermory.es6-string-html",
+                "Prisma.prisma"
+            ]
         }
     },
 

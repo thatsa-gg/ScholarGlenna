@@ -1,4 +1,4 @@
-import { AppDataSource, UUID, RedisClient } from '@glenna/common'
+import { Database, UUID, getRedisClient } from '@glenna/common'
 import { reauthorizeUser, type Authorization } from './auth'
 import { getUserInfo } from './discord-rest'
 
@@ -22,32 +22,33 @@ export type SessionID = UUID & { __TYPE__: 'SessionID' }
 export const SESSION_EXPIRATION_DURATION_SECONDS = 30 * 24 * 60 * 60
 
 export async function createSession(authorization: Authorization): Promise<Required<Session>> {
-    const { Profiles } = await AppDataSource
+    const redis = await getRedisClient()
     const sessionID = UUID.create() as SessionID
     const [ accessKey, sessionKey ] = getKeys(sessionID)
     const discordUser = await getUserInfo(authorization.access_token)
-    const appProfile = await Profiles.import(discordUser)
+    const appProfile = await Database.Profiles.import(discordUser)
     await Promise.all([
-        RedisClient.set(accessKey, authorization.access_token, { EX: authorization.expires_in }),
-        RedisClient.hSet(sessionKey, {
-            [FIELD_PROFILE_ID]: appProfile.id,
+        redis.set(accessKey, authorization.access_token, { EX: authorization.expires_in }),
+        redis.hSet(sessionKey, {
+            [FIELD_PROFILE_ID]: appProfile.profile_id,
             [FIELD_REFRESH_TOKEN]: authorization.refresh_token
         }),
-        RedisClient.expire(sessionKey, SESSION_EXPIRATION_DURATION_SECONDS),
+        redis.expire(sessionKey, SESSION_EXPIRATION_DURATION_SECONDS),
     ])
     return {
         id: sessionID,
-        profileId: appProfile.id,
+        profileId: appProfile.profile_id,
         accessToken: authorization.access_token,
         expiration: new Date(Date.now() + SESSION_EXPIRATION_DURATION_SECONDS * 1000),
     }
 }
 
 export async function getSession(sessionID: string): Promise<Session | null> {
+    const redis = await getRedisClient()
     const [ accessKey, sessionKey ] = getKeys(sessionID as SessionID)
     const [ accessToken, sessionData ] = await Promise.all([
-        RedisClient.get(accessKey),
-        RedisClient.hmGet(sessionKey, [ FIELD_REFRESH_TOKEN, FIELD_PROFILE_ID ])
+        redis.get(accessKey),
+        redis.hmGet(sessionKey, [ FIELD_REFRESH_TOKEN, FIELD_PROFILE_ID ])
     ])
     const [ refreshToken, profileId ] = sessionData
     if(!profileId)
@@ -62,18 +63,19 @@ export async function getSession(sessionID: string): Promise<Session | null> {
 }
 
 export async function refreshSession(sessionID: SessionID, profileId: number, refreshToken: string | null): Promise<Session> {
+    const redis = await getRedisClient()
     const [ accessKey, sessionKey ] = getKeys(sessionID)
     if(!refreshToken){
-        await RedisClient.del([ accessKey, sessionKey ])
+        await redis.del([ accessKey, sessionKey ])
         throw new Error("Could not refresh session. Please log in again.")
     }
 
     const authorization = await reauthorizeUser(refreshToken)
-    await RedisClient.set(accessKey, authorization.access_token, { EX: authorization.expires_in })
+    await redis.set(accessKey, authorization.access_token, { EX: authorization.expires_in })
     if(authorization.refresh_token){
         await Promise.all([
-            RedisClient.hSet(sessionKey, FIELD_REFRESH_TOKEN, authorization.refresh_token),
-            RedisClient.expire(sessionKey, SESSION_EXPIRATION_DURATION_SECONDS),
+            redis.hSet(sessionKey, FIELD_REFRESH_TOKEN, authorization.refresh_token),
+            redis.expire(sessionKey, SESSION_EXPIRATION_DURATION_SECONDS),
         ])
     }
 
@@ -84,5 +86,6 @@ export async function refreshSession(sessionID: SessionID, profileId: number, re
 }
 
 export async function destroySession(sessionID: string): Promise<void> {
-    await RedisClient.del(getKeys(sessionID as SessionID))
+    const redis = await getRedisClient()
+    await redis.del(getKeys(sessionID as SessionID))
 }

@@ -112,3 +112,27 @@ export class LazyPromise<T> extends Promise<T> {
         return new LazyPromise(resolve => resolve(fn()))
     }
 }
+
+export type JsonSafe<T> =
+    T extends Function ? null
+    : T extends bigint ? string
+    : T extends Date ? T
+    : T extends Array<infer R extends object> ? Array<JsonSafe<R>>
+    : T extends object ? { [key in keyof T]: JsonSafe<T[key]> }
+    : T
+export function asJsonSafe<T>(object: T): JsonSafe<T>{
+    if(Array.isArray(object))
+        return Array.from(object, item => asJsonSafe(item)) as JsonSafe<T>
+    if(object instanceof Date)
+        return object as JsonSafe<T>
+    switch(typeof object){
+        case 'function': return null as JsonSafe<T>
+        case 'bigint': return object.toString() as JsonSafe<T>
+        case 'object': return Object.fromEntries(Object.entries(object).map(([key, value]) => [key, asJsonSafe(value)])) as JsonSafe<T>
+        default: return object as JsonSafe<T>
+    }
+}
+
+export function select<T extends object, K extends keyof T>(object: T, ...keys: K[]): Pick<T, K> {
+    return Object.assign({}, ...keys.map(key => ({ [key]: object[key] })))
+}

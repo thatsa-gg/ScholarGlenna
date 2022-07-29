@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from '@discordjs/builders'
-import type { CommandInteraction } from 'discord.js'
+import type { ChatInputCommandInteraction } from 'discord.js'
 import { SlashCommand, SlashSubcommand } from '../SlashCommand.js'
 import { load } from '@glenna/util'
 
@@ -12,7 +12,7 @@ for(const subcommand of await load<SlashSubcommand>(import.meta, './glenna')){
     subcommands.set(subcommand.name, subcommand)
 }
 
-async function error(interaction: CommandInteraction){
+async function error(interaction: ChatInputCommandInteraction){
     await interaction.reply({
         ephemeral: true,
         content: "Unrecognized subcommand."

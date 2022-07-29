@@ -6,7 +6,7 @@ import {
     REDIRECT_URI
 } from '../../../lib/auth'
 
-export const get: RequestHandler = async() => {
+export const GET: RequestHandler = async() => {
     const params = new URLSearchParams()
     params.append(`client_id`, OAUTH_CLIENT_ID)
     params.append(`redirect_uri`, REDIRECT_URI)

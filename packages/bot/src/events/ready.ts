@@ -2,7 +2,7 @@ import { listener } from '../EventListener.js'
 import { DISCORD_TOKEN, OAUTH_CLIENT_ID, VERSION } from '../config.js'
 import { info, log } from 'console'
 import { registerCommands } from '../commands.js'
-import { AppDataSource } from '../index.js'
+import { Database } from '@glenna/common'
 
 export default listener('ready', {
     once: true,
@@ -18,15 +18,15 @@ export default listener('ready', {
         log()
         log(`\tID        Snowflake           Name`)
         log(`\t----------------------------------------`)
-        const deletedGuilds = await AppDataSource.Guilds.delete({ except: Array.from(client.guilds.cache.keys()) })
+        const deletedGuilds = await Database.Guilds.delete(Array.from(client.guilds.cache.keys(), snowflake => BigInt(snowflake)))
         if(deletedGuilds.length === 0)
             log(`\t(none)`)
         else for(const guild of deletedGuilds)
-            log(`\t${guild.id.toString().padEnd(9)} ${guild.snowflake.padEnd(19)} ${guild.name}`)
+            log(`\t${guild.id.toString().padEnd(9)} ${guild.snowflake.toString().padEnd(19)} ${guild.name}`)
         log()
         for(const guild of guilds){
             log(`\tUpdating server import for: ${guild.name}`)
-            const entity = await AppDataSource.Guilds.import(guild)
+            const entity = await Database.Guilds.import(guild)
             log(`\tRegistering commands on: ${entity.name}`)
             await registerCommands({
                 token: DISCORD_TOKEN,

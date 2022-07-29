@@ -25,19 +25,19 @@ ts-build:
 	$(TSC) --build
 
 dev:
-	npm --prefix packages/app run dev
+	pnpm --prefix packages/app run dev
 
 svelte-build:
-	npm --prefix packages/app run build
+	pnpm --prefix packages/app run build
 
 svelte-package:
-	npm --prefix packages/app run package
+	pnpm --prefix packages/app run package
 
 svelte-preview:
-	npm --prefix packages/app run preview
+	pnpm --prefix packages/app run preview
 
 svelte-prepare:
-	npm --prefix packages/app run prepare
+	pnpm --prefix packages/app run prepare
 
 sync:
-	npm --prefix packages/app run prepare
+	pnpm --prefix packages/app run prepare

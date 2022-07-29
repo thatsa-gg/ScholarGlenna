@@ -1,6 +1,6 @@
 import { prerendering } from '$app/env'
-import { AppDataSource as _AppDataSource } from '@glenna/common'
-const AppDataSource = prerendering ? null! : await _AppDataSource
+import { Database } from '@glenna/common'
+import { asJsonSafe } from '@glenna/util'
 
 import type { GetSession, Handle } from '@sveltejs/kit'
 import { parse } from 'cookie'
@@ -29,11 +29,11 @@ export const handle: Handle = prerendering
     if(!session)
         return new Response(null, { status: 303, headers: { Location: '/api/logout' }})
 
-    const profile = await AppDataSource.Profiles.get(session.profileId)
+    const profile = await Database.Client.userProfile.findUnique({ where: { profile_id: session.profileId } })
     if(!profile)
         return new Response(null, { status: 303, headers: { Location: '/api/logout' } })
 
-    locals.user = profile.getLocalProfile()
+    locals.user = { ...asJsonSafe(profile), displayName: `${profile.username}#${profile.discriminator.toString().padStart(4, '0')}` }
     return resolve(event)
 }
 

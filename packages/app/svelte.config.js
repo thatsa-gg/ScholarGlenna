@@ -19,21 +19,6 @@ const config = {
         files: {
             lib: "src/lib",
         },
-
-        vite: {
-            css: {
-                preprocessorOptions: {
-                    scss: {
-                        additionalData: '@use "src/scss/variables.scss" as *;',
-                    },
-                },
-            },
-            ssr: {
-                external: [
-                    '@glenna/common'
-                ]
-            }
-        },
     },
 };
 

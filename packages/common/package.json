@@ -5,17 +5,26 @@
     "main": "dist/index.js",
     "types": "src/index.ts",
     "devDependencies": {
-        "@types/uuid": "^8.3.4"
+        "@types/uuid": "^8.3.4",
+        "prisma": "^4.1.0"
     },
     "dependencies": {
         "@glenna/util": "workspace:*",
-        "discord-api-types": "^0.34.0",
-        "discord.js": "^13.6.0",
+        "@prisma/client": "^4.1.0",
+        "discord-api-types": "^0.36.2",
+        "discord.js": "^14.0.2",
         "postgres": "^3.2.4",
-        "redis": "^4.1.0",
+        "redis": "^4.2.0",
         "uuid": "^8.3.2"
     },
     "scripts": {
-        "migrate": "node dist/_entry.js migrate"
+        "migrate-reset": "pnpm exec prisma migrate reset",
+        "migrate": "pnpm exec prisma migrate deploy",
+        "migrate-status": "pnpm exec prisma migrate status",
+        "generate": "pnpm exec prisma generate",
+        "postinstall": "pnpm exec prisma generate"
+    },
+    "prisma": {
+        "schema": "db/schema.prisma"
     }
 }

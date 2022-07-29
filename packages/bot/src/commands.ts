@@ -15,12 +15,12 @@ const REST = new RESTClient({ version: REST_VERSION })
 interface RegistrationArgs {
     token: string,
     clientId: string,
-    guildId: string
+    guildId: bigint
 }
 export async function registerCommands(args: RegistrationArgs): Promise<void> {
     const { token, clientId, guildId } = args
     REST.setToken(token)
     await REST.put(
-        Routes.applicationGuildCommands(clientId, guildId),
+        Routes.applicationGuildCommands(clientId, guildId.toString()),
         { body: CommandList })
 }

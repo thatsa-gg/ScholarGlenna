@@ -1,6 +1,6 @@
 <script lang="ts">
     import LoginButton from '$lib/components/LoginButton.svelte'
-    export let user: LocalProfile
+    export let user: UserProfile
     export let guilds: any[]
 </script>
 <header>

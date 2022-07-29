@@ -9,12 +9,15 @@
   "license": "MIT",
   "repository": "https://github.com/cofl/ScholarGlenna.git",
   "devDependencies": {
-    "@types/node": "^17.0.31",
+    "@types/node": "^17.0.45",
     "typescript": "^4.6.4"
   },
   "packageManager": "pnpm@7.0.0",
   "scripts": {
     "migrate": "pnpm --prefix packages/common run migrate",
-    "bot": "pnpm --prefix packages/bot run bot"
+    "bot": "pnpm --prefix packages/bot run bot",
+    "dev": "pnpm --prefix packages/app run dev",
+    "generate": "pnpm --prefix packages/common run generate",
+    "build": "pnpm exec tsc --build"
   }
 }

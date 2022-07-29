@@ -1,17 +1,19 @@
 /// <reference types="@sveltejs/kit" />
 /// <reference types="@glenna/common" />
 
-type LocalProfile = import('@glenna/common').LocalProfile
+type UserProfile = import('@glenna/util').JsonSafe<import('@glenna/common').UserProfile> & {
+    displayName: string
+}
 
 // See https://kit.svelte.dev/docs/types#app
 // for information about these interfaces
 declare namespace App {
     interface Locals {
-        user?: LocalProfile
+        user?: UserProfile
     }
     // interface Platform {}
     interface Session {
-        user: false | LocalProfile
+        user: false | UserProfile
     }
     // interface Stuff {}
 }

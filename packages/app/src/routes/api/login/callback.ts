@@ -5,7 +5,7 @@ import { createSession } from '$lib/session'
 type Params = {
     code: string
 }
-export const get: RequestHandler<Params> = async event => {
+export const GET: RequestHandler<Params> = async event => {
     const query = event.url.searchParams
     const code = query.get('code') ?? null
     try {

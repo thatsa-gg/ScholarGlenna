@@ -2,11 +2,7 @@ import { log, info, error } from 'console'
 import { VERSION } from './config.js'
 import type { EventListener } from './EventListener'
 
-import {
-    AppDataSource as _AppDataSource,
-    Discord
-} from '@glenna/common'
-export const AppDataSource = await _AppDataSource
+import { Discord } from '@glenna/common'
 import './commands.js'
 
 export const Glenna = Discord.createClient()

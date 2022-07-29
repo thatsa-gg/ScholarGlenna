@@ -1,21 +1,30 @@
 import type { RequestHandler } from '@sveltejs/kit'
-import { AppDataSource } from '@glenna/common'
+import { Database, type Guild, type Team } from '@glenna/common'
+import { asJsonSafe, type JsonSafe } from '@glenna/util'
 import { notFound } from '$lib/status'
 
-export const get: RequestHandler = async event => {
+export type _Guild = Pick<JsonSafe<Guild>, 'name'> & { teams: Pick<JsonSafe<Team>, 'name' | 'alias'>[] }
+export const GET: RequestHandler = async event => {
     const user = event.locals.user ?? false
     const alias = event.params['id']
     if(!alias)
         return notFound()
-    const { Guilds } = await AppDataSource
-    const guild = await Guilds.lookup(alias)
+    const guild = await Database.Client.guild.findUnique({ where: { alias }, select: {
+        name: true,
+        teams: {
+            select: {
+                name: true,
+                alias: true,
+            }
+        }
+    }})
     if(!guild)
         return notFound()
     return {
         status: 200,
         body: {
             user,
-            guild: guild.json()
+            guild: asJsonSafe(guild)
         }
     }
 }

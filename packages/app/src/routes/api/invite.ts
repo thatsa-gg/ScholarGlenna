@@ -1,7 +1,7 @@
 import type { RequestHandler } from '@sveltejs/kit'
 import { AUTHORIZATION_URI, OAUTH_CLIENT_ID } from '../../lib/auth'
 
-export const get: RequestHandler = async () => {
+export const GET: RequestHandler = async () => {
     return {
         status: 302,
         headers: {

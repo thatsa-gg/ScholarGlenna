@@ -4,7 +4,7 @@ import { error } from 'console'
 
 export default listener('interactionCreate', {
     async execute(interaction){
-        if(!interaction.isCommand())
+        if(!interaction.isChatInputCommand())
             return
 
         const command = Commands.get(interaction.commandName)

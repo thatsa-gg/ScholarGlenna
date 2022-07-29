@@ -1,36 +1,43 @@
-import { LazyPromise } from '@glenna/util'
-import postgres, { Sql, TransactionSql } from 'postgres'
-import {
-    POSTGRES_HOST,
-    POSTGRES_PORT,
-    POSTGRES_DB,
-    POSTGRES_USER,
-    POSTGRES_PASSWORD
-} from '../env.js'
-import { UserRepository } from './UserRepository.js'
-import { ProfileRepository } from './ProfileRepository.js'
-import { GuildRepository } from './GuildRepository.js'
+export type {
+    Guild,
+    User,
+    UserProfile,
+    Team
+} from '../../generated/client'
+export type { GuildDeletionSummary } from './Guilds.js'
+export type { Client } from './Client.js'
 
-export interface Transactable {
-    transaction?: TransactionSql<{}> | Sql<{}>
-}
-export type DataSource = {
-    Users: UserRepository
-    Profiles: ProfileRepository
-    Guilds: GuildRepository
-}
-export const AppDataSource: LazyPromise<DataSource> = LazyPromise.from(() => {
-    const sql = postgres({
-        host: POSTGRES_HOST,
-        port: POSTGRES_PORT,
-        user: POSTGRES_USER,
-        password: POSTGRES_PASSWORD,
-        database: POSTGRES_DB,
-    })
+import { getClient, type Client } from './Client.js'
+import { Guilds } from './Guilds.js'
+import { GuildMembers } from './GuildMembers.js'
+import { Users } from './Users.js'
+import { Profiles } from './Profiles.js'
 
-    const dataSource: DataSource = {} as DataSource
-    dataSource.Users = new UserRepository(sql, dataSource)
-    dataSource.Profiles = new ProfileRepository(sql, dataSource)
-    dataSource.Guilds = new GuildRepository(sql, dataSource)
-    return dataSource
-})
+export class Database {
+    Client: Client
+    Guilds: Guilds
+    Users: Users
+    Profiles: Profiles
+    GuildMembers: GuildMembers
+    private constructor(){
+        this.Client = getClient()
+        this.Guilds = new Guilds(this)
+        this.Users = new Users(this)
+        this.Profiles = new Profiles(this)
+        this.GuildMembers = new GuildMembers(this)
+    }
+
+    static #instance: Database | null = null
+    private static get Instance(): Database {
+        if(!this.#instance){
+            console.debug(`Instantiating Database singleton.`)
+            return this.#instance = new Database()
+        }
+        return this.#instance
+    }
+    static get Client(): Client { return this.Instance.Client }
+    static get Guilds(): Guilds { return this.Instance.Guilds }
+    static get Users(): Users { return this.Instance.Users }
+    static get Profiles(): Profiles { return this.Instance.Profiles }
+    static get GuildMembers(): GuildMembers { return this.Instance.GuildMembers }
+}

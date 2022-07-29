@@ -4,12 +4,12 @@
     "private": true,
     "main": "dist/_entry.js",
     "dependencies": {
-        "@discordjs/builders": "^0.13.0",
-        "@discordjs/rest": "^0.4.1",
-        "@glenna/util": "workspace:*",
+        "@discordjs/builders": "^1.0.0",
+        "@discordjs/rest": "^1.0.0",
         "@glenna/common": "workspace:*",
-        "discord-api-types": "^0.32.1",
-        "discord.js": "^13.6.0"
+        "@glenna/util": "workspace:*",
+        "discord-api-types": "^0.36.2",
+        "discord.js": "^14.0.2"
     },
     "scripts": {
         "bot": "node ."

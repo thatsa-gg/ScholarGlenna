@@ -1,13 +1,13 @@
-import { Client, Intents } from 'discord.js'
+import { Client } from 'discord.js'
 import { DISCORD_TOKEN } from '../env.js'
 export namespace Discord {
     export function createClient(): Client {
         return new Client({
             intents: [
-                Intents.FLAGS.GUILDS,
-                Intents.FLAGS.GUILD_MEMBERS,
-                Intents.FLAGS.GUILD_MESSAGES,
-                Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
+                'Guilds',
+                'GuildMembers',
+                'GuildMessages',
+                'GuildMessageReactions',
             ]
         })
     }
