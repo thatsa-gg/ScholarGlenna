@@ -8,12 +8,9 @@
 
 <h1>{guild.name}</h1>
 
-<pre>
-{JSON.stringify(guild)}
-</pre>
-
 <ul>
     {#each guild.teams as team}
-        <li><a href="/teams/{team.alias}">team.name</a></li>
+        <li><a href="/t/{team.alias}">team.name</a></li>
     {/each}
+    <li><a href="/g/{guild.alias}/new-team"><i>create new team</i></a></li>
 </ul>

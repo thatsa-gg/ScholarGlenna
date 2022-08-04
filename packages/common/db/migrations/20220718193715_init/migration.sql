@@ -2,6 +2,31 @@ set check_function_bodies = false;
 create schema if not exists public;
 create domain snowflake as bigint check (value >= 0);
 
+
+-------------------------------------------------------------------------------
+---                                                                         ---
+---                 Utility Functions                                       ---
+---                                                                         ---
+-------------------------------------------------------------------------------
+
+create sequence public.GlobalSnowflakeSequence minvalue 0 maxvalue 4095 cycle; -- [0, 2^12)
+create function new_snowflake() returns snowflake language 'plpgsql' as $body$
+declare
+    epoch bigint := 1640995200000;
+    shard_mask bigint := ((inet_server_addr() & inet '0.0.3.255') - inet '0.0.0.0') << 12;
+begin
+    return ((floor((extract(epoch from clock_timestamp()) - epoch) * 1000)::bigint & 2199023255551::bigint) << 22) -- 2^41-1
+        | shard_mask
+        | nextval('public.GlobalSnowflakeSequence');
+end;
+$body$;
+
+-------------------------------------------------------------------------------
+---                                                                         ---
+---                 Tables/Types                                            ---
+---                                                                         ---
+-------------------------------------------------------------------------------
+
 create table Users (
     user_id serial primary key,
     snowflake snowflake unique not null,
@@ -18,18 +43,6 @@ create table Profiles (
     created_at timestamp with time zone not null default now(),
     updated_at timestamp with time zone not null default now()
 );
-
-create view UserProfiles as select
-    Profiles.profile_id,
-    Users.user_id,
-    Users.snowflake,
-    Users.username,
-    Users.discriminator,
-    Profiles.avatar,
-    Profiles.updated_at,
-    Profiles.created_at
-from
-    Profiles inner join Users using(user_id);
 
 create table GuildWars2Accounts (
     account_id serial primary key,
@@ -99,6 +112,7 @@ create table Teams (
     name text not null,
     description text,
     role snowflake unique default null,
+    sync boolean not null default FALSE, -- TODO: actually sync if this is true and we have a role.
     channel snowflake default null,
     color integer default null, -- from role
     icon varchar default null, -- from role
@@ -178,4 +192,101 @@ from
 group by
     Users.user_id;
 
+-------------------------------------------------------------------------------
+---                                                                         ---
+---                 Convenience Views                                       ---
+---                                                                         ---
+-------------------------------------------------------------------------------
 
+create view UserIcons as select
+    Users.user_id,
+    'embed/avatars/' || (Users.discriminator % 5) || '.png' as avatar
+from Users;
+
+create view UserProfileIcons as select
+    Users.user_id,
+    Profiles.profile_id,
+    UserIcons.avatar as default_avatar,
+    coalesce(
+        'avatars/' || Users.snowflake::text || '/' || Profiles.avatar,
+        UserIcons.avatar
+    ) as avatar
+from Profiles inner join Users using(user_id) inner join UserIcons using(user_id);
+
+create view GuildMemberIcons as select
+    Users.user_id,
+    Profiles.profile_id,
+    GuildMembers.guild_member_id,
+    UserIcons.avatar as default_avatar,
+    coalesce(
+        'guilds/' || Guilds.snowflake::text || '/users/' || Users.snowflake::text || '/avatars/' || GuildMembers.avatar,
+        'avatars/' || Users.snowflake::text || '/' || Profiles.avatar,
+        UserIcons.avatar
+    ) as avatar
+from
+    GuildMembers inner join Users using(user_id)
+    inner join UserIcons using(user_id)
+    inner join Guilds using(guild_id)
+    left outer join Profiles using(user_id);
+
+create view GuildIcons as with initial as (
+    select
+        Guilds.guild_id,
+        Guilds.icon as icon_hash,
+        'icons/' || Guilds.snowflake::text || Guilds.icon as icon
+    from Guilds
+)
+select
+    guild_id,
+    icon,
+    case when icon_hash like 'a_%' then icon || '.gif' else null end as icon_gif
+from initial;
+
+create view vUserProfiles as select
+    Profiles.profile_id,
+    Users.user_id,
+    Users.snowflake,
+    Users.username,
+    Users.discriminator,
+    Profiles.avatar,
+    coalesce(
+        'avatars/' || Users.snowflake::text || '/' || Profiles.avatar,
+        'embed/avatars/' || (Users.discriminator % 5) || '.png'
+    ) as avatar_url_fragment,
+    Profiles.updated_at,
+    Profiles.created_at
+from
+    Profiles inner join Users using(user_id);
+
+create view vGuildMember as with initial as (
+    select
+        Users.user_id,
+        GuildMembers.guild_id,
+        GuildMembers.guild_member_id,
+        Users.snowflake::text as snowflake,
+        coalesce(
+            'guilds/' || Guilds.snowflake::text || '/users/' || Users.snowflake::text || '/avatars/' || GuildMembers.avatar,
+            'avatars/' || Users.snowflake::text || '/' || Profiles.avatar,
+            'embed/avatars/' || (Users.discriminator % 5) || '.png'
+        ) as avatar_url_fragment,
+        coalesce(GuildMembers.nickname, Users.username) as name,
+        lpad(Users.discriminator::text, 4, '0') as discriminator,
+        GuildMembers.role,
+        GuildMembers.deleted_at
+    from
+        GuildMembers inner join Users using(user_id)
+        inner join Guilds using(guild_id)
+        left outer join Profiles using(user_id)
+)
+select
+    user_id,
+    guild_id,
+    guild_member_id,
+    snowflake,
+    avatar_url_fragment,
+    name,
+    discriminator,
+    concat(name, '#', discriminator) as display_name,
+    role,
+    deleted_at
+from initial;

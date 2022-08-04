@@ -1,12 +1,7 @@
 /// <reference types="@sveltejs/kit" />
 /// <reference types="@glenna/common" />
 
-type UserProfile = import('@glenna/util').JsonSafe<import('@glenna/common').UserProfile> & {
-    displayName: string
-}
-
-// See https://kit.svelte.dev/docs/types#app
-// for information about these interfaces
+type UserProfile = import('$lib/UserData').UserProfile
 declare namespace App {
     interface Locals {
         user?: UserProfile

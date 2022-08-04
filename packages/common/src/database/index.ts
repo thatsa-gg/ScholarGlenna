@@ -27,6 +27,11 @@ export class Database {
         this.GuildMembers = new GuildMembers(this)
     }
 
+    async newSnowflake(): Promise<bigint> {
+        const result = await this.Client.$queryRaw<[{ snowflake: bigint }]>`select new_snowflake();`
+        return result[0].snowflake
+    }
+
     static #instance: Database | null = null
     private static get Instance(): Database {
         if(!this.#instance){

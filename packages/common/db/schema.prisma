@@ -50,6 +50,7 @@ model User {
     profile             Profile?
     user_profile        UserProfile?
     guild_memberships   GuildMember[]
+    vguild_memberships  vGuildMember[]
     team_memberships    TeamMembership[]
     guild_ownerships    GuildOwner[]
 
@@ -126,6 +127,7 @@ model GuildMember {
     owner_relations   GuildOwner[]
     manager_relations GuildManager[]
     team_memberships  TeamMember[]
+    vmember   vGuildMember?
 
     @@unique([ user_id, guild_id ])
     @@map("guildmembers")
@@ -147,6 +149,7 @@ model Guild {
 
     managers         GuildManager[]
     members          GuildMember[]
+    vmembers         vGuildMember[]
     teams            Team[]
     owner            GuildOwner?
 
@@ -160,6 +163,7 @@ model Team {
     name        String
     description String?
     role        BigInt?       @unique
+    sync        Boolean
     channel     BigInt?
     color       Int?
     icon        String?       @db.VarChar
@@ -214,17 +218,38 @@ model TeamTime {
 
 // Views
 model UserProfile {
-    profile_id      Int @unique
-    user_id         Int @unique
-    snowflake       BigInt @unique
-    username        String
-    discriminator   Int
-    avatar          String
-    updated_at      DateTime
-    created_at      DateTime
+    profile_id          Int @unique
+    user_id             Int @unique
+    snowflake           BigInt @unique
+    username            String
+    discriminator       Int
+    avatar              String
+    avatar_url_fragment String
+    updated_at          DateTime
+    created_at          DateTime
 
-    user            User @relation(fields: [user_id], references: [user_id])
-    profile         Profile @relation(fields: [profile_id], references: [profile_id])
+    user    User @relation(fields: [user_id], references: [user_id])
+    profile Profile @relation(fields: [profile_id], references: [profile_id])
 
-    @@map("userprofiles")
+    @@map("vuserprofiles")
+}
+
+model vGuildMember {
+    user_id             Int
+    guild_id            Int
+    guild_member_id     Int @unique
+    snowflake           String
+    avatar_url_fragment String
+    name                String
+    discriminator       String
+    display_name        String
+    role                GuildRole
+    deleted_at          DateTime? @db.Timestamptz(6)
+
+    guild_member    GuildMember @relation(fields: [guild_member_id], references: [guild_member_id])
+    guild           Guild       @relation(fields: [guild_id], references: [guild_id])
+    user            User        @relation(fields: [user_id], references: [user_id])
+
+    @@unique([user_id, guild_id])
+    @@map("vguildmember")
 }
