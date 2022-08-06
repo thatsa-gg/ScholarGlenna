@@ -5,30 +5,32 @@ import { notFound } from '$lib/status'
 export type _Team = Pick<Team, 'name'> & { teams: Pick<Team, 'name' | 'alias'>[] }
 export const GET: RequestHandler = async event => {
     const user = event.locals.user ?? false
-    const alias = event.params['id']
-    if(!alias)
+    const { guild_id, team_id } = event.params
+    if(!guild_id || !team_id)
         return notFound()
-    const guild = await Database.Client.team.findUnique({ where: { alias }, select: {
-        name: true,
-        members: {
-            select: {
-                role: true,
-                guild_member: {
-                    select: {
-                        nickname: true,
-                        avatar: true,
-                    }
+    const lookup = await Database.Client.teamLookup.findUnique({
+        where: {
+            team_alias_guild_alias: {
+                team_alias: team_id,
+                guild_alias: guild_id,
+            }
+        },
+        select: {
+            team: {
+                select: {
+                    // TODO
                 }
             }
         }
-    }})
-    if(!guild)
+    })
+    if(!lookup)
         return notFound()
+    const { team } = lookup
     return {
         status: 200,
         body: {
             user,
-            guild
+            team
         }
     }
 }

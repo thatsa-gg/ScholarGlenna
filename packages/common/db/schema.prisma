@@ -150,8 +150,9 @@ model Guild {
     managers         GuildManager[]
     members          GuildMember[]
     vmembers         vGuildMember[]
-    teams            Team[]
     owner            GuildOwner?
+    teams            Team[]
+    team_lookup      TeamLookup[]
 
     @@map("guilds")
 }
@@ -159,7 +160,8 @@ model Guild {
 model Team {
     team_id     Int           @id @default(autoincrement())
     guild_id    Int
-    alias       String        @unique @db.VarChar(32)
+    snowflake   BigInt        @unique
+    alias       String        @db.VarChar(32)
     name        String
     description String?
     role        BigInt?       @unique
@@ -174,7 +176,10 @@ model Team {
     members     TeamMember[]
     times       TeamTime[]
     memberships TeamMembership[]
+    lookup      TeamLookup?
 
+    @@unique([guild_id, snowflake])
+    @@unique([guild_id, alias])
     @@map("teams")
 }
 
@@ -232,6 +237,22 @@ model UserProfile {
     profile Profile @relation(fields: [profile_id], references: [profile_id])
 
     @@map("vuserprofiles")
+}
+
+model TeamLookup {
+    team_id Int @unique
+    guild_id Int
+    team_alias String
+    guild_alias String
+    name String
+    color Int
+    icon String
+
+    team    Team @relation(fields: [team_id], references: [team_id])
+    guild   Guild @relation(fields: [guild_id], references: [guild_id])
+
+    @@unique([ team_alias, guild_alias ])
+    @@map("teamlookup")
 }
 
 model vGuildMember {

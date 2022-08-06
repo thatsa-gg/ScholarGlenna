@@ -1,5 +1,6 @@
-import adapter from "@sveltejs/adapter-node";
-import preprocess from "svelte-preprocess";
+import adapter from '@sveltejs/adapter-node'
+import preprocess from 'svelte-preprocess'
+import { dirname } from '@glenna/util'
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
@@ -8,7 +9,7 @@ const config = {
     preprocess: [
         preprocess({
             scss: {
-                prependData: '@use "src/scss/variables.scss" as *;',
+                prependData: `@use "${dirname(import.meta)}/src/scss/variables.scss" as *;`,
             },
         }),
     ],
@@ -20,6 +21,6 @@ const config = {
             lib: "src/lib",
         },
     },
-};
+}
 
-export default config;
+export default config

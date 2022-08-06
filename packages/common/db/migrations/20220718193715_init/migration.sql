@@ -108,7 +108,8 @@ from GuildMembers where role = 'Owner';
 create table Teams (
     team_id serial primary key,
     guild_id integer not null references Guilds(guild_id) on delete cascade,
-    alias varchar(32) unique not null,
+    snowflake snowflake unique not null,
+    alias varchar(32) not null,
     name text not null,
     description text,
     role snowflake unique default null,
@@ -119,7 +120,7 @@ create table Teams (
     created_at timestamp with time zone not null default now(),
     updated_at timestamp with time zone not null default now()
 );
-create unique index on Teams (lower(alias));
+create unique index on Teams (guild_id, lower(alias));
 
 create table TeamTimes (
     time_id serial primary key,
@@ -257,6 +258,17 @@ create view vUserProfiles as select
     Profiles.created_at
 from
     Profiles inner join Users using(user_id);
+
+create view TeamLookup as select
+    Teams.team_id,
+    Teams.guild_id,
+    Teams.alias as team_alias,
+    Guilds.alias as guild_alias,
+    Teams.name,
+    Teams.color,
+    Teams.icon
+from
+    Teams inner join Guilds using(guild_id);
 
 create view vGuildMember as with initial as (
     select

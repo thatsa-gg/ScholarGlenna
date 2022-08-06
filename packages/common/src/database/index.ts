@@ -12,6 +12,7 @@ import { Guilds } from './Guilds.js'
 import { GuildMembers } from './GuildMembers.js'
 import { Users } from './Users.js'
 import { Profiles } from './Profiles.js'
+import { Teams } from './Teams.js'
 
 export class Database {
     Client: Client
@@ -19,17 +20,24 @@ export class Database {
     Users: Users
     Profiles: Profiles
     GuildMembers: GuildMembers
+    Teams: Teams
     private constructor(){
         this.Client = getClient()
         this.Guilds = new Guilds(this)
         this.Users = new Users(this)
         this.Profiles = new Profiles(this)
         this.GuildMembers = new GuildMembers(this)
+        this.Teams = new Teams(this)
     }
 
-    async newSnowflake(): Promise<bigint> {
+    newSnowflake(): Promise<bigint>
+    newSnowflake(options: { asString: true }): Promise<string>
+    async newSnowflake(options?: { asString: true }): Promise<bigint | string> {
         const result = await this.Client.$queryRaw<[{ snowflake: bigint }]>`select new_snowflake();`
-        return result[0].snowflake
+        if(options?.asString)
+            return result[0].snowflake.toString(36)
+        else
+            return result[0].snowflake
     }
 
     static #instance: Database | null = null
@@ -45,4 +53,5 @@ export class Database {
     static get Users(): Users { return this.Instance.Users }
     static get Profiles(): Profiles { return this.Instance.Profiles }
     static get GuildMembers(): GuildMembers { return this.Instance.GuildMembers }
+    static get Teams(): Teams { return this.Instance.Teams }
 }
