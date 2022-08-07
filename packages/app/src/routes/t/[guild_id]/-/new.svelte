@@ -1,4 +1,5 @@
 <script lang="ts" context="module">
+    import { goto } from '$app/navigation'
 </script>
 <script lang="ts">
     let errors: string[] | null = null
@@ -16,14 +17,25 @@
             sync: data.get('sync') === 'on',
         })
         const result = await fetch(`./submit`, { method: 'POST', body })
-        console.log(result)
         if(result.status === 200){
             const data = await result.json()
-            errors = data.errors
+            console.log(data)
+            if(data.team){
+                await goto(data.team.uri)
+                return
+            }
+            if(!data.success && (data.messages?.length ?? 0) === 0)
+                errors = []
+            else
+                errors = data.messages
+        } else {
+            errors = [
+                `Submit failed! Server returned status: ${result.status} (${result.statusText})`
+            ]
         }
     }
 </script>
-{#if errors}
+{#if errors && errors.length > 0}
 <ul>
     {#each errors as err}
         <li>{err}</li>

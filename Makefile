@@ -22,7 +22,7 @@ ts-dev:
 	$(TSC) --watch
 
 ts-build:
-	$(TSC) --build
+	pnpm run build
 
 dev:
 	pnpm --prefix packages/app run dev

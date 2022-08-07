@@ -133,6 +133,29 @@ model GuildMember {
     @@map("guildmembers")
 }
 
+model KeepGuildMember {
+    snowflake BigInt
+    guild_id  Int
+    username  String? @db.VarChar(32)
+    discriminator Int @db.SmallInt
+    nickname  String?
+    avatar    String? @db.VarChar
+    role      GuildRole?
+
+    @@unique([ snowflake, guild_id ])
+    @@map("keepguildmembers")
+}
+
+model DeletedGuildMember {
+    snowflake BigInt
+    guild_id  Int
+    name      String
+    nickname  String?
+
+    @@unique([ snowflake, guild_id ])
+    @@map("deletedguildmembers")
+}
+
 model Guild {
     guild_id         Int             @id @default(autoincrement())
     snowflake        BigInt          @unique

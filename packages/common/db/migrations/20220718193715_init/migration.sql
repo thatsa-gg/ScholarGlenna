@@ -302,3 +302,140 @@ select
     role,
     deleted_at
 from initial;
+
+-------------------------------------------------------------------------------
+---                                                                         ---
+---                 Import Tables                                           ---
+---                                                                         ---
+--- These should be empty outside of transactions.                          ---
+-------------------------------------------------------------------------------
+
+create table ImportGuilds (
+    snowflake snowflake primary key,
+    vanity_string varchar(32),
+    alias varchar not null,
+    name text not null,
+    icon varchar
+    description text,
+    preferred_locale varchar(5) not null
+);
+
+create table ImportGuildMembers (
+    snowflake snowflake,
+    guild_id integer not null references Guilds(guild_id),
+    username varchar(32) not null,
+    discriminator smallint not null,
+    nickname text,
+    avatar varchar,
+    role GuildRole,
+    primary key(snowflake, guild_id)
+);
+
+create table ImportTeams (
+    team_id integer primary key references Teams(team_id),
+    guild_id integer not null references Guilds(guild_id),
+    role snowflake,
+    channel snowflake,
+    color integer,
+    icon varchar
+);
+
+create table ImportTeamMembers (
+    snowflake snowflake,
+    team_id integer primary key references Teams(team_id),
+    primary(snowflake, team_id)
+);
+
+/*
+    hypothetical procedure:
+    - import guilds.
+    - "import" teams (from existing guilds).
+    - import team members for teams where sync = true
+    - update existing users.
+    - update existing guild members.
+    - create new users for teams
+    - create new guild members for teams
+    - add guild members to teams
+    - remove guild members from teams where guild members are still in guild
+    - note deletion information for guild members:
+        1. on teams, where the user left the guild
+        2. with roles, where the user left the guild
+    - delete guild member objects where the user left the guild
+    - prune the user table
+*/
+
+-- for import, should be empty outside of transactions.
+create table KeepGuildMembers (
+    snowflake snowflake,
+    guild_id integer not null references Guilds(guild_id),
+    username varchar(32) not null,
+    discriminator smallint not null,
+    nickname text,
+    avatar varchar,
+    role GuildRole,
+    primary key(snowflake, guild_id)
+);
+
+-- for import, should be empty outside of transactions.
+create table DeletedGuildMembers (
+    snowflake snowflake,
+    guild_id integer not null references Guilds(guild_id),
+    name text not null,
+    nickname text,
+    primary key(snowflake, guild_id)
+);
+-------------------------------------------------------------------------------
+---                                                                         ---
+---                 Procedures and Functions                                ---
+---                                                                         ---
+-------------------------------------------------------------------------------
+
+create procedure update_guild_members() language 'plpgsql' as $body$
+begin
+    -- update existing user objects.
+    update Users set
+        username = KeepGuildMembers.username,
+        discriminator = KeepGuildMembers.discriminator,
+        updated_at = now()
+    from
+        KeepGuildMembers inner join Users source using(snowflake)
+    where
+        KeepGuildMembers.snowflake = Users.snowflake
+        and (
+            KeepGuildMembers.username <> Users.username
+            or KeepGuildMembers.discriminator <> Users.discriminator
+        );
+
+    -- update existing guild members
+    update GuildsMembers set
+        role = KeepGuildMembers.role,
+        nickname = KeepGuildMembers.nickname,
+        avatar = KeepGuildMembers.avatar,
+        updated_at = now()
+    from
+        KeepGuildMembers inner join Users using(snowflake)
+            inner join GuildMembers source on
+                source.guild_id = KeepGuildMembers.guild_id
+                and source.user_id = Users.user_id
+    where
+        source.guild_member_id = GuildMembers.guild_member_id;
+
+    -- create new guild members
+    insert into GuildMembers (role, nickname, avatar)
+    select
+        KeepGuildMembers.role,
+        KeepGuildMembers.nickname,
+        KeepGuildMembers.avatar
+    from
+        KeepGuildMembers inner join Users using(snowflake)
+            left outer join GuildMembers source on
+                source.guild_id = KeepGuildMembers.guild_id
+                and source.user_id = Users.user_id
+    where
+        source.guild_member_id is null;
+
+    -- todo: copy notification data to deleted members table
+    -- todo: delete absent guild members
+    -- todo: prune user table
+end;
+$body$;

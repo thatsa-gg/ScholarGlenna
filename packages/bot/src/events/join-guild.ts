@@ -3,6 +3,7 @@ import { registerCommands } from '../commands.js'
 import { DISCORD_TOKEN, OAUTH_CLIENT_ID } from '../config.js'
 import { log, info } from 'console'
 import { Database } from '@glenna/common'
+import { TextChannel } from 'discord.js'
 
 export default listener('guildCreate', {
     async execute(guild){
@@ -15,7 +16,11 @@ export default listener('guildCreate', {
             clientId: OAUTH_CLIENT_ID,
             guildId: entity.snowflake
         })
-        await guild.systemChannel?.send({
+        const self = await guild.members.fetchMe()
+        const channel = guild.systemChannel ?? guild.channels.cache
+            .filter(channel => channel instanceof TextChannel && !channel.isThread() && channel.permissionsFor(self).has('SendMessages'))
+            .at(0) as TextChannel | undefined
+        await channel?.send({
             content: "Glenna is initialized!" // TODO: better initialized message.
         })
         info(`Joined guild "${guild.name}" (${guild.id}).`)

@@ -32,9 +32,10 @@ export class Guilds {
         if(target && Object.keys(data).length > 0)
             update.updated_at = new Date()
         const snowflake = BigInt(source.id)
+        const vanity = source.vanityURLCode
+        const alias = vanity && 0 === await client.guild.count({ where: { alias: vanity } }) ? vanity : snowflake.toString(36)
         const guild = await client.guild.upsert({ where: { snowflake }, update, create: {
-            snowflake,
-            alias: snowflake.toString(36),
+            snowflake, alias,
             name: source.name,
             icon: source.icon,
             description: source.description,
@@ -93,8 +94,25 @@ export class Guilds {
                 }}
             }})
             const guild = await this.upsert(source, target, target?.owner ?? null, { client, restore: true })
-            await this.setRole(guild, 'Manager', !guild.manager_role ? null : await source.roles.fetch(guild.manager_role.toString()), { client })
-            await this.setRole(guild, 'Moderator', !guild.moderator_role ? null : await source.roles.fetch(guild.moderator_role.toString()), { client })
+            const managers = new Set(!guild.manager_role ? null : await source.roles.fetch(guild.manager_role.toString())
+                .then(role => Array.from(role?.members.values() ?? [], member => member.id)))
+            const moderators = new Set(!guild.moderator_role ? null : await source.roles.fetch(guild.moderator_role.toString())
+                .then(role => Array.from(role?.members.values() ?? [], member => member.id)))
+            for(let frame = await source.members.list({ limit: 100 });
+                frame.size > 0;
+                frame = await source.members.list({ limit: 100, after: frame.at(-1)?.id }))
+                await client.keepGuildMember.createMany({ data: Array.from(frame, ([id, member]) => ({
+                    guild_id: guild.guild_id,
+                    snowflake: BigInt(id),
+                    username: member.user.username,
+                    discriminator: Number.parseInt(member.user.discriminator),
+                    name: member.nickname,
+                    avatar: member.avatar,
+                    role: member.id === source.ownerId ? 'Owner'
+                        : moderators.has(member.id) ? 'Moderator'
+                        : managers.has(member.id) ? 'Manager'
+                        : null
+                }))})
             if(target && target.teams.length > 0){
                 const now = new Date()
                 for(const team of target.teams){

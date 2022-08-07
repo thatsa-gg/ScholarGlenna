@@ -37,7 +37,7 @@ export class Teams {
         return await db.team.upsert({ ...Teams.whereTeamGuild(snowflake, targetGuild), update, create: {
             guild_id: targetGuild.guild_id,
             snowflake: snowflake,
-            alias: source.alias ?? snowflake?.toString(36),
+            alias: source.alias || snowflake?.toString(36),
             name: source.name,
             description: source.description,
             role: source.role,
@@ -70,8 +70,30 @@ export class Teams {
         })
     }
 
-    async isValid(candidate: any, guild: DiscordGuild, targetGuild: Pick<Guild, 'guild_id'>): Promise<[ boolean, ...string[] ]> {
-        return [ false ]
+    async isValid(candidate: TeamInfo, guild: DiscordGuild, targetGuild: Pick<Guild, 'guild_id'>): Promise<[ boolean, string[] ]> {
+        const messages = []
+        console.log({ checking: candidate })
+        if(candidate.name === '')
+            messages.push(`Name cannot be empty.`)
+        else if(/[^a-zA-Z\-0-9 ]/.test(candidate.name))
+            messages.push(`Name contains illegal characters. Names must be only letters, numbers, hyphens, or spaces.`)
+        if(candidate.sync && candidate.role === null)
+            messages.push(`A team must have a role for sync to be enabled.`)
+        if(candidate.role !== null && null === await guild.roles.fetch(candidate.role.toString()))
+            messages.push(`Role does not exist in the guild.`)
+        if(candidate.channel !== null && null === await guild.channels.fetch(candidate.channel.toString()))
+            messages.push(`Channel does not exist in the guild.`)
+        if(candidate.alias && await this.#database.Client.team.findUnique({
+            where: {
+                guild_id_alias: {
+                    alias: candidate.alias,
+                    guild_id: targetGuild.guild_id
+                }
+            },
+            select: { _count: true }
+        }))
+            messages.push(`Cannot use duplicate alias ${candidate.alias}.`)
+        return [ messages.length === 0, messages ]
     }
 }
 export namespace Teams {

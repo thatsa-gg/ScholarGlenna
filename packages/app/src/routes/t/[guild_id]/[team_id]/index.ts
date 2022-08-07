@@ -18,7 +18,7 @@ export const GET: RequestHandler = async event => {
         select: {
             team: {
                 select: {
-                    // TODO
+                    name: true,
                 }
             }
         }

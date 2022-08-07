@@ -10,7 +10,7 @@
 
 <ul>
     {#each guild.teams as team}
-        <li><a href="/t/{guild.alias}/{team.alias}">team.name</a></li>
+        <li><a href="/t/{guild.alias}/{team.alias}">{team.name}</a></li>
     {/each}
     <li><a href="/t/{guild.alias}/-/new"><i>create new team</i></a></li>
 </ul>

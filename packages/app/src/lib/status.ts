@@ -10,3 +10,9 @@ export function notFound(): RequestHandlerOutput<ResponseBody> {
         status: 404
     }
 }
+
+export function forbidden(): RequestHandlerOutput<ResponseBody> {
+    return {
+        status: 403
+    }
+}

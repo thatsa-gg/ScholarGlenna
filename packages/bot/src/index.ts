@@ -28,8 +28,7 @@ for(const { name, once, execute } of [
 export async function login(): Promise<void> {
     try {
         info("Logging in.")
-        const reason = await Discord.login(Glenna)
-        log(reason)
+        void await Discord.login(Glenna)
         info("Login successful.")
         info(`GlennaBot v.${VERSION} running.`)
     } catch(err){
