@@ -12,31 +12,26 @@ export default listener('ready', {
         client.user.setActivity(`Starting up v.${VERSION}`)
         await client.user.setUsername('ScholarGlenna')
 
-        info('Registering commands...')
-        const guilds = client.guilds.cache.map(g => g)
-        log(`\tCleaning up old guilds...`)
+        info('Importing guilds...')
+        const guilds = await Database.Guilds.import([...client.guilds.cache.values()], { replace: true })
+
         log()
+        log('Guilds marked for deletion are:')
         log(`\tID        Snowflake           Name`)
         log(`\t----------------------------------------`)
-        const deletedGuilds = await Database.Guilds.delete(Array.from(client.guilds.cache.keys(), snowflake => BigInt(snowflake)))
-        if(deletedGuilds.length === 0)
-            log(`\t(none)`)
-        else for(const guild of deletedGuilds)
-            log(`\t${guild.id.toString().padEnd(9)} ${guild.snowflake.toString().padEnd(19)} ${guild.name}`)
+        for(const guild of await Database.Client.guild.findMany({ where: { deleted_at: { not: null }}}))
+            log(`\t${guild.guild_id.toString().padEnd(9)} ${guild.snowflake.toString().padEnd(19)} ${guild.name}`)
+
         log()
+        info('Registering commands...')
         for(const guild of guilds){
-            log(`\tUpdating server import for: ${guild.name}`)
-            const entity = await Database.Guilds.import(guild)
-            log(`\tRegistering commands on: ${entity.name}`)
+            log(`\tRegistering commands on: ${guild.name}`)
             await registerCommands({
                 token: DISCORD_TOKEN,
                 clientId: OAUTH_CLIENT_ID,
-                guildId: entity.snowflake
+                guildId: guild.snowflake
             })
         }
-
-        //info('Initializing status...')
-        //start(updateStatus(client.user))
 
         info('Startup complete!')
     }

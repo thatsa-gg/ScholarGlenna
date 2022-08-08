@@ -15,6 +15,7 @@ import { Users } from './Users.js'
 import { Profiles } from './Profiles.js'
 import { Teams } from './Teams.js'
 import { Authorization } from './Authorization.js'
+import { Import } from './Import.js'
 
 export class Database {
     Client: Client
@@ -24,6 +25,7 @@ export class Database {
     GuildMembers: GuildMembers
     Teams: Teams
     Authorization: Authorization
+    Import: Import
     private constructor(){
         this.Client = getClient()
         this.Guilds = new Guilds(this)
@@ -32,6 +34,7 @@ export class Database {
         this.GuildMembers = new GuildMembers(this)
         this.Teams = new Teams(this)
         this.Authorization = new Authorization(this)
+        this.Import = new Import(this)
     }
 
     newSnowflake(): Promise<bigint>
@@ -59,4 +62,5 @@ export class Database {
     static get GuildMembers(): GuildMembers { return this.Instance.GuildMembers }
     static get Teams(): Teams { return this.Instance.Teams }
     static get Authorization(): Authorization { return this.Instance.Authorization }
+    static get Import(): Import { return this.Instance.Import }
 }

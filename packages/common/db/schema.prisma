@@ -42,6 +42,7 @@ model User {
     snowflake           BigInt      @unique
     username            String      @db.VarChar(32)
     discriminator       Int         @db.SmallInt
+    avatar      String?     @db.VarChar
     created_at          DateTime    @default(now()) @db.Timestamptz(6)
     updated_at          DateTime    @default(now()) @db.Timestamptz(6)
 
@@ -60,7 +61,6 @@ model User {
 model Profile {
     profile_id  Int         @id @default(autoincrement())
     user_id     Int         @unique
-    avatar      String?     @db.VarChar
     created_at  DateTime    @default(now()) @db.Timestamptz(6)
     updated_at  DateTime    @default(now()) @db.Timestamptz(6)
 
@@ -296,4 +296,38 @@ model vGuildMember {
 
     @@unique([user_id, guild_id])
     @@map("vguildmember")
+}
+
+// Import Tables
+model ImportGuilds {
+    snowflake   BigInt @unique
+    vanity      String? @db.VarChar(32)
+    alias       String
+    icon        String?
+    description String?
+    preferred_locale String @db.VarChar(5)
+
+    @@map("importguilds")
+}
+
+model ImportGuildMembers {
+    snowflake BigInt
+    guild_id  Int
+    username  String? @db.VarChar(32)
+    discriminator Int @db.SmallInt
+    nickname  String?
+    user_avatar String? @db.VarChar
+    guild_avatar String? @db.VarChar
+    role      GuildRole?
+
+    @@unique([ snowflake, guild_id ])
+    @@map("importguildmembers")
+}
+
+model ImportTeamMembers {
+    snowflake BigInt
+    team_id   Int
+
+    @@unique([ snowflake, team_id ])
+    @@map("importteammembers")
 }

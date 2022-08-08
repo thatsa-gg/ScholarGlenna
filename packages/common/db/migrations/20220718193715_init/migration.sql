@@ -27,11 +27,36 @@ $body$;
 ---                                                                         ---
 -------------------------------------------------------------------------------
 
+create type AuditLogTarget as enum (
+    'User',
+    'Profile',
+    'Guild',
+    'GuildMember',
+    'Team',
+    'TeamMember'
+);
+
+create type AuditLogAction as enum (
+    'Create',
+    'Update',
+    'Delete'
+);
+
+create table AuditLogs (
+    log_id serial primary key,
+    created_at timestamp with time zone not null default now(),
+    target_type AuditLogTarget not null,
+    action_type AuditLogAction not null
+);
+
+-------------------------------------------------------------------------------
+
 create table Users (
     user_id serial primary key,
     snowflake snowflake unique not null,
     username varchar(32) not null,
     discriminator smallint not null,
+    avatar varchar default null,
     created_at timestamp with time zone not null default now(),
     updated_at timestamp with time zone not null default now()
 );
@@ -39,7 +64,6 @@ create table Users (
 create table Profiles (
     profile_id serial primary key,
     user_id integer not null unique references Users(user_id) on delete cascade,
-    avatar varchar default null,
     created_at timestamp with time zone not null default now(),
     updated_at timestamp with time zone not null default now()
 );
@@ -200,35 +224,25 @@ group by
 -------------------------------------------------------------------------------
 
 create view UserIcons as select
-    Users.user_id,
-    'embed/avatars/' || (Users.discriminator % 5) || '.png' as avatar
-from Users;
-
-create view UserProfileIcons as select
-    Users.user_id,
-    Profiles.profile_id,
-    UserIcons.avatar as default_avatar,
+    user_id,
+    snowflake,
     coalesce(
-        'avatars/' || Users.snowflake::text || '/' || Profiles.avatar,
-        UserIcons.avatar
+        'avatars/' || snowflake::Text || '/' || avatar,
+        'embed/avatars/' || (discriminator % 5) || '.png'
     ) as avatar
-from Profiles inner join Users using(user_id) inner join UserIcons using(user_id);
+from Users;
 
 create view GuildMemberIcons as select
     Users.user_id,
-    Profiles.profile_id,
     GuildMembers.guild_member_id,
-    UserIcons.avatar as default_avatar,
     coalesce(
-        'guilds/' || Guilds.snowflake::text || '/users/' || Users.snowflake::text || '/avatars/' || GuildMembers.avatar,
-        'avatars/' || Users.snowflake::text || '/' || Profiles.avatar,
+        'guilds/' || Guilds.snowflake::text || '/users/' || UserIcons.snowflake::text || '/avatars/' || GuildMembers.avatar,
         UserIcons.avatar
     ) as avatar
 from
-    GuildMembers inner join Users using(user_id)
+    GuildMembers
     inner join UserIcons using(user_id)
-    inner join Guilds using(guild_id)
-    left outer join Profiles using(user_id);
+    inner join Guilds using(guild_id);
 
 create view GuildIcons as with initial as (
     select
@@ -242,22 +256,6 @@ select
     icon,
     case when icon_hash like 'a_%' then icon || '.gif' else null end as icon_gif
 from initial;
-
-create view vUserProfiles as select
-    Profiles.profile_id,
-    Users.user_id,
-    Users.snowflake,
-    Users.username,
-    Users.discriminator,
-    Profiles.avatar,
-    coalesce(
-        'avatars/' || Users.snowflake::text || '/' || Profiles.avatar,
-        'embed/avatars/' || (Users.discriminator % 5) || '.png'
-    ) as avatar_url_fragment,
-    Profiles.updated_at,
-    Profiles.created_at
-from
-    Profiles inner join Users using(user_id);
 
 create view TeamLookup as select
     Teams.team_id,
@@ -276,19 +274,15 @@ create view vGuildMember as with initial as (
         GuildMembers.guild_id,
         GuildMembers.guild_member_id,
         Users.snowflake::text as snowflake,
-        coalesce(
-            'guilds/' || Guilds.snowflake::text || '/users/' || Users.snowflake::text || '/avatars/' || GuildMembers.avatar,
-            'avatars/' || Users.snowflake::text || '/' || Profiles.avatar,
-            'embed/avatars/' || (Users.discriminator % 5) || '.png'
-        ) as avatar_url_fragment,
+        GuildMemberIcons.avatar as avatar_url_fragment,
         coalesce(GuildMembers.nickname, Users.username) as name,
         lpad(Users.discriminator::text, 4, '0') as discriminator,
         GuildMembers.role,
         GuildMembers.deleted_at
     from
-        GuildMembers inner join Users using(user_id)
-        inner join Guilds using(guild_id)
-        left outer join Profiles using(user_id)
+        GuildMembers
+        inner join Users using(user_id)
+        inner join GuildMemberIcons using(guild_id)
 )
 select
     user_id,
@@ -312,7 +306,7 @@ from initial;
 
 create table ImportGuilds (
     snowflake snowflake primary key,
-    vanity_string varchar(32),
+    vanity varchar(32),
     alias varchar not null,
     name text not null,
     icon varchar
@@ -326,18 +320,10 @@ create table ImportGuildMembers (
     username varchar(32) not null,
     discriminator smallint not null,
     nickname text,
-    avatar varchar,
+    user_avatar varchar,
+    guild_avatar varchar,
     role GuildRole,
     primary key(snowflake, guild_id)
-);
-
-create table ImportTeams (
-    team_id integer primary key references Teams(team_id),
-    guild_id integer not null references Guilds(guild_id),
-    role snowflake,
-    channel snowflake,
-    color integer,
-    icon varchar
 );
 
 create table ImportTeamMembers (
@@ -389,6 +375,126 @@ create table DeletedGuildMembers (
 ---                 Procedures and Functions                                ---
 ---                                                                         ---
 -------------------------------------------------------------------------------
+
+create function import_guilds(replace boolean) returns Guilds
+begin atomic
+    -- restore guilds
+    update Guilds set
+        deleted_at = null,
+        updated_at = now(),
+        name = ImportGuilds.name,
+        icon = ImportGuilds.icon,
+        description = ImportGuilds.description,
+        preferred_locale = ImportGuilds.preferred_locale
+    using ImportGuilds
+    where
+        ImportGuilds.snowflake = Guilds.snowflake and (
+            Guilds.deleted_at is null or
+            Guilds.name <> ImportGuilds.name or
+            Guilds.icon <> ImportGuilds.icon or
+            Guilds.description <> ImportGuilds.description or
+            Guilds.preferred_locale <> ImportGuilds.preferred_locale
+        );
+
+    -- create new guilds
+    insert into Guilds(snowflake, alias, name, icon, description, preferred_locale)
+    select
+        ImportGuilds.snowflake,
+        case
+            when g.guild_id is null then ImportGuilds.vanity
+            else ImportGuilds.alias
+        end as alias,
+        ImportGuilds.name,
+        ImportGuilds.icon,
+        ImportGuilds.description,
+        ImportGuilds.preferred_locale
+    from Guilds t
+        right join InnerGuilds using(snowflake)
+        left join Guilds g on ImportGuilds.vanity = g.alias;
+
+    if(replace)
+        -- mark old guilds deleted
+        update Guilds set
+            deleted_at = now()
+        where not exists (select 1 from ImportGuilds where ImportGuilds.snowflake = Guilds.snowflake);
+    end if;
+
+    return query
+        with targets as (delete from ImportGuilds returning snowflake)
+        select
+            Guilds.*
+        from Guilds inner join targets using(snowflake);
+end;
+
+create procedure import_members()
+begin atomic
+    -- update users
+    with source as (
+        select distinct
+            snowflake,
+            username,
+            discriminator,
+            user_avatar
+        from ImportGuildMembers
+    )
+    update Users set
+        updated_at = now(),
+        username = source.username,
+        discriminator = source.discriminator,
+        avatar = source.user_avatar,
+    using source
+    where
+        source.snowflake = Users.snowflake and (
+            Users.username <> source.username or
+            Users.discriminator <> source.discriminator or
+            Users.avatar <> source.user_avatar
+        );
+
+    -- update members
+    update GuildMembers set
+        updated_at = now(),
+        nickname = ImportGuildMembers.nickname,
+        avatar = ImportGuildMembers.guild_avatar
+    using ImportGuildMembers inner join Users using(snowflake)
+    where
+        ImportGuildMembers.guild_id = GuildMembers.guild_id and
+        Users.user_id = GuildMembers.user_id and (
+            GuildMembers.nickname <> ImportGuildMembers.nickname or
+            GuildMembers.avatar <> ImportGuildMembers.guild_avatar
+        );
+
+    -- create users
+    with source as (
+        select distinct (
+            snowflake,
+            username,
+            discriminator,
+            user_avatar as avatar
+        ) from ImportGuildMembers
+    )
+    insert into Users (snowflake, username, discriminator, avatar)
+    select
+        source.snowflake,
+        source.username,
+        source.discriminator,
+        source.avatar
+    from Users right join source using(snowflake);
+
+    -- create members
+    insert into GuildMembers (user_id, guild_id, nickname, avatar)
+    select
+        ImportGuildMembers.user_id,
+        ImportGuildMembers.guild_id,
+        ImportGuildMembers.nickname,
+        ImportGuildMembers.avatar
+    from GuildMembers inner join Users using(user_id)
+        right join ImportGuildMembers using(snowflake);
+
+    -- create new team members
+
+    -- delete old team members
+
+end;
 
 create procedure update_guild_members() language 'plpgsql' as $body$
 begin

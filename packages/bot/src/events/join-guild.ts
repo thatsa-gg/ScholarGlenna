@@ -8,7 +8,9 @@ import { TextChannel } from 'discord.js'
 export default listener('guildCreate', {
     async execute(guild){
         log(`Joining guild: "${guild.name}" (${guild.id})`)
-        const entity = await Database.Guilds.import(guild)
+        const [ entity ] = await Database.Guilds.import([ guild ])
+        if(!entity)
+            throw new Error("Guild import did not return entity.")
         log(`Created guild: ${entity.guild_id} = ${entity.snowflake}`)
         log(`Registering commands on "${guild.name}" (${guild.id})`)
         await registerCommands({
