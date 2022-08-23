@@ -19,12 +19,15 @@ export default listener('ready', {
         log('Guilds marked for deletion are:')
         log(`\tID        Snowflake           Name`)
         log(`\t----------------------------------------`)
-        for(const guild of await Database.Client.guild.findMany({ where: { deleted_at: { not: null }}}))
+        const markedGuilds = await Database.Client.guild.findMany({ where: { deleted_at: { not: null }}})
+        for(const guild of markedGuilds)
             log(`\t${guild.guild_id.toString().padEnd(9)} ${guild.snowflake.toString().padEnd(19)} ${guild.name}`)
+        if(0 === markedGuilds.length)
+            log(`\t(none)`)
 
         log()
         info('Registering commands...')
-        for(const guild of guilds){
+        for(const guild of await Database.Client.guild.findMany({ where: { deleted_at: null }})){
             log(`\tRegistering commands on: ${guild.name}`)
             await registerCommands({
                 token: DISCORD_TOKEN,

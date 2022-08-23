@@ -1,5 +1,5 @@
-import type { Guild as DiscordGuild, Role as DiscordRole } from 'discord.js'
-import type { Prisma, Guild, GuildMember, GuildRole } from '../../generated/client'
+import type { Guild as DiscordGuild } from 'discord.js'
+import type { Prisma, Guild } from '../../generated/client'
 import type { Database } from '.'
 
 export type GuildDeletionSummary = { id: number, snowflake: bigint, name: string }
@@ -15,11 +15,12 @@ export class Guilds {
             const Import = this.#database.Import
             await client.importGuilds.createMany({
                 data: sources.map(guild => {
-                    const snowflake = BigInt(guild.id)
+                    const guild_snowflake = BigInt(guild.id)
                     return {
-                        snowflake,
+                        guild_snowflake,
+                        name: guild.name,
                         vanity: guild.vanityURLCode,
-                        alias: snowflake.toString(36),
+                        alias: guild_snowflake.toString(36),
                         icon: guild.icon,
                         description: guild.description,
                         preferred_locale: guild.preferredLocale
@@ -27,7 +28,8 @@ export class Guilds {
                 })
             })
             const sourceMap = new Map(sources.map(source => [source.id, source]))
-            const guilds = await Import.importGuilds(client, { replace })
+            const requestId = await this.#database.newSnowflake()
+            const guilds = await Import.importGuilds(client, requestId, { replace })
 
             for(const [id, guild] of guilds){
                 const source = sourceMap.get(id)
@@ -53,59 +55,124 @@ export class Guilds {
                 }
 
                 // update team data for relevant teams
-                const teams = await client.team.findMany({ where: { guild_id: guild.guild_id, role: { not: null }}})
-                const roles = new Map<string, DiscordRole>()
-                for(const team of teams){
-                    if(null !== team.role || null !== team.channel){
-                        const data: Prisma.TeamUpdateInput = {}
-                        if(null !== team.channel && null === await source.channels.fetch(team.channel.toString()))
-                            data.channel = null
-                        if(null !== team.role){
-                            const role = await source.roles.fetch(team.role.toString())
-                            if(null === role)
-                                data.role = null
-                            else {
-                                if(role.icon !== team.icon)
-                                    data.icon = role.icon
-                                if(role.color !== team.color)
-                                    data.color = role.color
-                                await client.importTeamMembers.createMany({
-                                    data: role.members.map(member => ({
-                                        team_id: team.team_id,
-                                        snowflake: BigInt(member.id)
-                                    }))
-                                })
+                const teams = await client.team.findMany({
+                    where: { guild_id: guild.guild_id, role: { not: null }},
+                    include: {
+                        guild: {
+                            select: {
+                                snowflake: true,
+                                name: true
                             }
                         }
-                        if(Object.keys(data).length > 0){
-                            data.updated_at = new Date()
-                            await client.team.update({ where: { team_id: team.team_id }, data })
+                    }
+                })
+
+                const managerRole = null === guild.manager_role ? null : await source.roles.fetch(guild.manager_role.toString())
+                const moderatorRole = null === guild.moderator_role ? null : await source.roles.fetch(guild.moderator_role.toString())
+                const owner = await source.fetchOwner()
+                const teamMembers = [] as Prisma.ImportTeamMembersCreateInput[]
+                const guildMembers = new Map<string, Prisma.ImportGuildMembersCreateInput>()
+                guildMembers.set(owner.id, {
+                    user_snowflake: BigInt(owner.id),
+                    guild_id: guild.guild_id,
+                    username: owner.user.username,
+                    discriminator: Number.parseInt(owner.user.discriminator),
+                    nickname: owner.nickname,
+                    user_avatar: owner.user.avatar,
+                    guild_avatar: owner.avatar,
+                    role: 'Owner'
+                })
+
+                for(const team of teams){
+                    if(null === team.role && null === team.channel)
+                        continue;
+                    const data: Prisma.TeamUpdateInput = {}
+                    if(null !== team.channel && null === await source.channels.fetch(team.channel.toString()))
+                        data.channel = null
+                    if(null !== team.role){
+                        const role = await source.roles.fetch(team.role.toString())
+                        if(null === role)
+                            data.role = null
+                        else {
+                            if(role.icon !== team.icon)
+                                data.icon = role.icon
+                            if(role.color !== team.color)
+                                data.color = role.color
+                            for(const member of role.members.values()){
+                                const user_snowflake = BigInt(member.id)
+                                if(!guildMembers.has(member.id)){
+                                    guildMembers.set(member.id, {
+                                        user_snowflake,
+                                        guild_id: guild.guild_id,
+                                        username: member.user.username,
+                                        discriminator: Number.parseInt(member.user.discriminator),
+                                        nickname: member.nickname,
+                                        user_avatar: member.user.avatar,
+                                        guild_avatar: member.avatar
+                                    })
+                                }
+                                teamMembers.push({ user_snowflake, team_id: team.team_id })
+                            }
+                        }
+                    }
+                    if(Object.keys(data).length > 0){
+                        data.updated_at = new Date()
+                        await client.team.update({ where: { team_id: team.team_id }, data })
+                        await client.history.create({ data: {
+                            correlation_id: requestId,
+                            event_type: 'TeamEdit',
+                            actor_name: 'ScholarGlenna',
+                            guild_snowflake: team.guild.snowflake,
+                            guild_name: team.guild.name,
+                            team_id: team.team_id,
+                            team_name: team.name,
+                            data: data as Prisma.JsonObject
+                        }})
+                    }
+                }
+
+                if(moderatorRole){
+                    for(const member of moderatorRole.members.values()){
+                        if(!guildMembers.has(member.id)){
+                            guildMembers.set(member.id, {
+                                user_snowflake: BigInt(member.id),
+                                guild_id: guild.guild_id,
+                                username: member.user.username,
+                                discriminator: Number.parseInt(member.user.discriminator),
+                                nickname: member.nickname,
+                                user_avatar: member.user.avatar,
+                                guild_avatar: member.avatar,
+                                role: 'Manager'
+                            })
                         }
                     }
                 }
 
-                // load member data (need to fetch all so we can create GuildMembers for Users that just joined)
-                const managers = new Set(null === guild.manager_role ? null : Array.from(roles.get(guild.manager_role.toString())!.members, ([,member]) => member.id))
-                const moderators = new Set(null === guild.moderator_role ? null : Array.from(roles.get(guild.moderator_role.toString())!.members, ([,member]) => member.id))
-                for(let frame = await source.members.list({ limit: 100 });
-                    frame.size > 0;
-                    frame = await source.members.list({ limit: 100, after: frame.at(-1)?.id }))
-                    await client.keepGuildMember.createMany({ data: Array.from(frame, ([id, member]) => ({
-                        guild_id: guild.guild_id,
-                        snowflake: BigInt(id),
-                        username: member.user.username,
-                        discriminator: Number.parseInt(member.user.discriminator),
-                        name: member.nickname,
-                        avatar: member.avatar,
-                        role: member.id === source.ownerId ? 'Owner'
-                            : moderators.has(member.id) ? 'Moderator'
-                            : managers.has(member.id) ? 'Manager'
-                            : null
-                    }))})
+                if(managerRole){
+                    for(const member of managerRole.members.values()){
+                        if(!guildMembers.has(member.id)){
+                            guildMembers.set(member.id, {
+                                user_snowflake: BigInt(member.id),
+                                guild_id: guild.guild_id,
+                                username: member.user.username,
+                                discriminator: Number.parseInt(member.user.discriminator),
+                                nickname: member.nickname,
+                                user_avatar: member.user.avatar,
+                                guild_avatar: member.avatar,
+                                role: 'Manager'
+                            })
+                        }
+                    }
+                }
+
+                if(guildMembers.size > 0)
+                    await client.importGuildMembers.createMany({ data: [... guildMembers.values()] })
+                if(teamMembers.length > 0)
+                    await client.importTeamMembers.createMany({ data: teamMembers })
             }
-            await Import.importMembers(client)
-            await this.#database.GuildMembers.prune({ client })
-            await this.#database.Users.prune({ client })
+
+            await Import.importMembers(client, requestId)
+            await Import.importCleanup(client)
             return sources.map(source => guilds.get(source.id)!)
         })
     }

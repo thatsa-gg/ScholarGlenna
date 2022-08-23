@@ -36,13 +36,64 @@ enum Visibility {
     @@map("visibility")
 }
 
+enum HistoryEvent {
+    UserCreate
+    UserNameChange
+    UserDelete
+    GuildCreate
+    GuildEdit
+    GuildDelete
+    GuildRestore
+    GuildPurge
+    GuildMemberJoin
+    GuildMemberLeave
+    TeamCreate
+    TeamEdit
+    TeamDelete
+    TeamPurge
+    TeamMemberAdd
+    TeamMemberRemove
+    TeamMemberLeave
+    TeamMemberEdit
+
+    @@map("historyevent")
+}
+
 // Tables
+model History {
+    log_id          Int @id @default(autoincrement())
+    correlation_id  BigInt
+    created_at      DateTime @default(now()) @db.Timestamptz(6)
+    event_type      HistoryEvent
+
+    actor_snowflake BigInt?
+    actor_name      String
+    actor           User? @relation("performed_history", fields: [actor_snowflake], references: [snowflake])
+
+    user_snowflake  BigInt?
+    user_name       String?
+    user            User? @relation(fields: [user_snowflake], references: [snowflake])
+
+    guild_snowflake BigInt?
+    guild_name      String?
+    guild           Guild? @relation(fields: [guild_snowflake], references: [snowflake])
+
+    team_id         Int?
+    team_name       String?
+    team            Team? @relation(fields: [team_id], references: [team_id], onDelete: SetNull)
+
+    note            String?
+    data            Json?
+
+    @@map("history")
+}
+
 model User {
     user_id             Int         @id @default(autoincrement())
     snowflake           BigInt      @unique
     username            String      @db.VarChar(32)
     discriminator       Int         @db.SmallInt
-    avatar      String?     @db.VarChar
+    avatar              String?     @db.VarChar
     created_at          DateTime    @default(now()) @db.Timestamptz(6)
     updated_at          DateTime    @default(now()) @db.Timestamptz(6)
 
@@ -54,6 +105,8 @@ model User {
     vguild_memberships  vGuildMember[]
     team_memberships    TeamMembership[]
     guild_ownerships    GuildOwner[]
+    performed_history   History[] @relation("performed_history")
+    history             History[]
 
     @@map("users")
 }
@@ -133,29 +186,6 @@ model GuildMember {
     @@map("guildmembers")
 }
 
-model KeepGuildMember {
-    snowflake BigInt
-    guild_id  Int
-    username  String? @db.VarChar(32)
-    discriminator Int @db.SmallInt
-    nickname  String?
-    avatar    String? @db.VarChar
-    role      GuildRole?
-
-    @@unique([ snowflake, guild_id ])
-    @@map("keepguildmembers")
-}
-
-model DeletedGuildMember {
-    snowflake BigInt
-    guild_id  Int
-    name      String
-    nickname  String?
-
-    @@unique([ snowflake, guild_id ])
-    @@map("deletedguildmembers")
-}
-
 model Guild {
     guild_id         Int             @id @default(autoincrement())
     snowflake        BigInt          @unique
@@ -176,6 +206,7 @@ model Guild {
     owner            GuildOwner?
     teams            Team[]
     team_lookup      TeamLookup[]
+    history          History[]
 
     @@map("guilds")
 }
@@ -188,18 +219,20 @@ model Team {
     name        String
     description String?
     role        BigInt?       @unique
-    sync        Boolean
+    visibility  Visibility     @default(Protected)
     channel     BigInt?
     color       Int?
     icon        String?       @db.VarChar
     created_at  DateTime      @default(now()) @db.Timestamptz(6)
     updated_at  DateTime      @default(now()) @db.Timestamptz(6)
+    deleted_at  DateTime      @default(now()) @db.Timestamptz(6)
 
     guild       Guild        @relation(fields: [guild_id], references: [guild_id], onDelete: Cascade, onUpdate: NoAction)
     members     TeamMember[]
     times       TeamTime[]
     memberships TeamMembership[]
     lookup      TeamLookup?
+    history     History[]
 
     @@unique([guild_id, snowflake])
     @@unique([guild_id, alias])
@@ -211,7 +244,6 @@ model TeamMember {
     team_id    Int
     guild_member_id Int
     role       TeamMemberRole @default(Member)
-    visibility Visibility     @default(Protected)
     created_at DateTime       @default(now()) @db.Timestamptz(6)
     updated_at DateTime       @default(now()) @db.Timestamptz(6)
 
@@ -282,6 +314,7 @@ model vGuildMember {
     user_id             Int
     guild_id            Int
     guild_member_id     Int @unique
+    user_snowflake      BigInt
     snowflake           String
     avatar_url_fragment String
     name                String
@@ -300,7 +333,8 @@ model vGuildMember {
 
 // Import Tables
 model ImportGuilds {
-    snowflake   BigInt @unique
+    guild_snowflake   BigInt @unique
+    name        String
     vanity      String? @db.VarChar(32)
     alias       String
     icon        String?
@@ -311,23 +345,23 @@ model ImportGuilds {
 }
 
 model ImportGuildMembers {
-    snowflake BigInt
-    guild_id  Int
-    username  String? @db.VarChar(32)
-    discriminator Int @db.SmallInt
-    nickname  String?
-    user_avatar String? @db.VarChar
-    guild_avatar String? @db.VarChar
-    role      GuildRole?
+    user_snowflake  BigInt
+    guild_id        Int
+    username        String? @db.VarChar(32)
+    discriminator   Int @db.SmallInt
+    nickname        String?
+    user_avatar     String? @db.VarChar
+    guild_avatar    String? @db.VarChar
+    role            GuildRole?
 
-    @@unique([ snowflake, guild_id ])
+    @@unique([ user_snowflake, guild_id ])
     @@map("importguildmembers")
 }
 
 model ImportTeamMembers {
-    snowflake BigInt
-    team_id   Int
+    user_snowflake  BigInt
+    team_id         Int
 
-    @@unique([ snowflake, team_id ])
+    @@unique([ user_snowflake, team_id ])
     @@map("importteammembers")
 }

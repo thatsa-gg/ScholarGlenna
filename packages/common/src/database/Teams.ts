@@ -3,9 +3,9 @@ import type { Transactionable } from './Client.js'
 import type { Database } from '.'
 import type { Guild as DiscordGuild } from 'discord.js'
 
-type UpdateTeamInfo = null | Pick<Team, 'team_id' | 'alias' | 'snowflake' | 'name' | 'description' | 'role' | 'channel' | 'sync'>
+type UpdateTeamInfo = null | Pick<Team, 'team_id' | 'alias' | 'snowflake' | 'name' | 'description' | 'role' | 'channel'>
 export type TeamInfo =
-    Pick<Team, 'name' | 'description' | 'role' | 'channel' | 'sync'>
+    Pick<Team, 'name' | 'description' | 'role' | 'channel'>
     & Partial<Pick<Team, 'alias'>>
 export class Teams {
     #database: Database
@@ -21,8 +21,6 @@ export class Teams {
             data.name = source.name
         if(target?.description !== source.description)
             data.description = source.description
-        if(target?.sync !== source.sync)
-            data.sync = source.sync
         if(target?.channel !== source.channel)
             data.channel = source.channel
         if(target?.role !== source.role){
@@ -41,7 +39,6 @@ export class Teams {
             name: source.name,
             description: source.description,
             role: source.role,
-            sync: source.sync,
             channel: source.channel,
             icon: role?.icon,
             color: role?.color,
@@ -54,7 +51,7 @@ export class Teams {
         const client = options?.client ?? this.#database.Client
         const snowflake = await this.#database.newSnowflake()
         const role = source.role ? await guild.roles.fetch(source.role.toString()) : null
-        return await client.team.create({
+        const team = await client.team.create({
             data: {
                 guild_id: targetGuild.guild_id,
                 snowflake,
@@ -62,12 +59,18 @@ export class Teams {
                 name: source.name,
                 description: source.description,
                 role: source.role,
-                sync: source.sync,
                 channel: source.channel,
                 icon: role?.icon,
                 color: role?.color
             }
         })
+
+        if(source.role){
+            const role = await guild.roles.fetch(source.role.toString())
+            // TODO: sync members
+        }
+
+        return team
     }
 
     async isValid(candidate: TeamInfo, guild: DiscordGuild, targetGuild: Pick<Guild, 'guild_id'>): Promise<[ boolean, string[] ]> {
@@ -77,8 +80,6 @@ export class Teams {
             messages.push(`Name cannot be empty.`)
         else if(/[^a-zA-Z\-0-9 ]/.test(candidate.name))
             messages.push(`Name contains illegal characters. Names must be only letters, numbers, hyphens, or spaces.`)
-        if(candidate.sync && candidate.role === null)
-            messages.push(`A team must have a role for sync to be enabled.`)
         if(candidate.role !== null && null === await guild.roles.fetch(candidate.role.toString()))
             messages.push(`Role does not exist in the guild.`)
         if(candidate.channel !== null && null === await guild.channels.fetch(candidate.channel.toString()))

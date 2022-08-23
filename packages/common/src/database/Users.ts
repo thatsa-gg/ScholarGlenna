@@ -3,7 +3,7 @@ import type { Prisma, User } from '../../generated/client'
 import type { Transactionable } from './Client.js'
 import type { Database } from '.'
 
-type UpdateUserInfo = null | Pick<User, 'user_id' | 'username' | 'discriminator'>
+type UpdateUserInfo = null | Pick<User, 'user_id' | 'username' | 'discriminator' | 'avatar'>
 export class Users {
     #database: Database
     constructor(database: Database){ this.#database = database }
@@ -15,6 +15,8 @@ export class Users {
         const discriminator = Number.parseInt(source.discriminator)
         if(target?.discriminator !== discriminator)
             data.discriminator = discriminator
+        if(target?.avatar !== source.avatar)
+            data.avatar = source.avatar
         const update = { ...data }
         if(target && Object.keys(data).length > 0)
             update.updated_at = new Date()
@@ -22,6 +24,7 @@ export class Users {
         return await db.user.upsert({ where: { snowflake }, update, create: {
             snowflake,
             username: source.username,
+            avatar: source.avatar,
             discriminator: Number.parseInt(source.discriminator)
         }})
     }
