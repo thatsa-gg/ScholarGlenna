@@ -7,6 +7,7 @@ export type {
 export type { GuildDeletionSummary } from './Guilds.js'
 export type { Client } from './Client.js'
 export type { TeamInfo } from './Teams.js'
+export { Guilds } from './Guilds.js'
 
 import { getClient, type Client } from './Client.js'
 import { Guilds } from './Guilds.js'

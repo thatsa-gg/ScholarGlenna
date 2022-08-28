@@ -1,5 +1,4 @@
-import { SlashCommandBuilder } from '@discordjs/builders'
-import type { ChatInputCommandInteraction } from 'discord.js'
+import { type ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js'
 import { SlashCommand, SlashSubcommand } from '../SlashCommand.js'
 import { load } from '@glenna/util'
 

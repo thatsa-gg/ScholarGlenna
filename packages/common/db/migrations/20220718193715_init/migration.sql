@@ -314,7 +314,6 @@ create table History (
     guild_name text default null,
     team_id int default null references Teams(team_id) on delete set null,
     team_name text default null,
-    note text default null,
     data jsonb default null
 );
 create index on History(correlation_id);
@@ -691,7 +690,6 @@ begin
                 TeamMembers.team_id = ImportTeamMembers.team_id and
                 TeamMembers.guild_member_id = GuildMembers.guild_member_id and
                 Teams.role is not null
-            -- TRUE if: user left guild (won't have team role, so not in ImportTeamMembers), user removed from team (won't have team role)
         ) and TeamMembers.team_id = sync_team_id
         returning team_id, guild_member_id
     )
@@ -704,7 +702,7 @@ begin
         end::HistoryEvent as event_type,
         'ScholarGlenna',
         vGuildMember.user_snowflake,
-        vGuildMember.name,
+        vGuildMember.display_name,
         Guilds.snowflake,
         Guilds.name,
         Teams.team_id,
@@ -737,7 +735,6 @@ begin
                 TeamMembers.team_id = ImportTeamMembers.team_id and
                 TeamMembers.guild_member_id = GuildMembers.guild_member_id and
                 Teams.role is not null
-            -- TRUE if: user left guild (won't have team role, so not in ImportTeamMembers), user removed from team (won't have team role)
         ) returning team_id, guild_member_id
     )
     insert into History (correlation_id, event_type, actor_name, user_snowflake, user_name, guild_snowflake, guild_name, team_id, team_name)
@@ -749,7 +746,7 @@ begin
         end::HistoryEvent as event_type,
         'ScholarGlenna',
         vGuildMember.user_snowflake,
-        vGuildMember.name,
+        vGuildMember.display_name,
         Guilds.snowflake,
         Guilds.name,
         Teams.team_id,

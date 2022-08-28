@@ -3,6 +3,10 @@ import { warn } from 'console'
 
 export default listener('userUpdate', {
     async execute(oldUser, newUser){
+        console.log({
+            type: 'userUpdate',
+            oldUser, newUser
+        })
         // TODO: update user info (when does this fire?)
     }
 })

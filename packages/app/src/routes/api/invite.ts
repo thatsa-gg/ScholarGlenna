@@ -7,7 +7,7 @@ export const GET: RequestHandler = async () => {
         headers: {
             Location: `${AUTHORIZATION_URI}?${new URLSearchParams({
                 client_id: OAUTH_CLIENT_ID,
-                permissions: '268454992',
+                permissions: '268454992', //412317240512
                 scope: 'bot applications.commands'
             })}`
         }

@@ -128,7 +128,7 @@ export function asJsonSafe<T>(object: T): JsonSafe<T>{
     switch(typeof object){
         case 'function': return null as JsonSafe<T>
         case 'bigint': return object.toString() as JsonSafe<T>
-        case 'object': return Object.fromEntries(Object.entries(object).map(([key, value]) => [key, asJsonSafe(value)])) as JsonSafe<T>
+        case 'object': return Object.fromEntries(Object.entries(object as unknown as {[key: PropertyKey]: unknown}).map(([key, value]) => [key, asJsonSafe(value)])) as JsonSafe<T>
         default: return object as JsonSafe<T>
     }
 }

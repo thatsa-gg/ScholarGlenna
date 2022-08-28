@@ -1,6 +1,5 @@
-import type { SlashCommandSubcommandBuilder } from '@discordjs/builders'
 import type { RESTPostAPIApplicationCommandsJSONBody } from 'discord-api-types/v9'
-import type { ChatInputCommandInteraction } from 'discord.js'
+import type { ChatInputCommandInteraction, SlashCommandSubcommandBuilder } from 'discord.js'
 
 export class SlashCommand {
     data: { name: string, toJSON(): RESTPostAPIApplicationCommandsJSONBody }

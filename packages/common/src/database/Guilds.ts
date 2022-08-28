@@ -1,16 +1,26 @@
 import type { Guild as DiscordGuild } from 'discord.js'
 import type { Prisma, Guild } from '../../generated/client'
 import type { Database } from '.'
+import { getRedisClient } from '../redis/index.js'
 
 export type GuildDeletionSummary = { id: number, snowflake: bigint, name: string }
 export class Guilds {
     #database: Database
     constructor(database: Database){ this.#database = database }
 
+    static getKeys(source: { id: string }): [ moderatorKey: string, managerKey: string, teamsKey: string ] {
+        return [
+            `role_${source.id}_moderator`,
+            `role_${source.id}_manager`,
+            `role_${source.id}_teams`
+        ]
+    }
+
     async import(sources: DiscordGuild[], options?: { replace: true }): Promise<Guild[]> {
         const {
             replace = false
         } = options ?? {}
+        const redis = await getRedisClient()
         return await this.#database.Client.$transaction<Guild[]>(async client => {
             const Import = this.#database.Import
             await client.importGuilds.createMany({
@@ -60,12 +70,27 @@ export class Guilds {
 
                 // update team data for relevant teams
                 const teams = await client.team.findMany({
-                    where: { guild_id: guild.guild_id, role: { not: null }},
+                    where: {
+                        guild_id: guild.guild_id
+                    },
                     include: {
                         guild: {
                             select: {
                                 snowflake: true,
                                 name: true
+                            }
+                        },
+                        members: {
+                            select: {
+                                guild_member: {
+                                    select: {
+                                        user: {
+                                            select: {
+                                                snowflake: true
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -87,9 +112,73 @@ export class Guilds {
                     role: 'Owner'
                 })
 
+                const [ moderatorKey, managerKey, teamsKey ] = Guilds.getKeys(source)
+                await redis.del([
+                    moderatorKey,
+                    managerKey,
+                    teamsKey
+                ])
+                if(moderatorRole){
+                    await redis.set(moderatorKey, moderatorRole.id)
+                    for(const member of moderatorRole.members.values()){
+                        if(!guildMembers.has(member.id)){
+                            guildMembers.set(member.id, {
+                                user_snowflake: BigInt(member.id),
+                                guild_id: guild.guild_id,
+                                username: member.user.username,
+                                discriminator: Number.parseInt(member.user.discriminator),
+                                nickname: member.nickname,
+                                user_avatar: member.user.avatar,
+                                guild_avatar: member.avatar,
+                                role: 'Manager'
+                            })
+                        }
+                    }
+                }
+
+                if(managerRole){
+                    await redis.set(managerKey, managerRole.id)
+                    for(const member of managerRole.members.values()){
+                        if(!guildMembers.has(member.id)){
+                            guildMembers.set(member.id, {
+                                user_snowflake: BigInt(member.id),
+                                guild_id: guild.guild_id,
+                                username: member.user.username,
+                                discriminator: Number.parseInt(member.user.discriminator),
+                                nickname: member.nickname,
+                                user_avatar: member.user.avatar,
+                                guild_avatar: member.avatar,
+                                role: 'Manager'
+                            })
+                        }
+                    }
+                }
+
+                const teamRoles = teams
+                    .filter(team => null !== team.role)
+                    .map(team => team.role!.toString())
+                if(teamRoles.length > 0)
+                    await redis.sAdd(teamsKey, teamRoles)
                 for(const team of teams){
-                    if(null === team.role && null === team.channel)
-                        continue;
+                    for(const snowflake of team.members.map(member => member.guild_member.user.snowflake.toString())){
+                        const member = source.members.cache.get(snowflake)
+                        if(!member)
+                            continue
+                        const user_snowflake = BigInt(member.id)
+                        if(!guildMembers.has(snowflake)){
+                            guildMembers.set(snowflake, {
+                                user_snowflake,
+                                guild_id: guild.guild_id,
+                                username: member.user.username,
+                                discriminator: Number.parseInt(member.user.discriminator),
+                                nickname: member.nickname,
+                                user_avatar: member.user.avatar,
+                                guild_avatar: member.avatar
+                            })
+                        }
+                        if(null === team.role)
+                            teamMembers.push({ user_snowflake, team_id: team.team_id })
+                    }
                     const data: Prisma.TeamUpdateInput = {}
                     if(null !== team.channel && null === await source.channels.fetch(team.channel.toString()))
                         data.channel = null
@@ -132,40 +221,6 @@ export class Guilds {
                             team_name: team.name,
                             data: data as Prisma.JsonObject
                         }})
-                    }
-                }
-
-                if(moderatorRole){
-                    for(const member of moderatorRole.members.values()){
-                        if(!guildMembers.has(member.id)){
-                            guildMembers.set(member.id, {
-                                user_snowflake: BigInt(member.id),
-                                guild_id: guild.guild_id,
-                                username: member.user.username,
-                                discriminator: Number.parseInt(member.user.discriminator),
-                                nickname: member.nickname,
-                                user_avatar: member.user.avatar,
-                                guild_avatar: member.avatar,
-                                role: 'Manager'
-                            })
-                        }
-                    }
-                }
-
-                if(managerRole){
-                    for(const member of managerRole.members.values()){
-                        if(!guildMembers.has(member.id)){
-                            guildMembers.set(member.id, {
-                                user_snowflake: BigInt(member.id),
-                                guild_id: guild.guild_id,
-                                username: member.user.username,
-                                discriminator: Number.parseInt(member.user.discriminator),
-                                nickname: member.nickname,
-                                user_avatar: member.user.avatar,
-                                guild_avatar: member.avatar,
-                                role: 'Manager'
-                            })
-                        }
                     }
                 }
 

@@ -82,9 +82,7 @@ model History {
     team_name       String?
     team            Team? @relation(fields: [team_id], references: [team_id], onDelete: SetNull)
 
-    note            String?
     data            Json?
-
     @@map("history")
 }
 
