@@ -1,7 +1,7 @@
 import type {
     Guild,
     Prisma,
-    User
+    Team
 } from '../../generated/client'
 import type { Database } from '.'
 
@@ -16,6 +16,10 @@ export class Import {
 
     async importMembers(client: Prisma.TransactionClient, correlationId: bigint): Promise<void> {
         await client.$executeRaw`call import_members(${correlationId}::snowflake)`
+    }
+
+    async syncMembers(client: Prisma.TransactionClient, correlation_id: bigint, team: Pick<Team, 'team_id'>){
+        await client.$executeRaw`call sync_members(${correlation_id}::snowflake, ${team.team_id}::int)`
     }
 
     async importCleanup(client: Prisma.TransactionClient): Promise<void> {

@@ -136,3 +136,7 @@ export function asJsonSafe<T>(object: T): JsonSafe<T>{
 export function select<T extends object, K extends keyof T>(object: T, ...keys: K[]): Pick<T, K> {
     return Object.assign({}, ...keys.map(key => ({ [key]: object[key] })))
 }
+
+export function slugify(source: string): string {
+    return source.toLowerCase().replace(/[A-Z0-9\-]+/g, '-')
+}

@@ -490,9 +490,9 @@ begin atomic
         inner join ImportGuilds on Guilds.snowflake = ImportGuilds.guild_snowflake;
 end;
 
-create procedure import_members(correlation_id snowflake)
+create procedure import_member_dependencies(correlation_id snowflake)
 begin atomic
-    -- update users
+-- update users
     with source as (
         select distinct
             user_snowflake as snowflake,
@@ -588,7 +588,10 @@ begin atomic
     from new_members
         inner join Guilds using(guild_id)
         inner join Users using(user_id);
+end;
 
+create procedure create_new_team_members(correlation_id snowflake)
+begin atomic
     -- create new team members
     with new_members as (
         insert into TeamMembers (team_id, guild_member_id)
@@ -626,51 +629,22 @@ begin atomic
         inner join vGuildMember using(guild_member_id)
         inner join Guilds using(guild_id)
         inner join Teams using(team_id);
+end;
 
-    -- remove team members
-    with removed_members as (
-        delete from TeamMembers where not exists (
-            select 1 from ImportTeamMembers
-                inner join Users on Users.snowflake = ImportTeamMembers.user_snowflake
-                inner join GuildMembers using(user_id)
-            where
-                TeamMembers.team_id = ImportTeamMembers.team_id and
-                TeamMembers.guild_member_id = GuildMembers.guild_member_id
-            -- TRUE if: user left guild (won't have team role, so not in ImportTeamMembers), user removed from team (won't have team role)
-        ) returning team_id, guild_member_id
-    )
-    insert into History (correlation_id, event_type, actor_name, user_snowflake, user_name, guild_snowflake, guild_name, team_id, team_name)
-    select
-        correlation_id,
-        case
-            when ImportGuildMembers.user_snowflake is null then 'TeamMemberLeave'::HistoryEvent
-            else 'TeamMemberRemove'::HistoryEvent
-        end::HistoryEvent as event_type,
-        'ScholarGlenna',
-        vGuildMember.user_snowflake,
-        vGuildMember.name,
-        Guilds.snowflake,
-        Guilds.name,
-        Teams.team_id,
-        Teams.name
-    from removed_members
-        inner join Teams using(team_id)
-        inner join vGuildMember using(guild_member_id) -- old guild members not yet removed
-        inner join Users using(user_id)
-        inner join Guilds on Teams.guild_id = Guilds.guild_id
-        left outer join ImportGuildMembers on
-            Guilds.guild_id = ImportGuildMembers.guild_id and
-            Users.snowflake = ImportGuildMembers.user_snowflake;
-
+create procedure prune_guild_members_and_users(correlation_id snowflake)
+begin atomic
     -- prune guild members
     with removed_members as (
-        delete from GuildMembers where not exists (
+        delete from GuildMembers
+        using Guilds
+        where not exists (
             select 1 from ImportGuildMembers
                 inner join Users on Users.snowflake = ImportGuildMembers.user_snowflake
             where
                 ImportGuildMembers.guild_id = GuildMembers.guild_id and
                 Users.user_id = GuildMembers.user_id
-        ) returning guild_id, user_id
+        ) and GuildMembers.guild_id = Guilds.guild_id and Guilds.deleted_at is not null
+        returning GuildMembers.guild_id, GuildMembers.user_id
     )
     insert into History (correlation_id, event_type, actor_name, user_snowflake, user_name, guild_snowflake, guild_name)
     select
@@ -701,6 +675,96 @@ begin atomic
         username || '#' || lpad(discriminator::text, 4, '0') as user_name
     from removed_users;
 end;
+
+create procedure sync_members(correlation_id snowflake, sync_team_id int) as $$
+begin
+    call import_member_dependencies(correlation_id);
+    call create_new_team_members(correlation_id);
+
+    with removed_members as (
+        delete from TeamMembers where not exists (
+            select 1 from ImportTeamMembers
+                inner join Users on Users.snowflake = ImportTeamMembers.user_snowflake
+                inner join GuildMembers using(user_id)
+                inner join Teams using(team_id)
+            where
+                TeamMembers.team_id = ImportTeamMembers.team_id and
+                TeamMembers.guild_member_id = GuildMembers.guild_member_id and
+                Teams.role is not null
+            -- TRUE if: user left guild (won't have team role, so not in ImportTeamMembers), user removed from team (won't have team role)
+        ) and TeamMembers.team_id = sync_team_id
+        returning team_id, guild_member_id
+    )
+    insert into History (correlation_id, event_type, actor_name, user_snowflake, user_name, guild_snowflake, guild_name, team_id, team_name)
+    select
+        correlation_id,
+        case
+            when ImportGuildMembers.user_snowflake is null then 'TeamMemberLeave'::HistoryEvent
+            else 'TeamMemberRemove'::HistoryEvent
+        end::HistoryEvent as event_type,
+        'ScholarGlenna',
+        vGuildMember.user_snowflake,
+        vGuildMember.name,
+        Guilds.snowflake,
+        Guilds.name,
+        Teams.team_id,
+        Teams.name
+    from removed_members
+        inner join Teams using(team_id)
+        inner join vGuildMember using(guild_member_id) -- old guild members not yet removed
+        inner join Users using(user_id)
+        inner join Guilds on Teams.guild_id = Guilds.guild_id
+        left outer join ImportGuildMembers on
+            Guilds.guild_id = ImportGuildMembers.guild_id and
+            Users.snowflake = ImportGuildMembers.user_snowflake;
+
+    call prune_guild_members_and_users(correlation_id);
+end $$ language plpgsql;
+
+create procedure import_members(correlation_id snowflake) as $$
+begin
+    call import_member_dependencies(correlation_id);
+    call create_new_team_members(correlation_id);
+
+    -- remove team members
+    with removed_members as (
+        delete from TeamMembers where not exists (
+            select 1 from ImportTeamMembers
+                inner join Users on Users.snowflake = ImportTeamMembers.user_snowflake
+                inner join GuildMembers using(user_id)
+                inner join Teams using(team_id)
+            where
+                TeamMembers.team_id = ImportTeamMembers.team_id and
+                TeamMembers.guild_member_id = GuildMembers.guild_member_id and
+                Teams.role is not null
+            -- TRUE if: user left guild (won't have team role, so not in ImportTeamMembers), user removed from team (won't have team role)
+        ) returning team_id, guild_member_id
+    )
+    insert into History (correlation_id, event_type, actor_name, user_snowflake, user_name, guild_snowflake, guild_name, team_id, team_name)
+    select
+        correlation_id,
+        case
+            when ImportGuildMembers.user_snowflake is null then 'TeamMemberLeave'::HistoryEvent
+            else 'TeamMemberRemove'::HistoryEvent
+        end::HistoryEvent as event_type,
+        'ScholarGlenna',
+        vGuildMember.user_snowflake,
+        vGuildMember.name,
+        Guilds.snowflake,
+        Guilds.name,
+        Teams.team_id,
+        Teams.name
+    from removed_members
+        inner join Teams using(team_id)
+        inner join vGuildMember using(guild_member_id) -- old guild members not yet removed
+        inner join Users using(user_id)
+        inner join Guilds on Teams.guild_id = Guilds.guild_id
+        left outer join ImportGuildMembers on
+            Guilds.guild_id = ImportGuildMembers.guild_id and
+            Users.snowflake = ImportGuildMembers.user_snowflake;
+
+    call prune_guild_members_and_users(correlation_id);
+end $$ language plpgsql;
 
 create procedure cleanup_import() as $$
 begin

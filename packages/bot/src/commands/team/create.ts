@@ -1,4 +1,5 @@
 import { Database } from '@glenna/common'
+import { slugify } from '@glenna/util'
 import { ChannelType } from 'discord-api-types/v10'
 import { SlashSubcommand } from '../../SlashCommand.js'
 
@@ -20,7 +21,7 @@ export default new SlashSubcommand({
             option.setName('alias')
                 .setMinLength(1)
                 .setMaxLength(32)
-                .setDescription('Team alias -- defaults to the slugified form of the team name.'))
+                .setDescription('Team alias (team name slug by default). Only alphanumeric characters and "-".'))
         .addStringOption(option =>
             option.setName('description')
                 .setDescription('Team description.'))
@@ -43,14 +44,16 @@ export default new SlashSubcommand({
             return
         }
 
-        const channel = interaction.options.getChannel('channel')
-        const role = interaction.options.getRole('role')
+        const channel = interaction.options.getChannel('channel') || null
+        const role = interaction.options.getRole('role') || null
+        const name = interaction.options.getString('name', true)
+        const description = interaction.options.getString('description') || null
+        const alias = interaction.options.getString('alias')?.replace(/[^[A-Z0-9\-]+/g, '') || null
         const team = await Database.Teams.create({
-            name: interaction.options.getString('name', true),
-            description: null,
+            name, description,
             channel: channel ? BigInt(channel.id) : null,
             role: role ? BigInt(role.id) : null,
-            alias: interaction.options.getString('alias') ?? undefined
+            alias: alias ?? slugify(name)
         }, sourceGuild, guild)
         await interaction.reply(`Raid team created! (id: ${team.team_id})`) // TODO: link
     }

@@ -47,30 +47,62 @@ export class Teams {
         }})
     }
 
-    async create(source: TeamInfo, guild: DiscordGuild, targetGuild: Pick<Guild, 'guild_id'>, options?: Transactionable){
-        const client = options?.client ?? this.#database.Client
-        const snowflake = await this.#database.newSnowflake()
-        const role = source.role ? await guild.roles.fetch(source.role.toString()) : null
-        const team = await client.team.create({
-            data: {
-                guild_id: targetGuild.guild_id,
-                snowflake,
-                alias: source.alias ?? snowflake.toString(36),
-                name: source.name,
-                description: source.description,
-                role: source.role,
-                channel: source.channel,
-                icon: role?.icon,
-                color: role?.color
+    async create(source: TeamInfo, guild: DiscordGuild, targetGuild: Pick<Guild, 'guild_id' | 'snowflake' | 'name'>): Promise<Team> {
+        const correlation_id = await this.#database.newSnowflake()
+        const Import = this.#database.Import
+        await guild.members.fetch() // populate member cache so roles actually list their members
+        return await this.#database.Client.$transaction<Team>(async client => {
+            const snowflake = await this.#database.newSnowflake()
+            const role = source.role ? await guild.roles.fetch(source.role.toString()) : null
+            const team = await client.team.create({
+                data: {
+                    guild_id: targetGuild.guild_id,
+                    snowflake,
+                    alias: source.alias?.toLowerCase() ?? snowflake.toString(36),
+                    name: source.name,
+                    description: source.description,
+                    role: source.role,
+                    channel: source.channel,
+                    icon: role?.icon,
+                    color: role?.color
+                }
+            })
+            await client.history.create({
+                data: {
+                    correlation_id,
+                    event_type: 'TeamCreate',
+                    actor_name: 'ScholarGlenna',
+                    guild_snowflake: targetGuild.snowflake,
+                    guild_name: targetGuild.name,
+                    team_id: team.team_id,
+                    team_name: team.name
+                }
+            })
+
+            if(role){
+                await client.importGuildMembers.createMany({
+                    data: Array.from(role.members.values(), member => ({
+                        user_snowflake: BigInt(member.id),
+                        guild_id: targetGuild.guild_id,
+                        username: member.user.username,
+                        discriminator: Number.parseInt(member.user.discriminator),
+                        nickname: member.nickname,
+                        user_avatar: member.user.avatar,
+                        guild_avatar: member.avatar
+                    }))
+                })
+                await client.importTeamMembers.createMany({
+                    data: Array.from(role.members.values(), member => ({
+                        user_snowflake: BigInt(member.id),
+                        team_id: team.team_id
+                    }))
+                })
+                await Import.syncMembers(client, correlation_id, team)
+                await Import.importCleanup(client)
             }
+
+            return team
         })
-
-        if(source.role){
-            const role = await guild.roles.fetch(source.role.toString())
-            // TODO: sync members
-        }
-
-        return team
     }
 
     async isValid(candidate: TeamInfo, guild: DiscordGuild, targetGuild: Pick<Guild, 'guild_id'>): Promise<[ boolean, string[] ]> {

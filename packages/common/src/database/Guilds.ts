@@ -35,6 +35,10 @@ export class Guilds {
                 const source = sourceMap.get(id)
                 if(!source)
                     throw new Error("Could not find matching guild source.")
+
+                // populate caches
+                await source.members.fetch()
+
                 // check that manager/moderator roles still exist.
                 if(null !== guild.moderator_role || null !== guild.manager_role){
                     const data: Prisma.GuildUpdateInput = {}
