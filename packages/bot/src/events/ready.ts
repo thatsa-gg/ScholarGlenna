@@ -10,7 +10,6 @@ export default listener('ready', {
         info('Beginning startup...')
         client.setMaxListeners(Infinity)
         client.user.setActivity(`Starting up v.${VERSION}`)
-        await client.user.setUsername('ScholarGlenna')
 
         info('Importing guilds...')
         const guilds = await Database.Guilds.import([...client.guilds.cache.values()], { replace: true })
@@ -36,6 +35,7 @@ export default listener('ready', {
             })
         }
 
+        client.user.setActivity(`/glenna help`)
         info('Startup complete!')
     }
 })

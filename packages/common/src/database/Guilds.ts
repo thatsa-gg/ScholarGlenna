@@ -21,7 +21,7 @@ export class Guilds {
             replace = false
         } = options ?? {}
         const redis = await getRedisClient()
-        return await this.#database.Client.$transaction<Guild[]>(async client => {
+        const guilds = await this.#database.Client.$transaction<Guild[]>(async client => {
             const Import = this.#database.Import
             await client.importGuilds.createMany({
                 data: sources.map(guild => {
@@ -234,5 +234,25 @@ export class Guilds {
             await Import.importCleanup(client)
             return sources.map(source => guilds.get(source.id)!)
         })
+
+        // prime redis cache
+        for(const guild of guilds){
+            const [ moderatorKey, managerKey, teamsKey ] = Guilds.getKeys({ id: guild.snowflake.toString() })
+            const teams = await this.#database.Client.team.findMany({
+                where: {
+                    guild_id: guild.guild_id,
+                    role: { not: null }
+                },
+                select: { role: true }
+            })
+            await Promise.all([
+                redis.set(moderatorKey, guild.moderator_role?.toString() ?? ''),
+                redis.set(managerKey, guild.manager_role?.toString() ?? ''),
+                redis.sAdd(teamsKey, teams
+                    .map(team => team.role?.toString() ?? null)
+                    .filter(role => null !== role) as string[])
+            ])
+        }
+        return guilds
     }
 }
