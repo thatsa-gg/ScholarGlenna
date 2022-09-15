@@ -1,5 +1,4 @@
 import { listener } from '../EventListener.js'
-import { warn } from 'console'
 
 export default listener('guildMemberRemove', {
     async execute(member){
@@ -7,6 +6,8 @@ export default listener('guildMemberRemove', {
             type: 'guildMemberRemove',
             member
         })
-        // TODO
+        // TODO: remove from teams, if removed from any notify
+        // TODO: remove from guild
+        // TODO: prune
     }
 })

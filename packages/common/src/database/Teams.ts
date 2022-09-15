@@ -128,6 +128,26 @@ export class Teams {
             messages.push(`Cannot use duplicate alias ${candidate.alias}.`)
         return [ messages.length === 0, messages ]
     }
+
+    async removeTeamChannel(channelId: bigint, options?: Transactionable & { correlationId?: bigint }){
+        const client = options?.client ?? this.#database.Client
+        await client.$executeRaw`
+            call remove_team_channel(
+                ${channelId}::snowflake,
+                ${options?.correlationId ?? 'new_snowflake()'}::snowflake
+            )
+        `
+    }
+
+    async removeTeamRole(roleId: BigInt, options?: Transactionable & { correlationId?: bigint }){
+        const client = options?.client ?? this.#database.Client
+        await client.$executeRaw`
+            call remove_team_role(
+                ${roleId}::snowflake,
+                ${options?.correlationId ?? 'new_snowflake()'}::snowflake
+            )
+        `
+    }
 }
 export namespace Teams {
     export function whereTeamGuild(snowflake: bigint, guild: Pick<Guild, 'guild_id'>): { where: Prisma.TeamWhereUniqueInput } {

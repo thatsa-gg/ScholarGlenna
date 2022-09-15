@@ -140,3 +140,9 @@ export function select<T extends object, K extends keyof T>(object: T, ...keys: 
 export function slugify(source: string): string {
     return source.toLowerCase().replace(/[A-Z0-9\-]+/g, '-')
 }
+
+export type FieldHistory<T> = {
+    field: keyof T
+    old: string | number | null
+    new: string | number | null
+}

@@ -33,16 +33,44 @@ export class GuildMembers {
         }})
     }
 
-    async prune(options?: Transactionable){
+    async fetch(source: DiscordGuildMember, guild: Pick<Guild, 'guild_id'>, options: Transactionable & { update: Prisma.GuildMemberUpdateInput, correlationId?: bigint }): Promise<GuildMember & {
+        user: { snowflake: bigint },
+        vmember: { display_name: string }
+    }> {
+        const client = options.client ?? this.#database.Client
+        const user = await this.#database.Users.fetch(source.user, { client: options?.client, correlationId: options?.correlationId })
+        const member = await client.guildMember.upsert({
+            where: { user_id_guild_id: { user_id: user.user_id, guild_id: guild.guild_id }},
+            update: options.update,
+            create: {
+                user_id: user.user_id,
+                guild_id: guild.guild_id,
+                nickname: source.nickname,
+                avatar: source.avatar,
+                role: options.update.role as GuildRole | undefined | null
+            },
+            include: {
+                user: { select: { snowflake: true, username: true, discriminator: true }},
+                vmember: { select: { display_name: true }}
+            }
+        })
+        if(null === member.vmember){
+            member.vmember = {
+                display_name: `${member.nickname || member.user.username}#${member.user.discriminator}`
+            }
+        }
+        // TODO: guildmemberjoin history if new
+        return member as GuildMember & {
+            user: { snowflake: bigint },
+            vmember: { display_name: string }
+        }
+    }
+
+    async prune(options?: Transactionable & { correlationId?: bigint }){
         const client = options?.client ?? this.#database.Client
+        const correlationId = options?.correlationId ?? await this.#database.newSnowflake()
         await client.$executeRaw`
-            delete from
-                GuildMembers
-            using
-                GuildMemberReferenceCount
-            where
-                GuildMembers.guild_member_id = GuildMemberReferenceCount.guild_member_id
-                and GuildMemberReferenceCount.Count = 0;
+            call prune_guild_members(${correlationId}::bigint)
         `
     }
 }

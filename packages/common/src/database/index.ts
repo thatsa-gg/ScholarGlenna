@@ -49,7 +49,7 @@ export class Database {
     }
 
     static #instance: Database | null = null
-    private static get Instance(): Database {
+    static get Instance(): Database {
         if(!this.#instance){
             console.debug(`Instantiating Database singleton.`)
             return this.#instance = new Database()

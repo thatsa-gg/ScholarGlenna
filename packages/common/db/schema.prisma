@@ -47,6 +47,7 @@ enum HistoryEvent {
     GuildPurge
     GuildMemberJoin
     GuildMemberLeave
+    GuildMemberDelete
     TeamCreate
     TeamEdit
     TeamDelete
@@ -62,8 +63,8 @@ enum HistoryEvent {
 // Tables
 model History {
     log_id          Int @id @default(autoincrement())
-    correlation_id  BigInt
-    created_at      DateTime @default(now()) @db.Timestamptz(6)
+    correlation_id  BigInt @default(dbgenerated())
+    created_at      DateTime @default(dbgenerated()) @db.Timestamptz(6)
     event_type      HistoryEvent
 
     actor_snowflake BigInt?
@@ -92,8 +93,8 @@ model User {
     username            String      @db.VarChar(32)
     discriminator       Int         @db.SmallInt
     avatar              String?     @db.VarChar
-    created_at          DateTime    @default(now()) @db.Timestamptz(6)
-    updated_at          DateTime    @default(now()) @db.Timestamptz(6)
+    created_at          DateTime    @default(dbgenerated()) @db.Timestamptz(6)
+    updated_at          DateTime    @default(dbgenerated()) @db.Timestamptz(6)
 
     guild_managers      GuildManager[]
     accounts            GuildWars2Account[]
@@ -112,8 +113,8 @@ model User {
 model Profile {
     profile_id  Int         @id @default(autoincrement())
     user_id     Int         @unique
-    created_at  DateTime    @default(now()) @db.Timestamptz(6)
-    updated_at  DateTime    @default(now()) @db.Timestamptz(6)
+    created_at  DateTime    @default(dbgenerated()) @db.Timestamptz(6)
+    updated_at  DateTime    @default(dbgenerated()) @db.Timestamptz(6)
 
     user         User       @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
     user_profile UserProfile?
@@ -127,8 +128,8 @@ model GuildWars2Account {
     api_key    String?
     main       Boolean  @default(false)
     verified   Boolean  @default(false)
-    created_at DateTime @default(now()) @db.Timestamptz(6)
-    updated_at DateTime @default(now()) @db.Timestamptz(6)
+    created_at DateTime @default(dbgenerated()) @db.Timestamptz(6)
+    updated_at DateTime @default(dbgenerated()) @db.Timestamptz(6)
 
     user       User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
 
@@ -169,8 +170,8 @@ model GuildMember {
     role      GuildRole?
     nickname  String?
     avatar    String? @db.VarChar
-    created_at DateTime @default(now()) @db.Timestamptz(6)
-    updated_at DateTime @default(now()) @db.Timestamptz(6)
+    created_at DateTime @default(dbgenerated()) @db.Timestamptz(6)
+    updated_at DateTime @default(dbgenerated()) @db.Timestamptz(6)
     deleted_at DateTime? @db.Timestamptz(6)
 
     guild     Guild   @relation(fields: [guild_id], references: [guild_id], onDelete: NoAction, onUpdate: NoAction)
@@ -179,9 +180,19 @@ model GuildMember {
     manager_relations GuildManager[]
     team_memberships  TeamMember[]
     vmember   vGuildMember?
+    reference_count GuildMemberReferenceCount @relation(fields: [guild_member_id], references: [guild_member_id])
 
     @@unique([ user_id, guild_id ])
     @@map("guildmembers")
+}
+
+model GuildMemberReferenceCount {
+    guild_member_id Int @unique
+    user_id         Int
+    count           Int
+
+    member GuildMember?
+    @@map("guildmemberreferencecount")
 }
 
 model Guild {
@@ -194,8 +205,8 @@ model Guild {
     preferred_locale String          @db.VarChar(5)
     manager_role     BigInt?
     moderator_role   BigInt?
-    created_at       DateTime        @default(now()) @db.Timestamptz(6)
-    updated_at       DateTime        @default(now()) @db.Timestamptz(6)
+    created_at       DateTime        @default(dbgenerated()) @db.Timestamptz(6)
+    updated_at       DateTime        @default(dbgenerated()) @db.Timestamptz(6)
     deleted_at       DateTime?       @db.Timestamptz(6)
 
     managers         GuildManager[]
@@ -221,8 +232,8 @@ model Team {
     channel     BigInt?
     color       Int?
     icon        String?      @db.VarChar
-    created_at  DateTime     @default(now()) @db.Timestamptz(6)
-    updated_at  DateTime     @default(now()) @db.Timestamptz(6)
+    created_at  DateTime     @default(dbgenerated()) @db.Timestamptz(6)
+    updated_at  DateTime     @default(dbgenerated()) @db.Timestamptz(6)
     deleted_at  DateTime?    @db.Timestamptz(6)
 
     guild       Guild        @relation(fields: [guild_id], references: [guild_id], onDelete: Cascade, onUpdate: NoAction)
@@ -242,8 +253,8 @@ model TeamMember {
     team_id    Int
     guild_member_id Int
     role       TeamMemberRole @default(Member)
-    created_at DateTime       @default(now()) @db.Timestamptz(6)
-    updated_at DateTime       @default(now()) @db.Timestamptz(6)
+    created_at DateTime       @default(dbgenerated()) @db.Timestamptz(6)
+    updated_at DateTime       @default(dbgenerated()) @db.Timestamptz(6)
 
     team       Team          @relation(fields: [team_id], references: [team_id], onDelete: Cascade, onUpdate: NoAction)
     guild_member GuildMember @relation(fields: [guild_member_id], references: [guild_member_id], onDelete: Cascade, onUpdate: NoAction)

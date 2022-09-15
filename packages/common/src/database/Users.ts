@@ -29,6 +29,22 @@ export class Users {
         }})
     }
 
+    async fetch(source: DiscordUser, options?: Transactionable & { correlationId?: bigint }): Promise<User> {
+        const client = options?.client ?? this.#database.Client
+        const snowflake = BigInt(source.id)
+        // TODO: history UserCreate if new
+        return await client.user.upsert({
+            where: { snowflake },
+            update: {},
+            create: {
+                snowflake,
+                username: source.username,
+                avatar: source.avatar,
+                discriminator: Number.parseInt(source.discriminator)
+            }
+        })
+    }
+
     async prune(options?: Transactionable){
         const db = options?.client ?? this.#database.Client
         await db.$executeRaw`

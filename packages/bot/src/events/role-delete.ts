@@ -1,12 +1,8 @@
 import { listener } from '../EventListener.js'
-import { warn } from 'console'
+import { Database } from '@glenna/common'
 
 export default listener('roleDelete', {
     async execute(role){
-        console.log({
-            type: 'roleDelete',
-            role
-        })
-        // TODO: update team, remove role sync
+        await Database.Teams.removeTeamRole(BigInt(role.id))
     }
 })

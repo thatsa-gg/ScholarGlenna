@@ -163,7 +163,7 @@ create view TeamMemberships as select
     GuildMembers.user_id
 from TeamMembers inner join GuildMembers using(guild_member_id);
 
--- This is a count of all users that either have a role, or are active members of a team.
+-- This is a count of all users that either have a role, a profile, or are active members of a team.
 create view GuildMemberReferenceCount as with targets as (
     select
         guild_member_id,
@@ -177,6 +177,11 @@ create view GuildMemberReferenceCount as with targets as (
         1 as weight
     from TeamMembers inner join GuildMembers using(guild_member_id)
     where GuildMembers.deleted_at is null
+    union all select
+        GuildMembers.guild_member_id,
+        GuildMembers.user_id,
+        1 as weight
+    from GuildMembers inner join Profiles using(user_id)
 ) select
     guild_member_id,
     user_id,
@@ -292,6 +297,7 @@ create type HistoryEvent as enum (
     'GuildPurge',
     'GuildMemberJoin',
     'GuildMemberLeave',
+    'GuildMemberDelete',
     'TeamCreate',
     'TeamEdit',
     'TeamDelete',
@@ -768,4 +774,139 @@ begin
     truncate ImportTeamMembers;
     truncate ImportGuildMembers;
     truncate ImportGuilds;
+end; $$ language plpgsql;
+
+create procedure prune_guild_members(correlation_id snowflake) as $$
+begin
+    -- prune guild members
+    with removed_members as (
+        delete from
+            GuildMembers
+        using
+            GuildMemberReferenceCount
+        where
+            GuildMembers.guild_member_id = GuildMemberReferenceCount.guild_member_id
+            and GuildMemberReferenceCount.Count = 0
+        returning GuildMembers.guild_id, GuildMembers.user_id
+    )
+    insert into History (correlation_id, event_type, actor_name, user_snowflake, user_name, guild_snowflake, guild_name)
+    select
+        correlation_id,
+        'GuildMemberDelete',
+        'ScholarGlenna',
+        Users.snowflake,
+        Users.username || '#' || lpad(Users.discriminator::text, 4, '0') as user_name,
+        Guilds.snowflake,
+        Guilds.name
+    from removed_members
+        inner join Users using(user_id)
+        inner join Guilds using(guild_id);
+
+    -- prune users
+    with removed_users as (
+        delete from Users using UserReferenceCount where
+            Users.user_id = UserReferenceCount.user_id and
+            UserReferenceCount.Count = 0
+        returning snowflake, username, discriminator
+    )
+    insert into History (correlation_id, event_type, actor_name, user_snowflake, user_name)
+    select
+        correlation_id,
+        'UserDelete',
+        'ScholarGlenna',
+        snowflake,
+        username || '#' || lpad(discriminator::text, 4, '0') as user_name
+    from removed_users;
+end; $$ language plpgsql;
+
+create procedure remove_team_channel(channel_id snowflake, correlation_id snowflake) as $$
+begin
+    with affected as (
+        update Teams set
+            channel = null,
+            updated_at = now()
+        where
+            channel = channel_id
+        returning team_id, name, guild_id
+    )
+    insert into History(correlation_id, event_type, actor_name, guild_snowflake, guild_name, team_id, team_name, data)
+    select
+        correlation_id,
+        'TeamEdit',
+        'ScholarGlenna',
+        Guilds.snowflake,
+        Guilds.name,
+        affected.team_id,
+        affected.name,
+        jsonb_build_array(
+            jsonb_build_object(
+                'field', 'channel',
+                'old', channel_id::text,
+                'new', null
+            )
+        ) as data
+    from
+        affected inner join Guilds using(guild_id);
+end; $$ language plpgsql;
+
+create procedure remove_team_role(role_id snowflake, correlation_id snowflake) as $$
+begin
+    with affected as (
+        update Teams set
+            role = null,
+            color = null,
+            icon = null,
+            updated_at = now()
+        where
+            role = role_id
+        returning team_id, name, guild_id
+    )
+    insert into History(correlation_id, event_type, actor_name, guild_snowflake, guild_name, team_id, team_name, data)
+    select
+        correlation_id,
+        'TeamEdit',
+        'ScholarGlenna',
+        Guilds.snowflake,
+        Guilds.name,
+        affected.team_id,
+        affected.name,
+        jsonb_build_array(
+            jsonb_build_object(
+                'field', 'role',
+                'old', role_id::text,
+                'new', null
+            )
+        ) as data
+    from
+        affected inner join Guilds using(guild_id);
+end; $$ language plpgsql;
+
+create procedure update_team_role(channel_id snowflake, correlation_id snowflake) as $$
+begin
+    with affected as (
+        update Teams set
+            channel = null,
+            updated_at = now()
+        where
+            channel = channel_id
+        returning team_id, name, guild_id
+    )
+    insert into History(correlation_id, event_type, actor_name, guild_snowflake, guild_name, team_id, team_name, data)
+    select
+        correlation_id,
+        'TeamEdit',
+        'ScholarGlenna',
+        Guilds.snowflake,
+        Guilds.name,
+        affected.team_id,
+        affected.name,
+        jsonb_build_array(
+            jsonb_build_object(
+                'field', 'channel',
+                'old', channel_id::text,
+                'new', null
+            )
+        ) as data
+    from
+        affected inner join Guilds using(guild_id);
 end; $$ language plpgsql;

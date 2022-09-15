@@ -245,12 +245,11 @@ export class Guilds {
                 },
                 select: { role: true }
             })
+            const roles = teams.filter(team =>null !== team.role).map(team => team.role!.toString())
             await Promise.all([
                 redis.set(moderatorKey, guild.moderator_role?.toString() ?? ''),
                 redis.set(managerKey, guild.manager_role?.toString() ?? ''),
-                redis.sAdd(teamsKey, teams
-                    .map(team => team.role?.toString() ?? null)
-                    .filter(role => null !== role) as string[])
+                roles.length > 0 ? redis.sAdd(teamsKey, roles) : null
             ])
         }
         return guilds

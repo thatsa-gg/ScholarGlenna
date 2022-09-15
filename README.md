@@ -111,3 +111,11 @@
     - If a member of the guild, show invite options if open.
     - Otherwise (if invite options are open, and guild is open, show guild invite)
     - If signed in and can manage, show links for settings and roster, and show options
+
+# TODO priority list
+
+1. Add commands to add/remove team members w/o roles
+2. Add command to view info about teams
+3. Add command to view info about guild
+4. Implement remaining discord event handlers
+    - guild-member-remove
