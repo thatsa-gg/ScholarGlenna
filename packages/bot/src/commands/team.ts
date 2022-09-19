@@ -1,5 +1,5 @@
 import { type ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js'
-import { SlashCommand, SlashSubcommand } from '../SlashCommand.js'
+import { SlashCommand, SlashSubcommand } from '../Command.js'
 import { loadAsync } from '@glenna/util'
 
 const data = new SlashCommandBuilder()

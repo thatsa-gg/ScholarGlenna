@@ -1,4 +1,4 @@
-import { AjvParseError, BigIntParseError } from '$lib/api/ajv'
+/*import { AjvParseError, BigIntParseError } from '$lib/api/ajv'
 import { parse } from '$lib/api/teams'
 import { Discord } from '$lib/discord'
 import { notFound, unauthorized, forbidden } from '$lib/status'
@@ -74,3 +74,4 @@ export const POST: RequestHandler = async event => {
         }
     }
 }
+*/

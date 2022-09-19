@@ -10,7 +10,8 @@ export default {
     },
     ssr: {
         external: [
-            '@glenna/common'
+            '@glenna/common',
+            '@glenna/util'
         ],
         noExternal: [
             '@fortawesome/*'

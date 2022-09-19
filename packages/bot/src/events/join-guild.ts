@@ -1,5 +1,5 @@
 import { listener } from '../EventListener.js'
-import { registerCommands } from '../commands.js'
+import { registerCommands } from '../Command.js'
 import { DISCORD_TOKEN, OAUTH_CLIENT_ID } from '../config.js'
 import { log, info } from 'console'
 import { Database } from '@glenna/common'

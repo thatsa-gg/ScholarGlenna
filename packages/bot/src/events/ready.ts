@@ -1,7 +1,7 @@
 import { listener } from '../EventListener.js'
 import { DISCORD_TOKEN, OAUTH_CLIENT_ID, VERSION } from '../config.js'
 import { info, log } from 'console'
-import { registerCommands } from '../commands.js'
+import { registerCommands } from '../Command.js'
 import { Database } from '@glenna/common'
 
 export default listener('ready', {
@@ -26,7 +26,7 @@ export default listener('ready', {
 
         log()
         info('Registering commands...')
-        for(const guild of await Database.Client.guild.findMany({ where: { deleted_at: null }})){
+        for(const guild of guilds){
             log(`\tRegistering commands on: ${guild.name}`)
             await registerCommands({
                 token: DISCORD_TOKEN,

@@ -6,6 +6,6 @@
     "main": "dist/index.js",
     "types": "src/index.ts",
     "dependencies": {
-        "@js-temporal/polyfill": "^0.4.1"
+        "@js-temporal/polyfill": "^0.4.2"
     }
 }

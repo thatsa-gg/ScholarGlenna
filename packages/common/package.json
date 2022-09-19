@@ -6,16 +6,16 @@
     "types": "src/index.ts",
     "devDependencies": {
         "@types/uuid": "^8.3.4",
-        "prisma": "^4.1.0"
+        "prisma": "^4.3.1"
     },
     "dependencies": {
         "@glenna/util": "workspace:*",
-        "@prisma/client": "^4.1.0",
+        "@prisma/client": "^4.3.1",
         "ajv": "^8.11.0",
-        "discord-api-types": "^0.36.2",
-        "discord.js": "^14.0.2",
+        "discord-api-types": "^0.37.10",
+        "discord.js": "^14.3.0",
         "postgres": "^3.2.4",
-        "redis": "^4.2.0",
+        "redis": "^4.3.1",
         "uuid": "^8.3.2"
     },
     "scripts": {

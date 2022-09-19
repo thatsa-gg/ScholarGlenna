@@ -1,5 +1,5 @@
 import type { RequestHandler } from '@sveltejs/kit'
-import { AUTHORIZATION_URI, OAUTH_CLIENT_ID } from '../../lib/auth'
+import { AUTHORIZATION_URI, OAUTH_CLIENT_ID } from '$lib/auth'
 
 export const GET: RequestHandler = async () => {
     return {

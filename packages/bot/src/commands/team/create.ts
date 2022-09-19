@@ -1,7 +1,7 @@
 import { Database } from '@glenna/common'
 import { slugify } from '@glenna/util'
-import { ChannelType } from 'discord-api-types/v10'
-import { SlashSubcommand } from '../../SlashCommand.js'
+import { ChannelType } from 'discord.js'
+import { SlashSubcommand } from '../../Command.js'
 
 export default new SlashSubcommand({
     name: 'create',

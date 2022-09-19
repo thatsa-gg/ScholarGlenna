@@ -10,7 +10,7 @@
   "repository": "https://github.com/cofl/ScholarGlenna.git",
   "devDependencies": {
     "@types/node": "^17.0.45",
-    "typescript": "^4.6.4"
+    "typescript": "^4.8.3"
   },
   "packageManager": "pnpm@7.0.0",
   "scripts": {

@@ -3,6 +3,9 @@
     import PageNavigator from '$lib/components/PageNavigator.svelte'
     import PageFooter from '$lib/components/PageFooter.svelte'
     import '../scss/app.scss'
+
+    import type { UserProfile } from '$lib/UserData'
+    export let user: UserProfile | undefined
 </script>
 
 <PageHeader />
