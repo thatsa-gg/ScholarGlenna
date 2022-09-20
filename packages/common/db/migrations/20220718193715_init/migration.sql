@@ -284,6 +284,30 @@ select
     deleted_at
 from initial;
 
+create view vUserProfile as with initial as (
+    select
+        Profiles.profile_id,
+        Users.user_id,
+        Users.snowflake as user_snowflake,
+        Users.snowflake::text as snowflake,
+        Users.username,
+        lpad(Users.discriminator::text, 4, '0') as discriminator,
+        UserIcons.avatar
+    from Profiles
+        inner join Users using(user_id)
+        inner join UserIcons using(user_id)
+)
+select
+    profile_id,
+    user_id,
+    user_snowflake,
+    snowflake,
+    username,
+    discriminator,
+    concat(username, '#', discriminator) as display_name,
+    avatar
+from initial;
+
 -------------------------------------------------------------------------------
 
 create type HistoryEvent as enum (

@@ -1,10 +1,10 @@
-import type { RequestHandler } from '@sveltejs/kit'
+import { redirect, type RequestHandler } from '@sveltejs/kit'
 import {
     OAUTH_CLIENT_ID,
     AUTHORIZATION_URI,
     AUTHORIZATION_SCOPES,
     REDIRECT_URI
-} from '../../../lib/auth'
+} from '$lib/auth'
 
 export const GET: RequestHandler = async() => {
     const params = new URLSearchParams()
@@ -12,10 +12,5 @@ export const GET: RequestHandler = async() => {
     params.append(`redirect_uri`, REDIRECT_URI)
     params.append(`response_type`, `code`)
     params.append(`scope`, AUTHORIZATION_SCOPES)
-    return {
-        status: 302,
-        headers: {
-            Location: `${AUTHORIZATION_URI}?${params}`
-        }
-    }
+    throw redirect(302, `${AUTHORIZATION_URI}?${params}`)
 }

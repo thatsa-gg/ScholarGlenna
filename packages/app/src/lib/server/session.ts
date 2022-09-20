@@ -1,5 +1,5 @@
 import { Database, UUID, getRedisClient } from '@glenna/common'
-import { reauthorizeUser, type Authorization } from './auth'
+import { reauthorizeUser, type Authorization } from '../auth'
 import { getUserInfo } from './discord-rest'
 
 export interface Session {

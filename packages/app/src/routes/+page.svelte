@@ -1,12 +1,9 @@
 <script lang="ts">
-    import type { _Guild, _Team } from './+page.server'
-    import type { PageData } from './$type'
+    import type { PageServerData } from './$types'
     import LoginButton from '$lib/components/LoginButton.svelte'
-    export let data: PageData
-    export let guilds: _Guild[]
-    export let teams: _Team[]
+    export let data: PageServerData
 </script>
-{#if !$data.user}
+{#if !data.user}
     <main>
         <h1>TODO title</h1>
         <p><span>thatsa.gg</span> is your one-stop tool for Guild Wars 2 static group organization and Discord integration.</p>
@@ -16,11 +13,11 @@
         <LoginButton />
     </div>
 {:else}
-    <img alt="{$data.user.displayName} avatar" src="https://cdn.discordapp.com/avatars/{$data.user.snowflake}/{$data.user.avatar}.png">
-    <h1>{$data.user.displayName}</h1>
+    <img alt="{data.user.displayName} avatar" src="https://cdn.discordapp.com/{data.user.avatar}.png">
+    <h1>{data.user.displayName}</h1>
     <h2>Your guilds:</h2>
     <ul>
-        {#each guilds as guild}
+        {#each data.guilds as guild}
             <li><a href="/g/{guild.alias}">{guild.name}</a></li>
         {:else}
             <li>No guilds!</li>
@@ -28,7 +25,7 @@
     </ul>
     <h2>Your teams:</h2>
     <ul>
-        {#each teams as team}
+        {#each data.teams as team}
             <li><a href="/t/{team.alias}">{team.name}</a></li>
         {:else}
             <li>No teams!</li>

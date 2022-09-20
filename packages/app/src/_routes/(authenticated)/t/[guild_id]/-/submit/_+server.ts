@@ -1,7 +1,6 @@
 /*import { AjvParseError, BigIntParseError } from '$lib/api/ajv'
 import { parse } from '$lib/api/teams'
-import { Discord } from '$lib/discord'
-import { notFound, unauthorized, forbidden } from '$lib/status'
+import { Discord } from '$lib/server/discord'
 import { Database } from '@glenna/common'
 import type { RequestHandler } from './__types/submit'
 

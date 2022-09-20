@@ -289,18 +289,17 @@ model TeamTime {
 model UserProfile {
     profile_id          Int @unique
     user_id             Int @unique
-    snowflake           BigInt @unique
+    user_snowflake      BigInt @unique
+    snowflake           String
     username            String
-    discriminator       Int
+    discriminator       String
+    displayName         String @map("display_name")
     avatar              String
-    avatar_url_fragment String
-    updated_at          DateTime
-    created_at          DateTime
 
     user    User @relation(fields: [user_id], references: [user_id])
     profile Profile @relation(fields: [profile_id], references: [profile_id])
 
-    @@map("vuserprofiles")
+    @@map("vuserprofile")
 }
 
 model TeamLookup {

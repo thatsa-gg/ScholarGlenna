@@ -1,19 +1,14 @@
-import type { RequestHandler } from '@sveltejs/kit'
-import { destroySession } from '$lib/session'
-import { parse } from 'cookie'
+import { redirect, type RequestHandler } from '@sveltejs/kit'
+import { destroySession } from '$lib/server/session'
 
-export const GET: RequestHandler = async event => {
-    const cookies = parse(event.request.headers.get('cookie') ?? '')
-    const sessionID = cookies['session_id']
+export const GET: RequestHandler = async ({ cookies }) => {
+    const sessionID = cookies.get('session_id')
     if(sessionID)
         await destroySession(sessionID)
-    return {
-        status: 302,
-        headers: {
-            Location: '/',
-            'set-cookie': [
-                `session_id=deleted; Path=/; HttpOnly; SameSite=Lax; Max-Age=-1`
-            ]
-        }
-    }
+    cookies.delete('session_id', {
+        path: '/',
+        httpOnly: true,
+        sameSite: 'lax',
+    })
+    throw redirect(302, '/')
 }

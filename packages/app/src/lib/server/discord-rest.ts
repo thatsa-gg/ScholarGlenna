@@ -1,6 +1,6 @@
 import { REST } from '@discordjs/rest'
 import { Routes } from 'discord-api-types/v10'
-import { DISCORD_TOKEN } from './auth'
+import { DISCORD_TOKEN } from '../auth'
 import type { User as DiscordUser } from 'discord.js'
 import { Discord } from './discord'
 
