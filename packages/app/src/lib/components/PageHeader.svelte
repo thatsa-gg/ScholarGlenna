@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { session } from '$app/stores'
 </script>
 
 <header>
@@ -9,9 +8,4 @@
         <!-- TODO nav -->
         <!-- TODO help -->
     </nav>
-    {#if $session.user}
-        <!-- TODO user dropdown -->
-    {:else}
-        <!-- TODO login -->
-    {/if}
 </header>

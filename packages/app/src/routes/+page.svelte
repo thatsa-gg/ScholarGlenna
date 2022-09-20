@@ -1,11 +1,12 @@
 <script lang="ts">
-    import type { _Guild, _Team } from './index'
+    import type { _Guild, _Team } from './+page.server'
+    import type { PageData } from './$type'
     import LoginButton from '$lib/components/LoginButton.svelte'
-    import { session } from '$app/stores'
+    export let data: PageData
     export let guilds: _Guild[]
     export let teams: _Team[]
 </script>
-{#if !$session.user}
+{#if !$data.user}
     <main>
         <h1>TODO title</h1>
         <p><span>thatsa.gg</span> is your one-stop tool for Guild Wars 2 static group organization and Discord integration.</p>
@@ -15,8 +16,8 @@
         <LoginButton />
     </div>
 {:else}
-    <img alt="{$session.user.displayName} avatar" src="https://cdn.discordapp.com/avatars/{$session.user.snowflake}/{$session.user.avatar}.png">
-    <h1>{$session.user.displayName}</h1>
+    <img alt="{$data.user.displayName} avatar" src="https://cdn.discordapp.com/avatars/{$data.user.snowflake}/{$data.user.avatar}.png">
+    <h1>{$data.user.displayName}</h1>
     <h2>Your guilds:</h2>
     <ul>
         {#each guilds as guild}
