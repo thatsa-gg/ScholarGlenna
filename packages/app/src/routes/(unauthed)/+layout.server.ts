@@ -1,8 +1,11 @@
-import { error } from '@sveltejs/kit'
+import { redirect } from '@sveltejs/kit'
 import type { LayoutServerLoad } from './$types'
+
+export const prerender = false
 export const load: LayoutServerLoad = async ({ parent }) => {
     const { user } = await parent()
-    if(!user)
-        throw error(401)
+    if(user)
+        throw redirect(302, '/-/dashboard')
+
     return { user }
 }

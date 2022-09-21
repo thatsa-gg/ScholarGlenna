@@ -3,16 +3,17 @@ import { Database } from '@glenna/common'
 import { redirect } from '@sveltejs/kit'
 import type { LayoutServerLoad } from './$types'
 
+export const prerender = false
 export const load: LayoutServerLoad = async ({ cookies }) => {
     const sessionID = cookies.get('session_id')
     if(!sessionID)
-        return {}
+        return { user: null }
 
     const session = await getSession(sessionID)
     if(!session)
         throw redirect(303, '/api/logout')
 
-    const profile = await Database.Client.userProfile.findUnique({
+    const user = await Database.Client.userProfile.findUnique({
         where: { profile_id: session.profileId },
         select: {
             user_id: true,
@@ -23,10 +24,8 @@ export const load: LayoutServerLoad = async ({ cookies }) => {
             avatar: true
         }
     })
-    if(!profile)
+    if(!user)
         throw redirect(303, '/api/logout')
 
-    return {
-        user: profile
-    }
+    return { user }
 }

@@ -4,7 +4,7 @@ export default {
     css: {
         preprocessorOptions: {
             scss: {
-                additionalData: '@use "src/scss/variables.scss" as *;',
+                additionalData: '@use "src/lib/client/scss/variables.scss" as *;',
             },
         },
     },

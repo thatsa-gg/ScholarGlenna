@@ -11,5 +11,5 @@ export const GET: RequestHandler = async ({ cookies, url }) => {
         sameSite: 'lax',
         expires: session.expiration
     })
-    throw redirect(302, '/')
+    throw redirect(302, '/-/dashboard')
 }
