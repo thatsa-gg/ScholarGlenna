@@ -27,6 +27,7 @@ export class Database {
     Teams: Teams
     Authorization: Authorization
     Import: Import
+
     private constructor(){
         this.Client = getClient()
         this.Guilds = new Guilds(this)

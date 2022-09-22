@@ -74,6 +74,7 @@ importers:
   packages/common:
     specifiers:
       '@glenna/util': workspace:*
+      '@js-temporal/polyfill': ^0.4.2
       '@prisma/client': ^4.3.1
       '@types/uuid': ^8.3.4
       ajv: ^8.11.0
@@ -85,6 +86,7 @@ importers:
       uuid: ^8.3.2
     dependencies:
       '@glenna/util': link:../util
+      '@js-temporal/polyfill': 0.4.2
       '@prisma/client': 4.3.1_prisma@4.3.1
       ajv: 8.11.0
       discord-api-types: 0.37.10

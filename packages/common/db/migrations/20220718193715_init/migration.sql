@@ -45,6 +45,7 @@ create table Users (
 create table Profiles (
     profile_id serial primary key,
     user_id integer not null unique references Users(user_id) on delete cascade,
+    last_consistency_check timestamp with time zone default null,
     created_at timestamp with time zone not null default now(),
     updated_at timestamp with time zone not null default now()
 );
@@ -156,6 +157,32 @@ create table TeamMembers (
     created_at timestamp with time zone not null default now(),
     updated_at timestamp with time zone not null default now(),
     unique(team_id, guild_member_id)
+);
+
+create table TeamTags (
+    tag_id serial primary key,
+    name varchar(64) not null,
+    color integer default null
+);
+create unique index on TeamTags(lower(name));
+create table TeamTagRelations (
+    relation_id serial primary key,
+    tag_id integer not null references TeamTags(tag_id) on delete cascade,
+    team_id integer not null references Teams(team_id) on delete cascade,
+    unique(tag_id, team_id)
+);
+
+create table GuildTags (
+    tag_id serial primary key,
+    name varchar(64) not null,
+    color integer default null
+);
+create unique index on GuildTags(lower(name));
+create table GuildTagRelations (
+    relation_id serial primary key,
+    tag_id integer not null references GuildTags(tag_id) on delete cascade,
+    team_id integer not null references Guilds(guild_id) on delete cascade,
+    unique(tag_id, team_id)
 );
 
 create view TeamMemberships as select

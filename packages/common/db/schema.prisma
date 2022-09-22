@@ -113,6 +113,7 @@ model User {
 model Profile {
     profile_id  Int         @id @default(autoincrement())
     user_id     Int         @unique
+    lastConsistencyCheck DateTime @default(dbgenerated()) @db.Timestamptz(6) @map("last_consistency_check")
     created_at  DateTime    @default(dbgenerated()) @db.Timestamptz(6)
     updated_at  DateTime    @default(dbgenerated()) @db.Timestamptz(6)
 
@@ -216,6 +217,7 @@ model Guild {
     teams            Team[]
     team_lookup      TeamLookup[]
     history          History[]
+    tagged           GuildTagRelations[]
 
     @@map("guilds")
 }
@@ -242,6 +244,7 @@ model Team {
     memberships TeamMembership[]
     lookup      TeamLookup?
     history     History[]
+    tags        TeamTagRelations[]
 
     @@unique([guild_id, snowflake])
     @@unique([guild_id, alias])
@@ -283,6 +286,50 @@ model TeamTime {
     team     Team?   @relation(fields: [team_id], references: [team_id], onDelete: Cascade, onUpdate: NoAction)
 
     @@map("teamtimes")
+}
+
+model TeamTag {
+    tag_id Int @id @default(autoincrement())
+    name   String @unique @db.VarChar(32)
+    color  Int?
+
+    tagged TeamTagRelations[]
+
+    @@map("teamtags")
+}
+
+model GuildTag {
+    tag_id Int @id @default(autoincrement())
+    name   String @unique @db.VarChar(32)
+    color  Int?
+
+    tagged GuildTagRelations[]
+
+    @@map("guildtags")
+}
+
+model TeamTagRelations {
+    relation_id Int @id @default(autoincrement())
+    tag_id      Int
+    team_id     Int
+
+    tag TeamTag @relation(references: [tag_id], fields: [tag_id], onDelete: Cascade)
+    team Team @relation(references: [team_id], fields: [team_id], onDelete: Cascade)
+
+    @@unique([tag_id, team_id])
+    @@map("teamtagrelations")
+}
+
+model GuildTagRelations {
+    relation_id Int @id @default(autoincrement())
+    tag_id      Int
+    guild_id     Int
+
+    tag GuildTag @relation(references: [tag_id], fields: [tag_id], onDelete: Cascade)
+    guild Guild @relation(references: [guild_id], fields: [guild_id], onDelete: Cascade)
+
+    @@unique([tag_id, guild_id])
+    @@map("guildtagrelations")
 }
 
 // Views

@@ -2,7 +2,7 @@ import { createClient } from 'redis'
 import { REDIS_HOST, REDIS_PORT } from '../env.js'
 
 type CreateClientFn = typeof createClient
-type RedisClient = ReturnType<CreateClientFn>
+export type RedisClient = ReturnType<CreateClientFn>
 type InitializeClientFn = (...args: Parameters<CreateClientFn>) => Promise<RedisClient>
 const initializeClient: InitializeClientFn = async (...args) => {
     const client = createClient(...args)
