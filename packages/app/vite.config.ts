@@ -16,5 +16,10 @@ export default {
         noExternal: [
             '@fortawesome/*'
         ]
+    },
+    server: {
+        watch: {
+            usePolling: true
+        }
     }
 }
