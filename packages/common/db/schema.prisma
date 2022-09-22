@@ -228,7 +228,7 @@ model Team {
     name        String
     description String?
     role        BigInt?      @unique
-    visibility  Visibility   @default(Protected)
+    visibility  Visibility   @default(dbgenerated())
     channel     BigInt?
     color       Int?
     icon        String?      @db.VarChar
@@ -252,7 +252,7 @@ model TeamMember {
     member_id  Int            @id @default(autoincrement())
     team_id    Int
     guild_member_id Int
-    role       TeamMemberRole @default(Member)
+    role       TeamMemberRole @default(dbgenerated())
     created_at DateTime       @default(dbgenerated()) @db.Timestamptz(6)
     updated_at DateTime       @default(dbgenerated()) @db.Timestamptz(6)
 

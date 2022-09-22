@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { Guild } from 'discord.js';
     import type { PageServerData } from './$types'
     export let data: PageServerData
 </script>
@@ -17,7 +16,7 @@
 <h2>Your teams:</h2>
 <ul>
     {#each data.teams as team}
-        <li><a href="/team/{team.guild_alias}{team.team_alias}">{team.name}</a></li>
+        <li><a href="/team/{team.guild_alias}/{team.team_alias}">{team.name}</a></li>
     {:else}
         <li>No teams!</li>
     {/each}
