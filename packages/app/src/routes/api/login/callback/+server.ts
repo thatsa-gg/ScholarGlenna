@@ -7,9 +7,12 @@ export const GET: RequestHandler = async ({ cookies, url }) => {
     const session = await createSession(authorization)
     cookies.set('session_id', session.id, {
         path: '/',
-        httpOnly: true,
-        sameSite: 'lax',
         expires: session.expiration
     })
+    const target = cookies.get('nav_after_login')
+    if(target){
+        cookies.delete('nav_after_login')
+        throw redirect(302, target)
+    }
     throw redirect(302, '/-/dashboard')
 }
