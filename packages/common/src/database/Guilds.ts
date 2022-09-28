@@ -3,6 +3,7 @@ import type { Prisma, Guild } from '../../generated/client'
 import type { Database } from '.'
 import { getRedisClient } from '../redis/index.js'
 
+export const LAST_CONSISTENCY_CHECK = "last-consistency-check"
 export type GuildDeletionSummary = { id: number, snowflake: bigint, name: string }
 export class Guilds {
     #database: Database
@@ -245,13 +246,14 @@ export class Guilds {
                 },
                 select: { role: true }
             })
-            const roles = teams.filter(team =>null !== team.role).map(team => team.role!.toString())
+            const roles = teams.filter(team => null !== team.role).map(team => team.role!.toString())
             await Promise.all([
                 redis.set(moderatorKey, guild.moderator_role?.toString() ?? ''),
                 redis.set(managerKey, guild.manager_role?.toString() ?? ''),
                 roles.length > 0 ? redis.sAdd(teamsKey, roles) : null
             ])
         }
+        await redis.set(LAST_CONSISTENCY_CHECK, new Date().toUTCString())
         return guilds
     }
 }
