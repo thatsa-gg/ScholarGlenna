@@ -14,5 +14,5 @@ export const GET: RequestHandler = async ({ params }) => {
     })
     if(!team)
         throw error(404)
-    throw redirect(303, `/team/${guild_alias}/${team_alias}`)
+    throw redirect(303, `/-/team/${guild_alias}/${team_alias}`)
 }

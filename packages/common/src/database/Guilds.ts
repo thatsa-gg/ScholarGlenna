@@ -3,7 +3,6 @@ import type { Prisma, Guild } from '../../generated/client'
 import type { Database } from '.'
 import { getRedisClient } from '../redis/index.js'
 
-export const LAST_CONSISTENCY_CHECK = "last-consistency-check"
 export type GuildDeletionSummary = { id: number, snowflake: bigint, name: string }
 export class Guilds {
     #database: Database
@@ -253,7 +252,6 @@ export class Guilds {
                 roles.length > 0 ? redis.sAdd(teamsKey, roles) : null
             ])
         }
-        await redis.set(LAST_CONSISTENCY_CHECK, new Date().toUTCString())
         return guilds
     }
 }

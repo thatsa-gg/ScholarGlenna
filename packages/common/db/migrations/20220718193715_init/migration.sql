@@ -961,3 +961,94 @@ begin
     from
         affected inner join Guilds using(guild_id);
 end; $$ language plpgsql;
+
+create procedure import_profile_guilds(p_user_snowflake snowflake, correlation_id snowflake) as $$
+begin
+    -- prune
+    with user_data as (
+        select
+            Users.snowflake,
+            Users.user_id,
+            ImportGuildMembers.guild_id
+        from ImportGuildMembers
+            inner join Users on Users.snowflake = ImportGuildMembers.user_snowflake
+        where
+            ImportGuildMembers.user_snowflake = p_user_snowflake
+    ),
+    removed_members as (
+        delete from GuildMembers
+        using Guilds
+        where
+            GuildMembers.guild_id = Guilds.guild_id and
+            Guilds.deleted_at is not null and
+            not exists ( -- member relation doesn't exist
+                select 1 from user_data
+                where
+                    user_data.guild_id = GuildMembers.guild_id and
+                    user_data.user_id = GuildMembers.user_id
+            ) and exists ( -- ^ for this user
+                select 1 from user_data
+                where
+                    user_data.user_id = GuildMembers.user_id
+            )
+        returning GuildMembers.guild_id, GuildMembers.user_id
+    )
+    insert into History (correlation_id, event_type, actor_name, user_snowflake, user_name, guild_snowflake, guild_name)
+    select
+        correlation_id,
+        'GuildMemberLeave',
+        'ScholarGlenna',
+        Users.snowflake,
+        Users.username || '#' || lpad(Users.discriminator::text, 4, '0') as user_name,
+        Guilds.snowflake,
+        Guilds.name
+    from removed_members
+        inner join Users using(user_id)
+        inner join Guilds using(guild_id);
+
+    -- update
+    update GuildMembers set
+        updated_at = now(),
+        nickname = ImportGuildMembers.nickname,
+        avatar = ImportGuildMembers.guild_avatar
+    from ImportGuildMembers
+        inner join Users on ImportGuildMembers.user_snowflake = Users.snowflake
+    where
+        GuildMembers.user_id = Users.user_id and
+        GuildMembers.guild_id = ImportGuildMembers.guild_id and (
+            GuildMembers.nickname <> ImportGuildMembers.nickname or
+            GuildMembers.avatar <> ImportGuildMembers.guild_avatar
+        ) and
+        ImportGuildMembers.user_snowflake = p_user_snowflake;
+
+    -- create
+    with new_members as (
+        insert into GuildMembers (user_id, guild_id, nickname, avatar, role)
+        select
+            Users.user_id,
+            ImportGuildMembers.guild_id,
+            ImportGuildMembers.nickname,
+            ImportGuildMembers.guild_avatar,
+            ImportGuildMembers.role
+        from ImportGuildMembers
+            inner join Users on ImportGuildMembers.user_snowflake = Users.snowflake
+        where not exists (
+            select 1 from GuildMembers where
+                GuildMembers.guild_id = ImportGuildMembers.guild_id and
+                GuildMembers.user_id = Users.user_id
+        ) and ImportGuildMembers.user_snowflake = p_user_snowflake
+        returning *
+    )
+    insert into History(correlation_id, event_type, actor_name, user_snowflake, user_name, guild_snowflake, guild_name)
+    select
+        correlation_id,
+        'GuildMemberJoin',
+        'ScholarGlenna',
+        Users.snowflake,
+        coalesce(new_members.nickname, Users.username) || '#' || lpad(Users.discriminator::text, 4, '0') as display_name,
+        Guilds.snowflake,
+        Guilds.name
+    from new_members
+        inner join Guilds using(guild_id)
+        inner join Users using(user_id);
+end; $$ language plpgsql;

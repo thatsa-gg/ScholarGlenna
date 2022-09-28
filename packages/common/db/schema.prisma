@@ -113,7 +113,6 @@ model User {
 model Profile {
     profile_id  Int         @id @default(autoincrement())
     user_id     Int         @unique
-    lastConsistencyCheck DateTime @default(dbgenerated()) @db.Timestamptz(6) @map("last_consistency_check")
     created_at  DateTime    @default(dbgenerated()) @db.Timestamptz(6)
     updated_at  DateTime    @default(dbgenerated()) @db.Timestamptz(6)
 

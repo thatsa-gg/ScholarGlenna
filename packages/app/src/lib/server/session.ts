@@ -27,6 +27,8 @@ export async function createSession(authorization: Authorization): Promise<Requi
     const [ accessKey, sessionKey ] = getKeys(sessionID)
     const discordUser = await getUserInfo(authorization.access_token)
     const appProfile = await Database.Profiles.import(discordUser)
+    // TODO: use authorization token to fetch guilds member is a part of and check if they're a member?
+    // TODO: that or keep the current process and remove guilds from the required permissions (we would only need to see people's names)
     await Promise.all([
         redis.set(accessKey, authorization.access_token, { EX: authorization.expires_in }),
         redis.hSet(sessionKey, {

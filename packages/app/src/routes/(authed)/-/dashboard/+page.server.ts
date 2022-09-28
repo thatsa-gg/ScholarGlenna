@@ -37,7 +37,7 @@ export const load: PageServerLoad = async ({ parent }) => {
     })
     return {
         user,
-        guilds: data?.guild_memberships.map(m => m.guild) ?? [],
-        teams: data?.team_memberships.map(m => m.team.lookup!) ?? []
+        guilds: data?.guild_memberships.map(m => ({ ...m.guild, url: `/-/guild/${m.guild.alias}` })) ?? [],
+        teams: data?.team_memberships.map(m => ({ ...m.team.lookup!, url: `/-/team/${m.team.lookup!.guild_alias}/${m.team.lookup!.team_alias}` })) ?? []
     }
 }
