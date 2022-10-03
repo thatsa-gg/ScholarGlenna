@@ -18,6 +18,7 @@
     "bot": "pnpm --prefix packages/bot run bot",
     "dev": "pnpm --prefix packages/app run dev",
     "generate": "pnpm --prefix packages/common run generate",
-    "build": "pnpm exec tsc --build"
+    "build": "pnpm exec tsc --build",
+    "sync": "pnpm --prefix packages/app run sync"
   }
 }

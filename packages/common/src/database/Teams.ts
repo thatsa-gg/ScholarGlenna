@@ -1,4 +1,4 @@
-import type { Prisma, Team, Guild } from '../../generated/client'
+import { Prisma, Team, Guild } from '../../generated/client/index.js'
 import type { Transactionable } from './Client.js'
 import type { Database } from '.'
 import type { Guild as DiscordGuild } from 'discord.js'
@@ -112,6 +112,19 @@ export class Teams {
             messages.push(`Name cannot be empty.`)
         else if(/[^a-zA-Z\-0-9 ]/.test(candidate.name))
             messages.push(`Name contains illegal characters. Names must be only letters, numbers, hyphens, or spaces.`)
+        if(candidate.role !== null) {
+            const guildRole = await guild.roles.fetch(candidate.role.toString())
+            if(!guildRole)
+                messages.push(`Role does not exist in the guild.`)
+            else {
+                const team = await this.#database.Client.team.findUnique({
+                    where: { role: candidate.role },
+                    select: { name: true }
+                })
+                if(team)
+                    messages.push(`Role ${guildRole.name} is already in use by team ${team.name}.`)
+            }
+        }
         if(candidate.role !== null && null === await guild.roles.fetch(candidate.role.toString()))
             messages.push(`Role does not exist in the guild.`)
         if(candidate.channel !== null && null === await guild.channels.fetch(candidate.channel.toString()))
@@ -134,7 +147,7 @@ export class Teams {
         await client.$executeRaw`
             call remove_team_channel(
                 ${channelId}::snowflake,
-                ${options?.correlationId ?? 'new_snowflake()'}::snowflake
+                ${options?.correlationId ?? Prisma.sql`new_snowflake()`}::snowflake
             )
         `
     }
@@ -144,7 +157,7 @@ export class Teams {
         await client.$executeRaw`
             call remove_team_role(
                 ${roleId}::snowflake,
-                ${options?.correlationId ?? 'new_snowflake()'}::snowflake
+                ${options?.correlationId ?? Prisma.sql`new_snowflake()`}::snowflake
             )
         `
     }
