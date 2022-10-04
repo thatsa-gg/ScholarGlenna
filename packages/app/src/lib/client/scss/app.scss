@@ -4,3 +4,25 @@
 
 @import 'themes/default';
 @import 'themes/dark';
+
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #323232;
+    color: white;
+}
+
+:root {
+    --primary: #181818;
+    --text: white;
+    --text-subdued: gray;
+    --text-red: red;
+}
+
+a {
+    // TODO
+    color: inherit;
+}

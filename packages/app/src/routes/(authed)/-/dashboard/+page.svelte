@@ -3,8 +3,6 @@
     export let data: PageServerData
 </script>
 
-<img alt="{data.user.displayName} avatar" src="https://cdn.discordapp.com/{data.user.avatar}.png">
-<h1>{data.user.displayName}</h1>
 <h2>Your guilds:</h2>
 <ul>
     {#each data.guilds as guild}
@@ -21,4 +19,3 @@
         <li>No teams!</li>
     {/each}
 </ul>
-<a title="Sign out" href="/api/logout">Sign Out</a>
