@@ -3,7 +3,7 @@ export type {
     User,
     UserProfile,
     Team
-} from '../../generated/client'
+} from '@glenna/prisma'
 export type { GuildDeletionSummary } from './Guilds.js'
 export type { Client } from './Client.js'
 export type { TeamInfo } from './Teams.js'

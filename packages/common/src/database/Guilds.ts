@@ -1,5 +1,5 @@
 import type { Guild as DiscordGuild } from 'discord.js'
-import type { Prisma, Guild } from '../../generated/client'
+import type { Prisma, Guild } from '@glenna/prisma'
 import type { Database } from '.'
 import { getRedisClient } from '../redis/index.js'
 

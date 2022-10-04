@@ -1,4 +1,4 @@
-import { Prisma, Team, Guild } from '../../generated/client/index.js'
+import { Prisma, Team, Guild } from '@glenna/prisma'
 import type { Transactionable } from './Client.js'
 import type { Database } from '.'
 import type { Guild as DiscordGuild } from 'discord.js'

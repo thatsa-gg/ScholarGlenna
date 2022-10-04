@@ -190,6 +190,87 @@ create view TeamMemberships as select
     GuildMembers.user_id
 from TeamMembers inner join GuildMembers using(guild_member_id);
 
+create type Class as enum (
+    'elementalist',
+    'engineer',
+    'guardian',
+    'mesmer',
+    'necromancer',
+    'ranger',
+    'revenant',
+    'thief',
+    'warrior'
+);
+
+create type EliteSpecialization as enum (
+    'tempest',
+    'scrapper',
+    'dragonhunter',
+    'chronomancer',
+    'reaper',
+    'druid',
+    'herald',
+    'daredevil',
+    'berserker',
+    'weaver',
+    'holosmith',
+    'firebrand',
+    'mirage',
+    'scourge',
+    'soulbeast',
+    'renegade',
+    'deadeye',
+    'spellbreaker',
+    'catalyst',
+    'mechanist',
+    'willbender',
+    'virtuoso',
+    'harbinger',
+    'untamed',
+    'vindicator',
+    'specter',
+    'bladesworn'
+);
+
+create table Builds (
+    build_id serial primary key,
+    class Class not null,
+    specialization EliteSpecialization,
+    name varchar not null,
+    url varchar,
+    created_at timestamp with time zone not null default now(),
+    updated_at timestamp with time zone not null default now()
+);
+create unique index on Builds(lower(name));
+
+create table Capabilities (
+    capability_id serial primary key,
+    name varchar not null
+);
+create unique index on Capabilities(lower(name));
+
+create table BuildCapabilities (
+    relation_id serial primary key,
+    build_id integer not null references Builds(build_id) on delete cascade,
+    capability_id integer not null references Capabilities(capability_id) on delete cascade,
+    efficacy integer,
+    unique(build_id, capability_id)
+);
+
+create type UserBuildLevel as enum (
+    'not_updated',
+    'geared',
+    'practiced',
+    'confident',
+    'expert'
+);
+create table UserBuilds (
+    relation_id serial primary key,
+    profile_id integer not null references Profiles(profile_id) on delete cascade,
+    build_id integer not null references Builds(build_id) on delete cascade,
+    level UserBuildLevel
+);
+
 -- This is a count of all users that either have a role, a profile, or are active members of a team.
 create view GuildMemberReferenceCount as with targets as (
     select

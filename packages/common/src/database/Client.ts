@@ -1,4 +1,4 @@
-import { PrismaClient, type Prisma } from "../../generated/client/index.js"
+import { PrismaClient, type Prisma } from '@glenna/prisma'
 
 export type Transactionable = { client?: PrismaClient | Prisma.TransactionClient }
 export type Client = PrismaClient

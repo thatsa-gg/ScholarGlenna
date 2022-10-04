@@ -2,7 +2,7 @@ import type {
     Guild,
     Prisma,
     Team
-} from '../../generated/client'
+} from '@glenna/prisma'
 import type { Database } from '.'
 
 export class Import {

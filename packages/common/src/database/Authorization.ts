@@ -1,7 +1,7 @@
 import type {
     Guild,
     User
-} from '../../generated/client'
+} from '@glenna/prisma'
 import type { Database } from '.'
 
 interface PermissionParameters {

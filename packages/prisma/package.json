@@ -1,0 +1,24 @@
+{
+    "name": "@glenna/prisma",
+    "version": "0.0.1",
+    "type": "module",
+    "private": true,
+    "main": "dist/index.js",
+    "types": "src/index.ts",
+    "devDependencies": {
+        "prisma": "^4.4.0"
+    },
+    "dependencies": {
+        "@prisma/client": "^4.4.0"
+    },
+    "scripts": {
+        "migrate-reset": "pnpm exec prisma migrate reset",
+        "migrate": "pnpm exec prisma migrate deploy",
+        "migrate-status": "pnpm exec prisma migrate status",
+        "generate": "pnpm exec prisma generate",
+        "postinstall": "pnpm exec prisma generate"
+    },
+    "prisma": {
+        "schema": "src/schema.prisma"
+    }
+}

@@ -60,6 +60,62 @@ enum HistoryEvent {
     @@map("historyevent")
 }
 
+enum Class {
+    Elementalist @map("elementalist")
+    Engineer     @map("engineer")
+    Guardian     @map("guardian")
+    Mesmer       @map("mesmer")
+    Necromancer  @map("necromancer")
+    Ranger       @map("ranger")
+    Revenant     @map("revenant")
+    Thief        @map("thief")
+    Warrior      @map("warrior")
+
+    @@map("class")
+}
+
+enum EliteSpecialization {
+    Tempest         @map("tempest")
+    Scrapper        @map("scrapper")
+    Dragonhunter    @map("dragonhunter")
+    Chronomancer    @map("chronomancer")
+    Reaper          @map("reaper")
+    Druid           @map("druid")
+    Herald          @map("herald")
+    Daredevil       @map("daredevil")
+    Berserker       @map("berserker")
+    Weaver          @map("weaver")
+    Holosmith       @map("holosmith")
+    Firebrand       @map("firebrand")
+    Mirage          @map("mirage")
+    Scourge         @map("scourge")
+    Soulbeast       @map("soulbeast")
+    Renegade        @map("renegade")
+    Deadeye         @map("deadeye")
+    Spellbreaker    @map("spellbreaker")
+    Catalyst        @map("catalyst")
+    Mechanist       @map("mechanist")
+    Willbender      @map("willbender")
+    Virtuoso        @map("virtuoso")
+    Harbinger       @map("harbinger")
+    Untamed         @map("untamed")
+    Vindicator      @map("vindicator")
+    Specter         @map("specter")
+    Bladesworn      @map("bladesworn")
+
+    @@map("elitespecialization")
+}
+
+enum UserBuildLevel {
+    NotUpdated  @map("not_updated")
+    Geared      @map("geared")
+    Practiced   @map("practiced")
+    Confident   @map("confident")
+    Expert      @map("expert")
+
+    @@map("userbuildlevel")
+}
+
 // Tables
 model History {
     log_id          Int @id @default(autoincrement())
@@ -117,6 +173,7 @@ model Profile {
     updated_at  DateTime    @default(dbgenerated()) @db.Timestamptz(6)
 
     user         User       @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
+    builds       UserBuild[]
     user_profile UserProfile?
 
     @@map("profiles")
@@ -329,6 +386,52 @@ model GuildTagRelations {
 
     @@unique([tag_id, guild_id])
     @@map("guildtagrelations")
+}
+
+model Build {
+    build_id Int @id @default(autoincrement())
+    class Class
+    specialization EliteSpecialization?
+    name String @db.VarChar()
+    url String? @db.VarChar()
+    createdAt DateTime @db.Timestamptz(6) @default(dbgenerated()) @map("created_at")
+    updatedAt DateTime @db.Timestamptz(6) @default(dbgenerated()) @map("updated_at")
+
+    capabilities BuildCapability[]
+    players UserBuild[]
+    @@map("builds")
+}
+
+model Capability {
+    capability_id Int @id @default(autoincrement())
+    name String @db.VarChar()
+
+    builds BuildCapability[]
+    @@map("capabilities")
+}
+
+model BuildCapability {
+    relation_id Int @id @default(autoincrement())
+    build_id Int
+    capability_id Int
+    efficacy Int
+
+    build Build @relation(fields: [build_id], references: [build_id], onDelete: Cascade)
+    capability Capability @relation(fields: [capability_id], references: [capability_id], onDelete: Cascade)
+
+    @@unique([build_id, capability_id])
+    @@map("buildcapabilities")
+}
+
+model UserBuild {
+    relation_id Int @id @default(autoincrement())
+    profile_id Int
+    build_id Int
+    level UserBuildLevel?
+
+    profile Profile @relation(fields: [profile_id], references: [profile_id], onDelete: Cascade)
+    build Build @relation(fields: [build_id], references: [build_id], onDelete: Cascade)
+    @@map("userbuilds")
 }
 
 // Views

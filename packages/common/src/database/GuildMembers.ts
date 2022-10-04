@@ -1,5 +1,5 @@
 import type { GuildMember as DiscordGuildMember } from 'discord.js'
-import type { Prisma, GuildMember, User, Guild, GuildRole } from '../../generated/client'
+import type { Prisma, GuildMember, User, Guild, GuildRole } from '@glenna/prisma'
 import type { Transactionable } from './Client.js'
 import type { Database } from '.'
 

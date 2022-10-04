@@ -1,5 +1,5 @@
 import type { User as DiscordUser } from 'discord.js'
-import type { Prisma, User } from '../../generated/client'
+import type { Prisma, User } from '@glenna/prisma'
 import type { Transactionable } from './Client.js'
 import type { Database } from '.'
 

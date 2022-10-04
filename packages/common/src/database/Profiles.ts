@@ -1,6 +1,6 @@
 import { DiscordAPIError, User as DiscordUser, GuildMember as DiscordGuildMember, Collection } from 'discord.js'
 import { RESTJSONErrorCodes } from 'discord-api-types/v10'
-import type { Prisma, Profile, User } from '../../generated/client'
+import type { Prisma, Profile, User } from '@glenna/prisma'
 import type { Transactionable } from './Client.js'
 import type { Database } from '.'
 
