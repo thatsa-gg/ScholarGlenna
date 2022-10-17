@@ -11,7 +11,6 @@
         justify-content: center;
         align-items: center;
 
-        background: var(--primary);
         color: hsl(357, 0%, 41%);
 
         transition: color ease $DefaultTransition;

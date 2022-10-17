@@ -7,6 +7,13 @@ const config = {
     prerender: {
         enabled: false
     },
+    css: {
+        preprocessorOptions: {
+            scss: {
+                additionalData: '@use "src/lib/client/scss/variables.scss" as *;',
+            },
+        },
+    },
     kit: {
         adapter: adapter(),
 

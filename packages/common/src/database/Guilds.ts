@@ -21,6 +21,7 @@ export class Guilds {
             replace = false
         } = options ?? {}
         const redis = await getRedisClient()
+        sources = await Promise.all(sources.map(source => source.fetch()))
         const guilds = await this.#database.Client.$transaction<Guild[]>(async client => {
             const Import = this.#database.Import
             await client.importGuilds.createMany({
@@ -32,6 +33,7 @@ export class Guilds {
                         vanity: guild.vanityURLCode,
                         alias: guild_snowflake.toString(36),
                         icon: guild.icon,
+                        splash: guild.splash,
                         description: guild.description,
                         preferred_locale: guild.preferredLocale
                     }

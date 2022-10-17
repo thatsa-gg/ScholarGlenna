@@ -258,6 +258,7 @@ model Guild {
     alias            String          @unique @db.VarChar(32)
     name             String
     icon             String?         @db.VarChar
+    splash           String?         @db.VarChar
     description      String?
     preferred_locale String          @db.VarChar(5)
     manager_role     BigInt?
@@ -494,7 +495,8 @@ model ImportGuilds {
     name        String
     vanity      String? @db.VarChar(32)
     alias       String
-    icon        String?
+    icon        String? @db.VarChar
+    splash      String? @db.VarChar
     description String?
     preferred_locale String @db.VarChar(5)
 

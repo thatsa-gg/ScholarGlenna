@@ -1,6 +1,6 @@
 import { listener } from '../EventListener.js'
 import { Database, getRedisClient, Guilds } from '@glenna/common'
-import type { HistoryEvent, Prisma } from '@glenna/common/generated/client'
+import type { HistoryEvent, Prisma } from '@glenna/prisma'
 
 export default listener('guildMemberUpdate', {
     async execute(oldMember, newMember){

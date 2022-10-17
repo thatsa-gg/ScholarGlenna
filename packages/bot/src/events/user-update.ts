@@ -1,5 +1,5 @@
 import { Database } from '@glenna/common'
-import type { Prisma } from '@glenna/common/generated/client'
+import type { Prisma } from '@glenna/prisma'
 import { listener } from '../EventListener.js'
 
 export default listener('userUpdate', {

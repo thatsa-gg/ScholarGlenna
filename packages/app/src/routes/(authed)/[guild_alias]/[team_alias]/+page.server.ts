@@ -1,6 +1,7 @@
 import { Database } from '@glenna/common'
 import { error } from '@sveltejs/kit'
 import type { PageServerLoad } from './$types'
+import { url } from '$lib/urls'
 
 export const load: PageServerLoad = async ({ params, parent }) => {
     const { user } = await parent()
@@ -29,14 +30,24 @@ export const load: PageServerLoad = async ({ params, parent }) => {
                         }
                     }
                 }
+            },
+            guild: {
+                select: {
+                    alias: true,
+                    name: true
+                }
             }
         }
     })
     if(!lookup)
         throw error(404)
-    const { team } = lookup
+    const { team, guild } = lookup
     return {
         user,
+        guild: {
+            name: guild.name,
+            url: url('guild', guild)
+        },
         team: {
             name: team.name
         },
@@ -45,7 +56,7 @@ export const load: PageServerLoad = async ({ params, parent }) => {
             name: member.guild_member.vmember!.name,
             discriminator: member.guild_member.vmember!.discriminator,
             displayName: member.guild_member.vmember!.display_name,
-            avatar: `https://cdn.discordapp.com/${member.guild_member.vmember!.avatar_url_fragment}`
+            avatar: url('avatar', member.guild_member.vmember!)
         }))
     }
 }

@@ -66,6 +66,7 @@ create table Guilds (
     alias varchar(32) not null,
     name text not null,
     icon varchar,
+    splash varchar,
     description text,
     preferred_locale varchar(5) not null,
     manager_role snowflake default null,
@@ -341,13 +342,17 @@ create view GuildIcons as with initial as (
     select
         Guilds.guild_id,
         Guilds.icon as icon_hash,
-        'icons/' || Guilds.snowflake::text || Guilds.icon as icon
+        'icons/' || Guilds.snowflake::text || '/' || Guilds.icon as icon,
+        'splashes/' || Guilds.snowflake::text || '/' || Guilds.splash as splash,
+        Guilds.splash as splash_hash
     from Guilds
 )
 select
     guild_id,
     icon,
-    case when icon_hash like 'a_%' then icon || '.gif' else null end as icon_gif
+    case when icon_hash like 'a_%' then icon || '.gif' else null end as icon_gif,
+    splash,
+    case when splash_hash like 'a_%' then splash || '.gif' else null end as splash_gif
 from initial;
 
 create view TeamLookup as select
@@ -473,6 +478,7 @@ create unlogged table ImportGuilds (
     alias varchar not null,
     name text not null,
     icon varchar,
+    splash varchar,
     description text,
     preferred_locale varchar(5) not null
 );
@@ -509,6 +515,7 @@ begin atomic
             updated_at = now(),
             name = ImportGuilds.name,
             icon = ImportGuilds.icon,
+            splash = ImportGuilds.splash,
             description = ImportGuilds.description,
             preferred_locale = ImportGuilds.preferred_locale
         from ImportGuilds
@@ -517,6 +524,7 @@ begin atomic
             Guilds.deleted_at is not null and (
                 Guilds.name <> ImportGuilds.name or
                 Guilds.icon <> ImportGuilds.icon or
+                Guilds.splash <> ImportGuilds.splash or
                 Guilds.description <> ImportGuilds.description or
                 Guilds.preferred_locale <> ImportGuilds.preferred_locale
             )
@@ -531,6 +539,7 @@ begin atomic
         name as guild_name,
         jsonb_build_object(
             'icon', icon,
+            'splash', splash,
             'description', description,
             'preferred_locale', preferred_locale
         ) as data
@@ -543,6 +552,7 @@ begin atomic
             updated_at = now(),
             name = ImportGuilds.name,
             icon = ImportGuilds.icon,
+            splash = ImportGuilds.splash,
             description = ImportGuilds.description,
             preferred_locale = ImportGuilds.preferred_locale
         from ImportGuilds
@@ -551,6 +561,7 @@ begin atomic
             Guilds.deleted_at is null and (
                 Guilds.name <> ImportGuilds.name or
                 Guilds.icon <> ImportGuilds.icon or
+                Guilds.splash <> ImportGuilds.splash or
                 Guilds.description <> ImportGuilds.description or
                 Guilds.preferred_locale <> ImportGuilds.preferred_locale
             )
@@ -565,6 +576,7 @@ begin atomic
         name as guild_name,
         jsonb_build_object(
             'icon', icon,
+            'splash', splash,
             'description', description,
             'preferred_locale', preferred_locale
         ) as data
@@ -572,7 +584,7 @@ begin atomic
 
     -- create new guilds
     with new_guilds as (
-        insert into Guilds(snowflake, alias, name, icon, description, preferred_locale)
+        insert into Guilds(snowflake, alias, name, icon, splash, description, preferred_locale)
         select
             ImportGuilds.guild_snowflake,
             coalesce(case
@@ -581,6 +593,7 @@ begin atomic
             end, ImportGuilds.alias) as alias,
             ImportGuilds.name,
             ImportGuilds.icon,
+            ImportGuilds.splash,
             ImportGuilds.description,
             ImportGuilds.preferred_locale
         from ImportGuilds

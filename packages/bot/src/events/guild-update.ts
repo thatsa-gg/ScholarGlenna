@@ -26,6 +26,12 @@ export default listener('guildUpdate', {
                     old: oldGuild.icon,
                     new: newGuild.icon
                 })
+            if(oldGuild.splash !== newGuild.splash)
+                changed.push({
+                    field: 'splash',
+                    old: oldGuild.splash,
+                    new: newGuild.splash
+                })
             if(oldGuild.preferredLocale !== newGuild.preferredLocale)
                 changed.push({
                     field: 'preferred_locale',

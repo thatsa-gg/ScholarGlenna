@@ -2,7 +2,7 @@ import { listener } from '../EventListener.js'
 import { warn } from 'console'
 import { Database, getRedisClient, Guilds } from '@glenna/common'
 import type { FieldHistory } from '@glenna/util'
-import type { Prisma } from '@glenna/common/generated/client'
+import type { Prisma } from '@glenna/prisma'
 
 export default listener('roleUpdate', {
     async execute(oldRole, newRole){

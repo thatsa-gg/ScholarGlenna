@@ -6,18 +6,19 @@
 </script>
 
 <Sidebar>
-
+    <!-- TODO: sidebar title -->
+    <!-- TODO: backlink to dashboard -->
+    <!-- TODO: team links per guild -->
+    <!--
+        Maybe instead have sections for:
+            - "My Teams"
+            - "Public Teams"
+            - "Recruiting Teams"
+        ?
+    -->
 </Sidebar>
 
-<MainPanel title="Dashboard">
-    <h2>Your guilds:</h2>
-    <ul>
-        {#each data.guilds as guild}
-            <li><a href="{guild.url}">{guild.name}</a></li>
-        {:else}
-            <li>No guilds!</li>
-        {/each}
-    </ul>
+<MainPanel title="Teams">
     <h2>Your teams:</h2>
     <ul>
         {#each data.teams as team}
