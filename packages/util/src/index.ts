@@ -146,3 +146,7 @@ export type FieldHistory<T> = {
     old: string | number | null
     new: string | number | null
 }
+
+export function assertExhaustive(a: never): never {
+    throw new Error(`Switch statement was not exhaustive. Encountered unknown value: ${a}`);
+}

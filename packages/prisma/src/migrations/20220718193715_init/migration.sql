@@ -2,7 +2,6 @@ set check_function_bodies = false;
 create schema if not exists public;
 create domain snowflake as bigint check (value >= 0);
 
-
 -------------------------------------------------------------------------------
 ---                                                                         ---
 ---                 Utility Functions                                       ---
@@ -31,6 +30,12 @@ end;
 ---                 Tables/Types                                            ---
 ---                                                                         ---
 -------------------------------------------------------------------------------
+
+create type Visibility as enum (
+    'Public',    -- always visible
+    'Protected', -- only visible if in the same group
+    'Members'    -- always private (basic team info may still be available in some groups)
+);
 
 create table Users (
     user_id serial primary key,
@@ -71,6 +76,7 @@ create table Guilds (
     preferred_locale varchar(5) not null,
     manager_role snowflake default null,
     moderator_role snowflake default null,
+    visibility Visibility default 'Members'::Visibility,
     created_at timestamp with time zone not null default now(),
     updated_at timestamp with time zone not null default now(),
     deleted_at timestamp with time zone default null
@@ -111,12 +117,6 @@ create view GuildOwners as select
     user_id
 from GuildMembers where role = 'Owner';
 
-create type Visibility as enum (
-    'Public',    -- always visible
-    'Protected', -- only visible if in the same group
-    'Members'    -- always private (basic team info may still be available in some groups)
-);
-
 create table Teams (
     team_id serial primary key,
     guild_id integer not null references Guilds(guild_id) on delete cascade,
@@ -144,10 +144,8 @@ create table TeamTimes (
 
 create type TeamMemberRole as enum (
     'Member',
-    'Permanent Fill',
-    'Commander',
-    'Moderator',
-    'Manager'
+    'Representative',
+    'Permanent Fill'
 );
 
 create table TeamMembers (
