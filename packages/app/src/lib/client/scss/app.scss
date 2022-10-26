@@ -14,10 +14,9 @@ html, body {
     padding: 0;
     min-height: 100vh;
     width: 100%;
-    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font: 12pt 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: #323232;
     color: var(--text);
-    font-size: 12pt;
 }
 
 :root {
@@ -49,9 +48,39 @@ html, body {
     --transition-all: all ease var(--transition-time);
     --transition-color: color ease var(--transition-time);
     --transition-font: font ease var(--transition-time);
+
+    --scrollbar-width: 0.5em;
+    --scrollbar-thumb-color: #cececeaa;
+    --scrollbar-thumb-color-subdued: #cecece44;
+    --scrollbar-track-color: transparent;
 }
 
 a {
     // TODO
     color: inherit;
+}
+
+* {
+    scrollbar-width: var(--scrollbar-width);
+    scrollbar-color: var(--scrollbar-track-color) var(--scrollbar-thumb-color-subdued);
+    transition: scrollbar-color ease var(--transition-time);
+
+    &::-webkit-scrollbar {
+        width: var(--scrollbar-width);
+    }
+    &::-webkit-scrollbar-track {
+        background: var(--scrollbar-track-color);
+    }
+    &::-webkit-scrollbar-thumb {
+        background: var(--scrollbar-thumb-color-subdued);
+        border-radius: calc(var(--scrollbar-width) / 2);
+        transition: background-color ease var(--transition-time);
+    }
+
+    &:hover {
+        scrollbar-color: var(--scrollbar-track-color) var(--scrollbar-thumb-color);
+        &::-webkit-scrollbar-thumb {
+            background: var(--scrollbar-thumb-color);
+        }
+    }
 }

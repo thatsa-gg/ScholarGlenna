@@ -8,6 +8,7 @@
     import NavItem from '$lib/components/sidebar/NavItem.svelte'
     import NavHeader from '$lib/components/sidebar/NavHeader.svelte'
     import NavBanner from '$lib/components/sidebar/NavBanner.svelte'
+    import ScrollArea from '$lib/components/ScrollArea.svelte'
 
     import { faGear, faUsers, faCirclePlus } from '@fortawesome/free-solid-svg-icons'
 
@@ -30,19 +31,18 @@
         <NavItem href={data.guild.membersUrl} icon={faUsers}>Members</NavItem>
         <NavItem href={data.guild.newTeamUrl} icon={faCirclePlus} color="var(--icon-green)">Create a Team</NavItem>
     </SidebarHeader>
-    <section aria-label="Your teams.">
-        {#each ownTeams as team}
-            <NavTeam {...team} />
-        {/each}
-    </section>
-    <SidebarAccordion aria-label="Other teams." fixed={0 === ownTeams.length}>
-        {#each data.guild.teams.filter(team => !team.onTeam) as team}
-            <NavTeam {...team} />
-        {/each}
-        {#each new Array(100).fill(0).map(_ => ({ url: '#', name: 'test' })) as team}
-            <NavTeam {...team} />
-        {/each}
-    </SidebarAccordion>
+    <ScrollArea>
+        <section aria-label="Your teams.">
+            {#each ownTeams as team}
+                <NavTeam {...team} />
+            {/each}
+        </section>
+        <SidebarAccordion aria-label="Other teams." fixed={0 === ownTeams.length}>
+            {#each data.guild.teams.filter(team => !team.onTeam) as team}
+                <NavTeam {...team} />
+            {/each}
+        </SidebarAccordion>
+    </ScrollArea>
 </Sidebar>
 <MainPanel title={data.guild.name}>
     <ul>

@@ -3,13 +3,13 @@
     import { faCaretUp, faCaretDown } from '@fortawesome/free-solid-svg-icons'
 
     export let fixed: boolean = false
-    let expanded = fixed
+    let open = fixed
 </script>
 
-<details {...$$restProps} bind:open={expanded}>
+<details bind:open {...$$restProps}>
     <summary aria-hidden={fixed || null}>
-        <Fa icon={expanded ? faCaretUp : faCaretDown} aria-hidden />
-        {#if expanded}
+        <Fa icon={open ? faCaretUp : faCaretDown} aria-hidden />
+        {#if open}
             Hide other teams
         {:else}
             Show other teams
