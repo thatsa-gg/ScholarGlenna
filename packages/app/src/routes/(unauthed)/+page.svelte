@@ -2,6 +2,10 @@
     import LoginButton from '$lib/components/LoginButton.svelte'
 </script>
 
+<svelte:head>
+    <title>Scholar Glenna</title>
+</svelte:head>
+
 <main>
     <h1>TODO title</h1>
     <p><span>thatsa.gg</span> is your one-stop tool for Guild Wars 2 static group organization and Discord integration.</p>

@@ -46,7 +46,7 @@ export const load: PageServerLoad = async ({ params, parent }) => {
         user,
         guild: {
             name: guild.name,
-            url: url('guild', guild)
+            url: url.guild(guild)
         },
         team: {
             name: team.name
@@ -56,7 +56,7 @@ export const load: PageServerLoad = async ({ params, parent }) => {
             name: member.guild_member.vmember!.name,
             discriminator: member.guild_member.vmember!.discriminator,
             displayName: member.guild_member.vmember!.display_name,
-            avatar: url('avatar', member.guild_member.vmember!)
+            avatar: url.avatar(member.guild_member.vmember!)
         }))
     }
 }

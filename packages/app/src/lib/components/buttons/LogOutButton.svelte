@@ -13,7 +13,7 @@
 
         color: hsl(357, 0%, 41%);
 
-        transition: color ease $DefaultTransition;
+        transition: var(--transition-color);
         &:hover {
             color: hsl(357, 60%, 41%);
         }

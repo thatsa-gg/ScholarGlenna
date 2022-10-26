@@ -150,3 +150,7 @@ export type FieldHistory<T> = {
 export function assertExhaustive(a: never): never {
     throw new Error(`Switch statement was not exhaustive. Encountered unknown value: ${a}`);
 }
+
+export function asRGB(color: number){
+    return `#${color.toString(16).padStart(6, '0')}`
+}

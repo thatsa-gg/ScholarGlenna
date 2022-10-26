@@ -1,5 +1,6 @@
 <script lang="ts">
     import LogOutButton from "./buttons/LogOutButton.svelte";
+    import TitleLink from "./TitleLink.svelte";
 
     export let user: {
         displayName: string
@@ -42,7 +43,7 @@
             border: 2px solid hsla(0, 100%, 100%, 60%);
             border-radius: 50%;
             filter: grayscale(60%);
-            transition: all ease 0.25s;
+            transition: var(--transition-all);
         }
         &:hover img {
             filter: none;
@@ -57,7 +58,7 @@
     }
 </style>
 
-<header>
+<header {...$$restProps}>
     <a href="/-/guilds">Guilds</a>
     <a href="/-/teams">Teams</a>
     <div class="flex-right">

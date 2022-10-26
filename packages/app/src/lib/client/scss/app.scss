@@ -16,19 +16,23 @@ html, body {
     width: 100%;
     font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: #323232;
-    color: white;
+    color: var(--text);
+    font-size: 12pt;
 }
 
 :root {
     --header-background: false;
     --primary-background: hsl(0deg 0% 25%);
     --secondary-background: hsl(195deg 5% 15%);
+    --tertiary-background: hsl(0deg 0% 20%);
     --body-background: false;
 
     --primary: #181818;
     --text: white;
     --text-subdued: gray;
     --text-red: red;
+    --icon-green: #17bb17;
+    --icon-gray: #cecece;
 
     --width-sidebar: 300px;
     --level-title: 300;
@@ -40,6 +44,11 @@ html, body {
     --shadow-border: 0 0 var(--shadow-border-width) 0 black;
     --shadow-border-width: 6px;
     --shadow-border-clip-bottom: inset(0 0 calc(- var(--shadow-border-width)) 0);
+
+    --transition-time: 0.25s;
+    --transition-all: all ease var(--transition-time);
+    --transition-color: color ease var(--transition-time);
+    --transition-font: font ease var(--transition-time);
 }
 
 a {

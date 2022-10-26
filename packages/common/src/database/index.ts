@@ -2,7 +2,8 @@ export type {
     Guild,
     User,
     UserProfile,
-    Team
+    Team,
+    TeamLookup
 } from '@glenna/prisma'
 export type { GuildDeletionSummary } from './Guilds.js'
 export type { Client } from './Client.js'

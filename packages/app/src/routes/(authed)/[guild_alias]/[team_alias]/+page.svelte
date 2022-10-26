@@ -1,16 +1,21 @@
 <script lang="ts">
-    import MainPanel from "$lib/components/MainPanel.svelte";
-    import Sidebar from "$lib/components/Sidebar.svelte";
-    import NavBack from "$lib/components/sidebar/nav/NavBack.svelte";
-    import TeamInfo from "$lib/components/sidebar/TeamInfo.svelte";
-    import SidebarHeader from "$lib/components/SidebarHeader.svelte";
-    import type { PageServerData } from "./$types";
-    export let data: PageServerData;
+    import MainPanel from '$lib/components/MainPanel.svelte'
+    import Sidebar from '$lib/components/Sidebar.svelte'
+    import NavBack from '$lib/components/sidebar/NavBack.svelte'
+    import TeamInfo from '$lib/components/sidebar/TeamInfo.svelte'
+    import SidebarHeader from '$lib/components/SidebarHeader.svelte'
+    import type { PageServerData } from './$types'
+
+    export let data: PageServerData
 </script>
+
+<svelte:head>
+    <title>{data.team.name}</title>
+</svelte:head>
 
 <Sidebar>
     <SidebarHeader>
-        <h1>{data.team.name}</h1>
+        <h1 style="margin:0">{data.team.name}</h1>
         <TeamInfo team={data.team} />
         <NavBack to={data.guild} />
     </SidebarHeader>

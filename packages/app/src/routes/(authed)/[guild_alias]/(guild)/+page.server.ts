@@ -1,9 +1,11 @@
+// @ts-nocheck
 import { Database } from '@glenna/common'
 import { error } from '@sveltejs/kit'
 import { url } from '$lib/urls'
+import { asRGB } from '@glenna/util'
 import type { PageServerLoad } from './$types'
 
-export const load: PageServerLoad = async ({ parent, params }) => {
+export const load = async ({ parent, params }: Parameters<PageServerLoad>[0]) => {
     const { user } = await parent()
     const { guild_alias } = params
     const guild = await Database.Client.guild.findUnique({
@@ -16,11 +18,16 @@ export const load: PageServerLoad = async ({ parent, params }) => {
                 select: {
                     team_id: true,
                     name: true,
-                    alias: true
+                    alias: true,
+                    role: true,
+                    color: true,
+                    icon: true,
                 }
             }
         }
     })
+    if(!guild)
+        throw error(404)
     const me = await Database.Client.user.findUnique({
         where: { user_id: user.user_id },
         select: {
@@ -32,18 +39,25 @@ export const load: PageServerLoad = async ({ parent, params }) => {
         }
     })
     const teams = new Set(me?.team_memberships.map(m => m.team_id));
-    if(!guild)
-        throw error(404)
+    const splash = url.guild.splash(guild, { size: 512 })
     return {
         user,
         guild: {
             name: guild.name,
-            splash: guild.splash ? `https://cdn.discordapp.com/splashes/${guild.snowflake}/${guild.splash}.webp?size=1024` : null,
-            newTeamUrl: url('team', { guild_alias }, 'new'),
+            splash,
+            splashProps: splash ? {
+                width: 512,
+                height: 288
+            } : null,
+            settingsUrl: url.guild.settings({ guild_alias }),
+            membersUrl: url.guild.members({ guild_alias }),
+            newTeamUrl: url.team({ guild_alias }, 'new'),
             teams: guild.teams.map(team => ({
-                ...team,
+                name: team.name,
                 onTeam: teams.has(team.team_id),
-                url: url('team', { guild_alias }, team)
+                url: url.team({ guild_alias }, team),
+                color: team.color ? asRGB(team.color) : undefined,
+                icon: url.team.icon(team, { size: 32 }) ?? undefined,
             }))
         }
     }

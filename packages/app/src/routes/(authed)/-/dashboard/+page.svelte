@@ -1,12 +1,19 @@
 <script lang="ts">
     import MainPanel from '$lib/components/MainPanel.svelte'
     import Sidebar from '$lib/components/Sidebar.svelte'
+    import SidebarHeader from '$lib/components/SidebarHeader.svelte';
     import type { PageServerData } from './$types'
     export let data: PageServerData
 </script>
 
-<Sidebar>
+<svelte:head>
+    <title>Dashboard</title>
+</svelte:head>
 
+<Sidebar>
+    <SidebarHeader>
+        hello
+    </SidebarHeader>
 </Sidebar>
 
 <MainPanel title="Dashboard">
