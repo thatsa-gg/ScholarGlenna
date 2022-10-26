@@ -38,6 +38,8 @@
             {/each}
         </section>
         <SidebarAccordion aria-label="Other teams." fixed={0 === ownTeams.length}>
+            <svelte:fragment slot="open">Show other teams</svelte:fragment>
+            <svelte:fragment slot="close">Hide other teams</svelte:fragment>
             {#each data.guild.teams.filter(team => !team.onTeam) as team}
                 <NavTeam {...team} />
             {/each}

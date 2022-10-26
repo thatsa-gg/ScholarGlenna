@@ -10,9 +10,9 @@
     <summary aria-hidden={fixed || null}>
         <Fa icon={open ? faCaretUp : faCaretDown} aria-hidden />
         {#if open}
-            Hide other teams
+            <slot name="close">Hide</slot>
         {:else}
-            Show other teams
+            <slot name="open">Show</slot>
         {/if}
     </summary>
     <slot />
