@@ -1,10 +1,16 @@
 <script lang="ts">
-    import PageHeader from "$lib/components/PageHeader.svelte";
-    import TitleLink from "$lib/components/TitleLink.svelte";
+    import PageHeader from '$lib/components/PageHeader.svelte'
+    import TitleLink from '$lib/components/TitleLink.svelte'
 
-    import type { LayoutServerData } from "./$types"
+    import type { LayoutServerData } from './$types'
     export let data: LayoutServerData
 </script>
+
+<div id="main-grid">
+    <TitleLink />
+    <PageHeader user={data.user} />
+    <slot />
+</div>
 
 <style lang="scss">
     #main-grid {
@@ -15,9 +21,3 @@
         grid-template-areas: "title header header" "sidebar content null";
     }
 </style>
-
-<div id="main-grid">
-    <TitleLink />
-    <PageHeader user={data.user} />
-    <slot />
-</div>

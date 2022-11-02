@@ -1,10 +1,13 @@
 <script lang="ts">
     import MainPanel from '$lib/components/MainPanel.svelte'
     import Sidebar from '$lib/components/Sidebar.svelte'
-    import NavBack from '$lib/components/sidebar/NavBack.svelte'
     import TeamInfo from '$lib/components/sidebar/TeamInfo.svelte'
+    import NavBack from '$lib/components/sidebar/NavBack.svelte'
+    import NavItem from '$lib/components/sidebar/NavItem.svelte'
     import SidebarHeader from '$lib/components/SidebarHeader.svelte'
     import type { PageServerData } from './$types'
+
+    import { faGear, faBook, faArrowRight, faTrophy } from '@fortawesome/free-solid-svg-icons'
 
     export let data: PageServerData
 </script>
@@ -15,15 +18,17 @@
 
 <Sidebar>
     <SidebarHeader>
-        <h1 style="margin:0">{data.team.name}</h1>
-        <TeamInfo team={data.team} />
-        <NavBack to={data.guild} />
+        <TeamInfo {...data.team} />
+        <NavBack {...data.guild} />
+        <NavItem href={data.team.settingsUrl} icon={faGear} color="var(--icon-gray)">Settings</NavItem>
     </SidebarHeader>
+    <NavItem href={data.team.recordsUrl} icon={faTrophy} tag={faArrowRight}>Records</NavItem>
+    <NavItem href={data.team.logsUrl} icon={faBook} tag={faArrowRight}>Logs</NavItem>
 </Sidebar>
 
 <MainPanel title={data.team.name}>
     {#if data.members.length > 0}
-        <ul>
+        <ol>
             {#each data.members as member}
                 <li>
                     <img
@@ -33,7 +38,7 @@
                     {member.displayName}
                 </li>
             {/each}
-        </ul>
+        </ol>
     {:else}
         <p>This team has no members!</p>
     {/if}

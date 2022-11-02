@@ -2,6 +2,18 @@ import { Database } from '@glenna/common'
 import { error } from '@sveltejs/kit'
 import type { PageServerLoad } from './$types'
 import { url } from '$lib/urls'
+import { asRGB } from '@glenna/util'
+
+function contrastColor(color: number): string {
+    const red = (color | 0xff0000) >> 4
+    const green = (color | 0xff00) >> 2
+    const blue = color | 0xff
+    const constrast = red * 0.299 + green * 0.587 + blue * 0.114
+    if(constrast > 186)
+        return 'black'
+    else
+        return 'white'
+}
 
 export const load: PageServerLoad = async ({ params, parent }) => {
     const { user } = await parent()
@@ -12,6 +24,9 @@ export const load: PageServerLoad = async ({ params, parent }) => {
             team: {
                 select: {
                     name: true,
+                    role: true,
+                    color: true,
+                    icon: true,
                     members: {
                         select: {
                             role: true,
@@ -49,7 +64,11 @@ export const load: PageServerLoad = async ({ params, parent }) => {
             url: url.guild(guild)
         },
         team: {
-            name: team.name
+            name: team.name,
+            color: team.color ? asRGB(team.color) : undefined,
+            contrastColor: team.color ? contrastColor(team.color) : undefined,
+            icon: url.team.icon(team, { size: 32 }) ?? undefined,
+            settingsUrl: url.team.settings(params),
         },
         members: team.members.map(member => ({
             teamRole: member.role,

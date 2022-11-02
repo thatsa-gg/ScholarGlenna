@@ -1,14 +1,9 @@
 <script lang="ts">
-    export let to: {
-        url: string
-        name: string
-    }
+    import NavItem from './NavItem.svelte'
+    import { faTurnUp } from '@fortawesome/free-solid-svg-icons'
+
+    export let url: string
+    export let name: string
 </script>
 
-<style lang="scss">
-a {
-    display: block;
-}
-</style>
-
-<a href="{to.url}">{to.name}</a>
+<NavItem href={url} icon={faTurnUp} flip='horizontal'>{name}</NavItem>

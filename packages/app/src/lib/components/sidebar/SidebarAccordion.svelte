@@ -3,20 +3,24 @@
     import { faCaretUp, faCaretDown } from '@fortawesome/free-solid-svg-icons'
 
     export let fixed: boolean = false
-    let open = fixed
+    let open = false
 </script>
 
-<details bind:open {...$$restProps}>
-    <summary aria-hidden={fixed || null}>
-        <Fa icon={open ? faCaretUp : faCaretDown} aria-hidden />
-        {#if open}
-            <slot name="close">Hide</slot>
-        {:else}
-            <slot name="open">Show</slot>
-        {/if}
-    </summary>
+{#if fixed}
     <slot />
-</details>
+{:else}
+    <details bind:open {...$$restProps}>
+        <summary>
+            <Fa icon={open ? faCaretUp : faCaretDown} aria-hidden />
+            {#if open}
+                <slot name="close">Hide</slot>
+            {:else}
+                <slot name="open">Show</slot>
+            {/if}
+        </summary>
+        <slot />
+    </details>
+{/if}
 
 <style lang="scss">
     summary {
@@ -32,10 +36,6 @@
 
         &::marker {
             content: '';
-        }
-
-        &[aria-hidden]{
-            display: none;
         }
     }
 </style>

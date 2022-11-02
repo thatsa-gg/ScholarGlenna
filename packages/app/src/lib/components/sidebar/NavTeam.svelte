@@ -6,7 +6,6 @@
 
     export let url: string
     export let name: string
-    //export let color: string | undefined = undefined
     export let icon: string | undefined = undefined
 </script>
 

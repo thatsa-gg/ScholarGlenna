@@ -44,6 +44,10 @@ team.icon = function(team: Pick<Glenna.Team, 'role' | 'icon'>, options?: Record<
     return base
 }
 
+team.settings = function(...args: [ lookup: TeamLookup ] | [ guild: GuildAlias, team: Either<Alias, TeamAlias> ]): string {
+    return `${team(...args)}/-/settings`
+}
+
 export const url = {
     guild,
     team,
