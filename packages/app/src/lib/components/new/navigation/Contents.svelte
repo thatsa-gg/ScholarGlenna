@@ -1,3 +1,7 @@
+<div>
+    <slot />
+</div>
+
 <style lang="scss">
     div {
         flex: none;
@@ -9,6 +13,3 @@
         margin-bottom: 0.25em;
     }
 </style>
-<div>
-    <slot />
-</div>

@@ -1,23 +1,21 @@
-<script lang="ts">
-    import PageHeader from '$lib/components/PageHeader.svelte'
-    import TitleLink from '$lib/components/TitleLink.svelte'
+<nav>
+    <a href="/-/dashboard">thatsa/gg</a>
 
-    import type { LayoutServerData } from './$types'
-    export let data: LayoutServerData
-</script>
-
-<div id="main-grid">
-    <TitleLink />
-    <PageHeader user={data.user} />
+</nav>
+<main>
     <slot />
-</div>
+</main>
 
-<style lang="scss">
-    #main-grid {
+<style>
+    nav {
+        position: fixed;
+        top: 0;
+        left: 0;
         width: 100%;
-        min-height: 100vh;
-        display: grid;
-        grid: 60px auto / var(--width-sidebar) auto auto;
-        grid-template-areas: "title header header" "sidebar content null";
+    }
+
+    main {
+        margin: 0 auto;
+        width: 600px;
     }
 </style>

@@ -1,6 +1,6 @@
 <script lang="ts">
     import MainPanel from '$lib/components/MainPanel.svelte'
-    import Sidebar from '$lib/components/Sidebar.svelte'
+    import Sidebar from '$lib/components/new/Sidebar.svelte'
     import TeamInfo from '$lib/components/sidebar/TeamInfo.svelte'
     import NavBack from '$lib/components/sidebar/NavBack.svelte'
     import NavItem from '$lib/components/sidebar/NavItem.svelte'

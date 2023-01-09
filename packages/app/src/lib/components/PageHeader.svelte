@@ -1,5 +1,5 @@
 <script lang="ts">
-    import LogOutButton from "./buttons/LogOutButton.svelte";
+    import LogOutButton from "./new/LogOutButton.svelte";
     import TitleLink from "./TitleLink.svelte";
 
     export let user: {

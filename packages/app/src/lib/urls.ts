@@ -26,13 +26,13 @@ guild.members = function(alias: Either<Alias, GuildAlias>): string {
     return `${guild(alias)}/-/members`
 }
 
-function team(...args: [ lookup: TeamLookup ] | [ guild: GuildAlias, team: Either<Alias, TeamAlias> | 'new' ]): string {
+function team(...args: [ lookup: TeamLookup ] | [ guild: Either<Alias, GuildAlias>, team: Either<Alias, TeamAlias> | 'new' ]): string {
     const [ a, team ] = args
     if(!team)
-        return `/${a.guild_alias}/${(a as TeamLookup).team_alias}`
+        return `${guild(a)}/${(a as TeamLookup).team_alias}`
     if('new' === team)
-        return `/${a.guild_alias}/-/new-team`
-    return `/${a.guild_alias}/${team.team_alias ?? team.alias}`
+        return `${guild(a)}/-/new-team`
+    return `${guild(a)}/${team.team_alias ?? team.alias}`
 }
 
 team.icon = function(team: Pick<Glenna.Team, 'role' | 'icon'>, options?: Record<string, string | number>): string | null {
@@ -51,8 +51,18 @@ team.settings = function(...args: [ lookup: TeamLookup ] | [ guild: GuildAlias, 
 export const url = {
     guild,
     team,
-    avatar(avatar: Either<{ avatar: string }, { avatar_url_fragment?: string }>): string {
-        return `${DISCORD_CDN}/${avatar.avatar_url_fragment ?? avatar.avatar}`
-    },
-
+    avatar: {
+        guild(avatar: Either<{ avatar: string }, { avatar_url_fragment?: string }>): string {
+            return `${DISCORD_CDN}/${avatar.avatar_url_fragment ?? avatar.avatar}`
+        },
+        user(user: { snowflake: bigint, avatar: string | null }, options?: Record<string, string | number>): string {
+            const { snowflake, avatar } = user
+            const base = avatar
+                ? `${DISCORD_CDN}/avatars/${snowflake}/${avatar}.png`
+                : `${DISCORD_CDN}/embed/avatars/${snowflake % 5n}.png`
+            return options
+                ? `${base}?${new URLSearchParams(options as Record<string, string>)}`
+                : base
+        }
+    }
 }

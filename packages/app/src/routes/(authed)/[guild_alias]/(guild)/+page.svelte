@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { PageServerData } from './$types'
-    import Sidebar from '$lib/components/Sidebar.svelte'
+    import Sidebar from '$lib/components/new/Sidebar.svelte'
     import MainPanel from '$lib/components/MainPanel.svelte'
     import SidebarHeader from '$lib/components/SidebarHeader.svelte'
     import SidebarAccordion from '$lib/components/sidebar/SidebarAccordion.svelte'
