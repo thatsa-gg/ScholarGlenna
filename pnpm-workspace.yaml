@@ -1,3 +1,4 @@
 shared-workspace-lockfile: true
 packages:
     - 'packages/**'
+    - 'scripts/**'
