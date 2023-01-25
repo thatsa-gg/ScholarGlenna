@@ -4,6 +4,7 @@ node_modules/
 .pnpm-store/
 invite.url
 *.tsbuildinfo
+.parcel-cache
 
 # base version present, up to the user for the rest
 config.env

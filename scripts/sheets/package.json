@@ -3,8 +3,9 @@
     "version": "0.0.1",
     "type": "commonjs",
     "private": true,
-    "main": "dist/index.js",
-    "types": "src/index.ts",
+    "source": "src/index.ts",
+    "main": "dist/code.js",
+    "types": "dist/index.d.ts",
     "devDependencies": {
         "@babel/core": "^7.20.12",
         "@babel/preset-env": "^7.20.2",
@@ -26,5 +27,8 @@
         "@glenna/api": "workspace:*",
         "@trpc/client": "^10.9.0",
         "@trpc/server": "^10.9.0"
+    },
+    "engines": {
+        "node": ">= 16"
     }
 }
