@@ -6,10 +6,10 @@
     "main": "dist/index.js",
     "types": "src/index.ts",
     "devDependencies": {
-        "prisma": "^4.4.0"
+        "prisma": "^4.9.0"
     },
     "dependencies": {
-        "@prisma/client": "^4.4.0"
+        "@prisma/client": "^4.9.0"
     },
     "scripts": {
         "migrate-reset": "pnpm exec prisma migrate reset",

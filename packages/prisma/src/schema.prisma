@@ -1,64 +1,16 @@
 generator client {
     provider = "prisma-client-js"
     output = "../generated/client"
-    previewFeatures = [ "interactiveTransactions" ]
+    previewFeatures = [ "extendedWhereUnique", "views", "clientExtensions", "multiSchema" ]
 }
 
 datasource db {
     provider = "postgresql"
     url      = env("DATABASE_URL")
+    schemas = [ "log", "guild", "public" ]
 }
 
-// Types
-enum GuildRole {
-    Owner
-    Manager
-    Moderator
-
-    @@map("guildrole")
-}
-
-enum TeamMemberRole {
-    Member
-    Representative
-    Permanent_Fill @map("Permanent Fill")
-
-    @@map("teammemberrole")
-}
-
-enum Visibility {
-    Public
-    Protected
-    Members
-
-    @@map("visibility")
-}
-
-enum HistoryEvent {
-    UserCreate
-    UserNameChange
-    UserDelete
-    GuildCreate
-    GuildEdit
-    GuildDelete
-    GuildRestore
-    GuildPurge
-    GuildMemberJoin
-    GuildMemberLeave
-    GuildMemberDelete
-    TeamCreate
-    TeamEdit
-    TeamDelete
-    TeamPurge
-    TeamMemberAdd
-    TeamMemberRemove
-    TeamMemberLeave
-    TeamMemberEdit
-
-    @@map("historyevent")
-}
-
-enum Class {
+enum CharacterClass {
     Elementalist @map("elementalist")
     Engineer     @map("engineer")
     Guardian     @map("guardian")
@@ -69,10 +21,12 @@ enum Class {
     Thief        @map("thief")
     Warrior      @map("warrior")
 
-    @@map("class")
+    @@schema("public")
+    @@map("characterclass")
 }
 
 enum EliteSpecialization {
+    Core            @map("core")
     Tempest         @map("tempest")
     Scrapper        @map("scrapper")
     Dragonhunter    @map("dragonhunter")
@@ -101,425 +55,191 @@ enum EliteSpecialization {
     Specter         @map("specter")
     Bladesworn      @map("bladesworn")
 
+    @@schema("public")
     @@map("elitespecialization")
 }
 
-enum UserBuildLevel {
-    NotUpdated  @map("not_updated")
-    Geared      @map("geared")
-    Practiced   @map("practiced")
-    Confident   @map("confident")
-    Expert      @map("expert")
+// ========================================================================== //
+//                                   LOGS                                     //
+// ========================================================================== //
 
-    @@map("userbuildlevel")
+enum LogDifficultyType {
+    NormalMode      @map("normal_mode")
+    ChallengeMode   @map("challenge_mode")
+    Emboldened      @map("emboldened_mode")
+
+    @@schema("log")
+    @@map("logdifficultytype")
 }
 
-// Tables
-model History {
-    log_id          Int @id @default(autoincrement())
-    correlation_id  BigInt @default(dbgenerated())
-    created_at      DateTime @default(dbgenerated()) @db.Timestamptz(6)
-    event_type      HistoryEvent
+enum Boss {
+    // Wing 1
+    ValeGuardian    @map("vale_guardian")
+    Gorseval        @map("gorseval")
+    Sabetha         @map("sabetha")
 
-    actor_snowflake BigInt?
-    actor_name      String
-    actor           User? @relation("performed_history", fields: [actor_snowflake], references: [snowflake])
+    // Wing 2
+    Slothasor       @map("slothasor")
+    BandiTrio       @map("bandit_trio")
+    Matthias        @map("matthias")
 
-    user_snowflake  BigInt?
-    user_name       String?
-    user            User? @relation(fields: [user_snowflake], references: [snowflake])
+    // Wing 3
+    Escort          @map("escort")
+    KeepConstruct   @map("keep_construct")
+    TwistedCastle   @map("twisted_castle")
+    Xera            @map("xera")
 
-    guild_snowflake BigInt?
-    guild_name      String?
-    guild           Guild? @relation(fields: [guild_snowflake], references: [snowflake])
+    // Wing 4
+    Cairn           @map("cairn")
+    MursaatOverseer @map("mursaat_overseer")
+    Samarog         @map("samarog")
+    Deimos          @map("deimos")
 
-    team_id         Int?
-    team_name       String?
-    team            Team? @relation(fields: [team_id], references: [team_id], onDelete: SetNull)
+    // Wing 5
+    SoullessHorror  @map("soulless_horror")
+    RiverOfSouls    @map("river_of_souls")
+    BrokenKing      @map("broken_king")
+    SoulEater       @map("soul_eater")
+    EyeOfJudgmentFate @map("eye_of_judgement_fate")
+    Dhuum           @map("dhuum")
 
-    data            Json?
-    @@map("history")
+    // Wing 6
+    ConjuredAmalgamate @map("conjured_amalgamate")
+    TwinLargos      @map("twin_largos")
+    Qadim           @map("qadim")
+
+    // Wing 7
+    Adina           @map("adina")
+    Sabir           @map("sabir")
+    QadimThePeerless @map("qadim_the_peerless")
+
+    // Strikes
+    Freezie         @map("freezie")
+    IcebroodConstruct @map("icebrood_construct")
+    FraenirOfJormag @map("fraenir_of_jormag")
+    VoiceClawOfTheFallen @map("voice_claw_of_the_fallen")
+    Boneskinner     @map("boneskinner")
+    WhisperOfJormag @map("whisper_of_jormag")
+    ColdWar         @map("cold_war")
+
+    // Strikes 2
+    AetherbladeHideout @map("aetherblade_hideout")
+    XunlaiJadeJunkyard @map("xunlai_jade_junkyard")
+    KainengOverlook @map("kaineng_overlook")
+    HarvestTemple   @map("harvest_temple")
+    OldLionsCourt   @map("old_lions_court")
+
+    @@schema("log")
+    @@map("boss")
 }
 
-model User {
-    user_id             Int         @id @default(autoincrement())
-    snowflake           BigInt      @unique
-    username            String      @db.VarChar(32)
-    discriminator       Int         @db.SmallInt
-    avatar              String?     @db.VarChar
-    created_at          DateTime    @default(dbgenerated()) @db.Timestamptz(6)
-    updated_at          DateTime    @default(dbgenerated()) @db.Timestamptz(6)
+model LogPlayer {
+    id Int @id @default(autoincrement()) @map("log_player_id")
+    logId Int @map("log_id")
+    log Log @relation(references: [id], fields: [logId])
 
-    guild_managers      GuildManager[]
-    accounts            GuildWars2Account[]
-    profile             Profile?
-    user_profile        UserProfile?
-    guild_memberships   GuildMember[]
-    vguild_memberships  vGuildMember[]
-    team_memberships    TeamMembership[]
-    guild_ownerships    GuildOwner[]
-    performed_history   History[] @relation("performed_history")
-    history             History[]
+    teamMemberId Int? @map("team_member_id")
+    teamMember TeamMember? @relation(fields: [teamMemberId], references: [id])
 
-    @@map("users")
+    character String
+    account String
+    group Int
+    class CharacterClass
+    specialization EliteSpecialization
+
+    extendedData Json?
+
+    @@schema("log")
+    @@map("log_player")
 }
 
-model Profile {
-    profile_id  Int         @id @default(autoincrement())
-    user_id     Int         @unique
-    created_at  DateTime    @default(dbgenerated()) @db.Timestamptz(6)
-    updated_at  DateTime    @default(dbgenerated()) @db.Timestamptz(6)
+model Log {
+    id Int @id @default(autoincrement()) @map("log_id")
+    teamId Int
+    url String @unique
+    boss Boss
+    difficulty LogDifficultyType
+    emboldenedLevel Int? @db.SmallInt @default(dbgenerated("null"))
+    success Boolean
+    duration Int // milliseconds
 
-    user         User       @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
-    builds       UserBuild[]
-    user_profile UserProfile?
+    players LogPlayer[]
+    team Team @relation(fields: [teamId], references: [id])
 
-    @@map("profiles")
+    startAt DateTime @db.Timestamptz(3) @map("start_at")
+    submittedAt DateTime @db.Timestamptz(3) @map("submitted_at")
+
+    @@schema("public")
+    @@map("log")
 }
 
-model GuildWars2Account {
-    account_id Int      @id @default(autoincrement())
-    user_id    Int
-    api_key    String?
-    main       Boolean  @default(false)
-    verified   Boolean  @default(false)
-    created_at DateTime @default(dbgenerated()) @db.Timestamptz(6)
-    updated_at DateTime @default(dbgenerated()) @db.Timestamptz(6)
+// ========================================================================== //
+//                                  USERS                                     //
+// ========================================================================== //
 
-    user       User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction)
+// ========================================================================== //
+//                                  GUILDS                                    //
+// ========================================================================== //
 
-    @@map("guildwars2accounts")
-}
 
-model GuildManager {
-    guild_member_id Int @unique
-    guild_id Int
-    user_id  Int
-    role     GuildRole
+model Guild {
+    id Int @id @map("guild_id")
+    snowflake BigInt @unique
 
-    guild_member GuildMember @relation(fields: [guild_member_id], references: [guild_member_id])
-    user User @relation(fields: [user_id], references: [user_id])
-    guild Guild @relation(fields: [guild_id], references: [guild_id])
-
-    @@unique([guild_id, user_id])
-    @@map("guildmanagers")
-}
-
-model GuildOwner {
-    guild_member_id Int @unique
-    guild_id Int @unique
-    user_id Int
-
-    guild_member GuildMember @relation(fields: [guild_member_id], references: [guild_member_id])
-    user User @relation(fields: [user_id], references: [user_id])
-    guild Guild @relation(fields: [guild_id], references: [guild_id])
-
-    @@unique([guild_id, user_id])
-    @@map("guildowners")
+    teams Team[]
+    members GuildMember[]
+    @@schema("guild")
+    @@map("guild")
 }
 
 model GuildMember {
-    guild_member_id Int     @id @default(autoincrement())
-    user_id   Int
-    guild_id  Int
-    role      GuildRole?
-    nickname  String?
-    avatar    String? @db.VarChar
-    created_at DateTime @default(dbgenerated()) @db.Timestamptz(6)
-    updated_at DateTime @default(dbgenerated()) @db.Timestamptz(6)
-    deleted_at DateTime? @db.Timestamptz(6)
+    id Int @id @map("guild_member_id")
+    guildId Int @map("guild_id")
 
-    guild     Guild   @relation(fields: [guild_id], references: [guild_id], onDelete: NoAction, onUpdate: NoAction)
-    user      User    @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction)
-    owner_relations   GuildOwner[]
-    manager_relations GuildManager[]
-    team_memberships  TeamMember[]
-    vmember   vGuildMember?
-    reference_count GuildMemberReferenceCount @relation(fields: [guild_member_id], references: [guild_member_id])
-
-    @@unique([ user_id, guild_id ])
-    @@map("guildmembers")
+    guild Guild @relation(fields: [guildId], references: [id])
+    teamMemberships TeamMember[]
+    @@schema("guild")
+    @@map("guildmember")
 }
 
-model GuildMemberReferenceCount {
-    guild_member_id Int @unique
-    user_id         Int
-    count           Int
+// ========================================================================== //
+//                                  TEAMS                                     //
+// ========================================================================== //
 
-    member GuildMember?
-    @@map("guildmemberreferencecount")
-}
+enum TeamMemberRole {
+    Member          @map("member")
+    Representative  @map("representative")
+    Captain         @map("captain")
 
-model Guild {
-    guild_id         Int             @id @default(autoincrement())
-    snowflake        BigInt          @unique
-    alias            String          @unique @db.VarChar(32)
-    name             String
-    icon             String?         @db.VarChar
-    splash           String?         @db.VarChar
-    description      String?
-    preferred_locale String          @db.VarChar(5)
-    manager_role     BigInt?
-    moderator_role   BigInt?
-    visibility       Visibility      @default(Members)
-    created_at       DateTime        @default(dbgenerated()) @db.Timestamptz(6)
-    updated_at       DateTime        @default(dbgenerated()) @db.Timestamptz(6)
-    deleted_at       DateTime?       @db.Timestamptz(6)
-
-    managers         GuildManager[]
-    members          GuildMember[]
-    vmembers         vGuildMember[]
-    owner            GuildOwner?
-    teams            Team[]
-    team_lookup      TeamLookup[]
-    history          History[]
-    tagged           GuildTagRelations[]
-
-    @@map("guilds")
+    @@schema("guild")
+    @@map("teammemberrole")
 }
 
 model Team {
-    team_id     Int          @id @default(autoincrement())
-    guild_id    Int
-    snowflake   BigInt       @unique
-    alias       String       @db.VarChar(32)
-    name        String
-    description String?
-    role        BigInt?      @unique
-    visibility  Visibility   @default(dbgenerated())
-    channel     BigInt?
-    color       Int?
-    icon        String?      @db.VarChar
-    created_at  DateTime     @default(dbgenerated()) @db.Timestamptz(6)
-    updated_at  DateTime     @default(dbgenerated()) @db.Timestamptz(6)
-    deleted_at  DateTime?    @db.Timestamptz(6)
+    id Int @id @default(autoincrement()) @map("team_id")
+    snowflake BigInt @unique
+    guildId Int @map("guild_id")
+    name String
 
-    guild       Guild        @relation(fields: [guild_id], references: [guild_id], onDelete: Cascade, onUpdate: NoAction)
-    members     TeamMember[]
-    times       TeamTime[]
-    memberships TeamMembership[]
-    lookup      TeamLookup?
-    history     History[]
-    tags        TeamTagRelations[]
-
-    @@unique([guild_id, snowflake])
-    @@unique([guild_id, alias])
-    @@map("teams")
+    guild Guild @relation(fields: [guildId], references: [id])
+    members TeamMember[]
+    logs Log[]
+    @@schema("guild")
+    @@map("team")
 }
 
 model TeamMember {
-    member_id  Int            @id @default(autoincrement())
-    team_id    Int
-    guild_member_id Int
-    role       TeamMemberRole @default(dbgenerated())
-    created_at DateTime       @default(dbgenerated()) @db.Timestamptz(6)
-    updated_at DateTime       @default(dbgenerated()) @db.Timestamptz(6)
+    id Int @id @default(autoincrement()) @map("team_member_id")
+    teamId Int @map("team_id")
+    memberId Int @map("guild_member_id")
+    team Team @relation(fields: [teamId], references: [id])
+    member GuildMember @relation(fields: [memberId], references: [id])
 
-    team       Team          @relation(fields: [team_id], references: [team_id], onDelete: Cascade, onUpdate: NoAction)
-    guild_member GuildMember @relation(fields: [guild_member_id], references: [guild_member_id], onDelete: Cascade, onUpdate: NoAction)
+    role TeamMemberRole @default(Member)
+    // TODO: history
+    // TODO: player
 
-    @@unique([team_id, guild_member_id])
-    @@map("teammembers")
-}
-
-model TeamMembership {
-    team_id Int
-    user_id Int
-
-    team Team @relation(fields: [team_id], references: [team_id])
-    user User @relation(fields: [user_id], references: [user_id])
-
-    @@unique([team_id, user_id])
-    @@map("teammemberships")
-}
-
-model TeamTime {
-    time_id  Int      @id @default(autoincrement())
-    team_id  Int?
-    time     DateTime @db.Timestamptz(6)
-    duration DateTime @db.Time(6)
-
-    team     Team?   @relation(fields: [team_id], references: [team_id], onDelete: Cascade, onUpdate: NoAction)
-
-    @@map("teamtimes")
-}
-
-model TeamTag {
-    tag_id Int @id @default(autoincrement())
-    name   String @unique @db.VarChar(32)
-    color  Int?
-
-    tagged TeamTagRelations[]
-
-    @@map("teamtags")
-}
-
-model GuildTag {
-    tag_id Int @id @default(autoincrement())
-    name   String @unique @db.VarChar(32)
-    color  Int?
-
-    tagged GuildTagRelations[]
-
-    @@map("guildtags")
-}
-
-model TeamTagRelations {
-    relation_id Int @id @default(autoincrement())
-    tag_id      Int
-    team_id     Int
-
-    tag TeamTag @relation(references: [tag_id], fields: [tag_id], onDelete: Cascade)
-    team Team @relation(references: [team_id], fields: [team_id], onDelete: Cascade)
-
-    @@unique([tag_id, team_id])
-    @@map("teamtagrelations")
-}
-
-model GuildTagRelations {
-    relation_id Int @id @default(autoincrement())
-    tag_id      Int
-    guild_id     Int
-
-    tag GuildTag @relation(references: [tag_id], fields: [tag_id], onDelete: Cascade)
-    guild Guild @relation(references: [guild_id], fields: [guild_id], onDelete: Cascade)
-
-    @@unique([tag_id, guild_id])
-    @@map("guildtagrelations")
-}
-
-model Build {
-    build_id Int @id @default(autoincrement())
-    class Class
-    specialization EliteSpecialization?
-    name String @db.VarChar()
-    url String? @db.VarChar()
-    createdAt DateTime @db.Timestamptz(6) @default(dbgenerated()) @map("created_at")
-    updatedAt DateTime @db.Timestamptz(6) @default(dbgenerated()) @map("updated_at")
-
-    capabilities BuildCapability[]
-    players UserBuild[]
-    @@map("builds")
-}
-
-model Capability {
-    capability_id Int @id @default(autoincrement())
-    name String @db.VarChar()
-
-    builds BuildCapability[]
-    @@map("capabilities")
-}
-
-model BuildCapability {
-    relation_id Int @id @default(autoincrement())
-    build_id Int
-    capability_id Int
-    efficacy Int
-
-    build Build @relation(fields: [build_id], references: [build_id], onDelete: Cascade)
-    capability Capability @relation(fields: [capability_id], references: [capability_id], onDelete: Cascade)
-
-    @@unique([build_id, capability_id])
-    @@map("buildcapabilities")
-}
-
-model UserBuild {
-    relation_id Int @id @default(autoincrement())
-    profile_id Int
-    build_id Int
-    level UserBuildLevel?
-
-    profile Profile @relation(fields: [profile_id], references: [profile_id], onDelete: Cascade)
-    build Build @relation(fields: [build_id], references: [build_id], onDelete: Cascade)
-    @@map("userbuilds")
-}
-
-// Views
-model UserProfile {
-    profile_id          Int @unique
-    user_id             Int @unique
-    user_snowflake      BigInt @unique
-    snowflake           String
-    username            String
-    discriminator       String
-    displayName         String @map("display_name")
-    avatar              String
-
-    user    User @relation(fields: [user_id], references: [user_id])
-    profile Profile @relation(fields: [profile_id], references: [profile_id])
-
-    @@map("vuserprofile")
-}
-
-model TeamLookup {
-    team_id Int @unique
-    guild_id Int
-    team_alias String
-    guild_alias String
-    name String
-    color Int
-    icon String
-
-    team    Team @relation(fields: [team_id], references: [team_id])
-    guild   Guild @relation(fields: [guild_id], references: [guild_id])
-
-    @@unique([ team_alias, guild_alias ])
-    @@map("teamlookup")
-}
-
-model vGuildMember {
-    user_id             Int
-    guild_id            Int
-    guild_member_id     Int @unique
-    user_snowflake      BigInt
-    snowflake           String
-    avatar_url_fragment String
-    name                String
-    discriminator       String
-    display_name        String
-    role                GuildRole
-    deleted_at          DateTime? @db.Timestamptz(6)
-
-    guild_member    GuildMember @relation(fields: [guild_member_id], references: [guild_member_id])
-    guild           Guild       @relation(fields: [guild_id], references: [guild_id])
-    user            User        @relation(fields: [user_id], references: [user_id])
-
-    @@unique([user_id, guild_id])
-    @@map("vguildmember")
-}
-
-// Import Tables
-model ImportGuilds {
-    guild_snowflake   BigInt @unique
-    name        String
-    vanity      String? @db.VarChar(32)
-    alias       String
-    icon        String? @db.VarChar
-    splash      String? @db.VarChar
-    description String?
-    preferred_locale String @db.VarChar(5)
-
-    @@map("importguilds")
-}
-
-model ImportGuildMembers {
-    user_snowflake  BigInt
-    guild_id        Int
-    username        String? @db.VarChar(32)
-    discriminator   Int @db.SmallInt
-    nickname        String?
-    user_avatar     String? @db.VarChar
-    guild_avatar    String? @db.VarChar
-    role            GuildRole?
-
-    @@unique([ user_snowflake, guild_id ])
-    @@map("importguildmembers")
-}
-
-model ImportTeamMembers {
-    user_snowflake  BigInt
-    team_id         Int
-
-    @@unique([ user_snowflake, team_id ])
-    @@map("importteammembers")
+    logParticipation LogPlayer[]
+    @@schema("guild")
+    @@map("teammember")
 }

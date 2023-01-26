@@ -1,72 +1,61 @@
 import { z } from 'zod'
 import { procedure } from '../../trpc.js'
+import { Database, type Team, type Prisma } from '@glenna/prisma'
 
-enum LogMode {
-    Normal = 0,
-    Challenge = -1,
-    Emboldened1 = 1,
-    Emboldened2 = 2,
-    Emboldened3 = 3,
-    Emboldened4 = 4,
-    Emboldened5 = 5
+function parseDateString(date: string): Date {
+    // EI returns strings like "YYYY-MM-DD HH:mm:ss +-TZ",
+    // but JS only understands "YYYY-MM-DD\THH:mm:ss+-TZ"
+    return new Date(date.replace(/^(\d\d\d\d-\d\d-\d\d)\s+(\d\d?:\d\d:\d\d)\s+/, '$1T$2'))
 }
 
-type LogPlayerData = {
-    account: string,
-    character: string,
-}
-
-type LogData = {
-    url: URL
-    date: Date
-    duration: number
-    mode: LogMode
-    success: boolean
-    players: LogPlayerData[]
-}
-
-class LogError extends Error {
-    innerError: Error
-    constructor(message: string, ex: Error){
-        super(message)
-        this.innerError = ex
+async function loadDPSReportData(team: Pick<Team, 'id'>, url: URL): Promise<Prisma.LogCreateManyInput> {
+    const response = await fetch(`https://dps.report/getJson?permalink=${url.pathname.slice(1)}`)
+    const data = await response.json()
+    const boss = Database.triggerIDToBoss(data.triggerID as number)
+    if(null === boss)
+        throw `Unrecognized Boss ID ${boss}`
+    return {
+        url: url.toString(),
+        difficulty: data.emboldened > 0 ? 'Emboldened' : data.isCM ? 'ChallengeMode' : 'NormalMode', // TODO: fix emboldened detection
+        success: data.success as boolean,
+        duration: data.durationMS as number,
+        teamId: team.id,
+        submittedAt: new Date(),
+        startAt: parseDateString(data.timeStartStd as string),
+        boss: boss
     }
 }
 
-async function loadDPSReportData(url: URL): LogData | Error {
-    try {
-        const response = await fetch(`https://dps.report/getJson?permalink=${url.pathname.slice(1)}`)
-        const data = await response.json()
-        return {
-            url: url,
-            date: new Date(data.encounterTime * 1000),
-            //duration: data.encounter.duration as number,
-            mode:
-        }
-    } catch(e) {
-        return new LogError(`Failed to load log data for ${url}`, e)
-    }
-}
-
-async function loadWingmanData(url: URL){
+async function loadWingmanData(team: Pick<Team, 'id'>, url: URL): Promise<Prisma.LogCreateManyInput> {
     const response = await fetch(`https://gw2wingman.nevermindcreations.de/api/getMetadata/${url.pathname.replace(/^\/log\//, '')}`)
     const data = await response.json()
+    const boss = Database.triggerIDToBoss(data.triggerID as number)
+    if(null === boss)
+        throw `Unrecognized Boss ID ${boss}`
+    return {
+        url: url.toString(),
+        difficulty: data.emboldened > 0 ? 'Emboldened' : data.isCM ? 'ChallengeMode' : 'NormalMode',
+        success: data.success as boolean,
+        duration: data.durationMS as number,
+        teamId: team.id,
+        submittedAt: new Date(),
+        startAt: parseDateString(data.timeStart as string),
+        boss: boss
+    }
 }
 
 export const submitProcedure = procedure
     .input(z.object({
-        teamName: z.string(),
+        teamSnowflake: z.string(),
         logs: z.array(z
             .string()
             .regex(/^(?:https:\/\/)?(?:dps\.report\/[a-zA-Z0-9_-]+|gw2wingman\.nevermindcreations\.de\/log\/[a-ZA-Z0-9_-]+)$/))
     }))
-    .mutation(({ input }) => {
-        const { teamName, logs } = input
-        // TODO: validate team name
-        const logData = logs
+    .mutation(async ({ input: { teamSnowflake, logs } }) => {
+        const team = await Database.singleton().team.findUniqueOrThrow({ where: { snowflake: BigInt(teamSnowflake) }, select: { id: true }})
+        const data = await Promise.all(logs
             .map(url => new URL(url))
-            .map(url => ({
-                url,
-                data: url.host === 'dps.report' ? loadDPSReportData(url) : loadWingmanData(url)
-            }))
+            .map(url => url.host === 'dps.report' ? loadDPSReportData(team, url) : loadWingmanData(team, url)))
+        await Database.singleton().log.createMany({ data })
+
     })
