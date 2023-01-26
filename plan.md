@@ -1,0 +1,11 @@
+- Firebase database
+- Digital Ocean $4/mo droplet to host the bot
+- bot:
+    - provides account setup in-discord
+    - pushes/pulls data from firebase
+- firebase:
+    - holds data
+- google sheet:
+    - uses app script to populate tables from firebase
+- dps.report:
+    - used for parsing

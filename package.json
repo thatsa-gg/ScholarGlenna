@@ -9,14 +9,8 @@
   "license": "MIT",
   "repository": "https://github.com/cofl/ScholarGlenna.git",
   "devDependencies": {
-    "@parcel/config-default": "^2.8.3",
-    "@parcel/core": "^2.8.3",
-    "@parcel/packager-ts": "^2.8.3",
-    "@parcel/transformer-typescript-types": "^2.8.3",
     "@types/node": "^17.0.45",
-    "parcel": "^2.8.3",
-    "parcel-optimizer-gas": "^1.0.3",
-    "typescript": "^4.8.3"
+    "typescript": "^4.9.4"
   },
   "packageManager": "pnpm@7.0.0",
   "scripts": {

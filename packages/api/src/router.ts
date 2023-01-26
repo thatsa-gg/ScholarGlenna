@@ -1,12 +1,9 @@
-import { initTRPC } from '@trpc/server'
 import { z } from 'zod'
+import { router, procedure, mergeRouters } from './trpc.js'
 
-const t = initTRPC.create()
-const procedure = t.procedure
+import { teamRouter } from './endpoints/team.js'
 
-export const appRouter = t.router({
-    double: procedure
-        .input(z.number())
-        .query(({ input }) => input * 2)
-})
+export const appRouter = mergeRouters(router({
+    team: teamRouter
+}))
 export type AppRouter = typeof appRouter

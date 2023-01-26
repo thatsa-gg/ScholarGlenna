@@ -1,2 +1,5 @@
 import { client } from './trpc'
-export const DOUBLE = async (a: number) => await client.double.query(a)
+
+export async function DOUBLE(a: number){
+    return await client.double.query(a)
+}
