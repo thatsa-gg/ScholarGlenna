@@ -1,6 +1,8 @@
-import { router } from '../trpc.js'
+import { router } from '../../trpc.js'
+import { divisionsProcedure } from './_divisions.js'
 import { teamsProcedure } from './_teams.js'
 
 export const guildRouter = router({
-    teams: teamsProcedure
+    divisions: divisionsProcedure,
+    teams: teamsProcedure,
 })

@@ -9,7 +9,8 @@
         "prisma": "^4.9.0"
     },
     "dependencies": {
-        "@prisma/client": "^4.9.0"
+        "@prisma/client": "^4.9.0",
+        "zod": "^3.20.2"
     },
     "scripts": {
         "migrate-reset": "pnpm exec prisma migrate reset",

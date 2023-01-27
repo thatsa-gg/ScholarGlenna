@@ -14,6 +14,7 @@ importers:
     specifiers:
       '@glenna/prisma': workspace:^0.0.1
       '@trpc/server': ^10.9.0
+      '@types/node': ^18.11.18
       fastify: ^4.11.0
       zod: ^3.20.2
     dependencies:
@@ -21,6 +22,8 @@ importers:
       '@trpc/server': 10.9.0
       fastify: 4.12.0
       zod: 3.20.2
+    devDependencies:
+      '@types/node': 18.11.18
 
   packages/app:
     specifiers:
@@ -114,8 +117,10 @@ importers:
     specifiers:
       '@prisma/client': ^4.9.0
       prisma: ^4.9.0
+      zod: ^3.20.2
     dependencies:
       '@prisma/client': 4.9.0_prisma@4.9.0
+      zod: 3.20.2
     devDependencies:
       prisma: 4.9.0
 

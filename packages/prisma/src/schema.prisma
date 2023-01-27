@@ -188,6 +188,7 @@ model Guild {
 
     teams Team[]
     members GuildMember[]
+    divisions Division[]
     @@schema("guild")
     @@map("guild")
 }
@@ -200,6 +201,22 @@ model GuildMember {
     teamMemberships TeamMember[]
     @@schema("guild")
     @@map("guildmember")
+}
+
+// ========================================================================== //
+//                                 DIVISIONS                                  //
+// ========================================================================== //
+
+model Division {
+    id Int @id @default(autoincrement()) @map("division_id")
+    guildId Int @map("guild_id")
+    snowflake BigInt @unique
+    name String
+
+    guild Guild @relation(fields: [guildId], references: [id])
+    teams TeamDivision[]
+    @@schema("guild")
+    @@map("division")
 }
 
 // ========================================================================== //
@@ -223,9 +240,22 @@ model Team {
 
     guild Guild @relation(fields: [guildId], references: [id])
     members TeamMember[]
+    divisions TeamDivision[]
     logs Log[]
     @@schema("guild")
     @@map("team")
+}
+
+model TeamDivision {
+    id Int @id @default(autoincrement()) @map("team_division_id")
+    teamId Int @map("team_id")
+    divisionId Int @map("division_id")
+
+    team Team @relation(fields: [teamId], references: [id])
+    division Division @relation(fields: [divisionId], references: [id])
+    @@unique([teamId, divisionId])
+    @@schema("guild")
+    @@map("teamdivision")
 }
 
 model TeamMember {

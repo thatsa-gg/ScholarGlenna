@@ -1,6 +1,8 @@
 import { z } from 'zod'
 import { procedure } from '../../trpc.js'
-import { Database, type Team, type Prisma } from '@glenna/prisma'
+import { database } from "../../database.js"
+import { triggerIDToBoss } from '@glenna/prisma'
+import type { Team, Prisma } from '@glenna/prisma'
 
 function parseDateString(date: string): Date {
     // EI returns strings like "YYYY-MM-DD HH:mm:ss +-TZ",
@@ -11,7 +13,7 @@ function parseDateString(date: string): Date {
 async function loadDPSReportData(team: Pick<Team, 'id'>, url: URL): Promise<Prisma.LogCreateManyInput> {
     const response = await fetch(`https://dps.report/getJson?permalink=${url.pathname.slice(1)}`)
     const data = await response.json()
-    const boss = Database.triggerIDToBoss(data.triggerID as number)
+    const boss = triggerIDToBoss(data.triggerID as number)
     if(null === boss)
         throw `Unrecognized Boss ID ${boss}`
     return {
@@ -29,7 +31,7 @@ async function loadDPSReportData(team: Pick<Team, 'id'>, url: URL): Promise<Pris
 async function loadWingmanData(team: Pick<Team, 'id'>, url: URL): Promise<Prisma.LogCreateManyInput> {
     const response = await fetch(`https://gw2wingman.nevermindcreations.de/api/getMetadata/${url.pathname.replace(/^\/log\//, '')}`)
     const data = await response.json()
-    const boss = Database.triggerIDToBoss(data.triggerID as number)
+    const boss = triggerIDToBoss(data.triggerID as number)
     if(null === boss)
         throw `Unrecognized Boss ID ${boss}`
     return {
@@ -46,16 +48,15 @@ async function loadWingmanData(team: Pick<Team, 'id'>, url: URL): Promise<Prisma
 
 export const submitProcedure = procedure
     .input(z.object({
-        teamSnowflake: z.string(),
+        teamSnowflake: database.team.validateSnowflake('teamSnowflake'),
         logs: z.array(z
             .string()
             .regex(/^(?:https:\/\/)?(?:dps\.report\/[a-zA-Z0-9_-]+|gw2wingman\.nevermindcreations\.de\/log\/[a-ZA-Z0-9_-]+)$/))
     }))
-    .mutation(async ({ input: { teamSnowflake, logs } }) => {
-        const team = await Database.singleton().team.findUniqueOrThrow({ where: { snowflake: BigInt(teamSnowflake) }, select: { id: true }})
+    .mutation(async ({ input: { teamSnowflake: snowflake, logs } }) => {
+        const team = await database.team.findUniqueOrThrow({ where: { snowflake }, select: { id: true }})
         const data = await Promise.all(logs
             .map(url => new URL(url))
             .map(url => url.host === 'dps.report' ? loadDPSReportData(team, url) : loadWingmanData(team, url)))
-        await Database.singleton().log.createMany({ data })
-
+        await database.log.createMany({ data })
     })

@@ -2,6 +2,10 @@
     "extends": "../../config/tsconfig.base.json",
     "compilerOptions": {
         "rootDir": "./src",
-        "outDir": "./dist"
+        "outDir": "./dist",
+        "lib": [
+            "ES2022",
+            "DOM" // hack so TSC doesn't complain about fetch
+        ]
     }
 }
