@@ -1,20 +1,11 @@
 import type { Awaitable, ClientEvents } from 'discord.js'
 
-export class EventListener<K extends keyof ClientEvents = keyof ClientEvents> {
+export type EventListener<K extends keyof ClientEvents = keyof ClientEvents> = {
     name: K
     once?: boolean
-    execute: (...args: ClientEvents[K]) => Awaitable<void>
-    constructor(args: Required<EventListener<K>>){
-        this.name = args.name
-        this.once = args.once
-        this.execute = args.execute
-    }
+    execute(...args: ClientEvents[K]): Awaitable<void>
 }
 
-export function listener<K extends keyof ClientEvents>(name: K, options: Omit<EventListener<K>, "name">){
-    return new EventListener<K>({
-        name,
-        once: options.once || false,
-        execute: options.execute
-    })
+export function listener<K extends keyof ClientEvents>(name: K, { once, execute }: Omit<EventListener<K>, "name">): EventListener<K> {
+    return { name, execute, once }
 }

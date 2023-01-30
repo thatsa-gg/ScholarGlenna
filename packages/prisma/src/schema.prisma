@@ -185,6 +185,11 @@ model Log {
 model Guild {
     id Int @id @map("guild_id")
     snowflake BigInt @unique
+    name String
+    alias String @unique @db.VarChar(32)
+
+    // Marks when the bot first became aware it wasn't in a guild anymore.
+    lostRemoteReferenceAt DateTime? @db.Timestamptz(3) @map("lost_remote_reference_at")
 
     teams Team[]
     members GuildMember[]
@@ -223,6 +228,16 @@ model Division {
 //                                  TEAMS                                     //
 // ========================================================================== //
 
+enum TeamType {
+    Normal          @map("normal")
+    Management      @map("management")
+    InterestGroup   @map("interest_group")
+    Inactive        @map("inactive")
+
+    @@schema("guild")
+    @@map("teamtype")
+}
+
 enum TeamMemberRole {
     Member          @map("member")
     Representative  @map("representative")
@@ -236,12 +251,20 @@ model Team {
     id Int @id @default(autoincrement()) @map("team_id")
     snowflake BigInt @unique
     guildId Int @map("guild_id")
+    type TeamType @default(Normal)
     name String
+    alias String @db.VarChar(32)
+
+    role BigInt?
+    channel BigInt?
+    icon String?
 
     guild Guild @relation(fields: [guildId], references: [id])
     members TeamMember[]
     divisions TeamDivision[]
     logs Log[]
+
+    @@unique([guildId, alias])
     @@schema("guild")
     @@map("team")
 }

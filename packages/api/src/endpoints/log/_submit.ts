@@ -18,7 +18,7 @@ async function loadDPSReportData(team: Pick<Team, 'id'>, url: URL): Promise<Pris
         throw `Unrecognized Boss ID ${boss}`
     return {
         url: url.toString(),
-        difficulty: data.emboldened > 0 ? 'Emboldened' : data.isCM ? 'ChallengeMode' : 'NormalMode', // TODO: fix emboldened detection
+        difficulty: data.emboldened > 0 ? 'Emboldened' : data.isCM ? 'ChallengeMode' : 'NormalMode', // FIXME: Emboldened is hidden in the instance buffs in full log jsons
         success: data.success as boolean,
         duration: data.durationMS as number,
         teamId: team.id,
