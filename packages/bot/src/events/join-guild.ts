@@ -1,30 +1,23 @@
 import { listener } from '../EventListener.js'
 import { registerCommands } from '../Command.js'
 import { DISCORD_TOKEN, OAUTH_CLIENT_ID } from '../config.js'
-import { log, info } from 'console'
-import { Database } from '@glenna/common'
-import { TextChannel } from 'discord.js'
+import { info, debug } from '../util/logging.js'
+import { database } from '../util/database.js'
+import { sendWelcomeMessage } from '../util/guild.js'
 
-export default listener('guildCreate', {
+export const joinGuildListener = listener('guildCreate', {
     async execute(guild){
-        log(`Joining guild: "${guild.name}" (${guild.id})`)
-        const [ entity ] = await Database.Guilds.import([ guild ])
-        if(!entity)
-            throw new Error("Guild import did not return entity.")
-        log(`Created guild: ${entity.guild_id} = ${entity.snowflake}`)
-        log(`Registering commands on "${guild.name}" (${guild.id})`)
+        info(`Joining guild: "${guild.name}" (${guild.id})`)
+        await database.guild.import(guild)
+
+        debug(`Registering commands on "${guild.name}" (${guild.id})`)
         await registerCommands({
             token: DISCORD_TOKEN,
             clientId: OAUTH_CLIENT_ID,
-            guildId: entity.snowflake
+            guildId: guild.id
         })
-        const self = await guild.members.fetchMe()
-        const channel = guild.systemChannel ?? guild.channels.cache
-            .filter(channel => channel instanceof TextChannel && !channel.isThread() && channel.permissionsFor(self).has('SendMessages'))
-            .at(0) as TextChannel | undefined
-        await channel?.send({
-            content: "Glenna is initialized!" // TODO: better initialized message.
-        })
-        info(`Joined guild "${guild.name}" (${guild.id}).`)
+
+        debug(`Sending welcome message.`)
+        await sendWelcomeMessage(guild)
     }
 })

@@ -1,8 +1,11 @@
-import { Database } from '@glenna/common'
 import { listener } from '../EventListener.js'
+import { database } from '../util/database.js'
 
-export default listener('channelDelete', {
+export const channelDeleteListener = listener('channelDelete', {
     async execute(channel){
-        await Database.Teams.removeTeamChannel(BigInt(channel.id))
+        await database.team.updateMany({
+            where: { channel: BigInt(channel.id) },
+            data: { channel: null }
+        })
     }
 })

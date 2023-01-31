@@ -1,13 +1,36 @@
+import { debug } from '../util/logging.js'
+import { database } from '../util/database.js'
 import { listener } from '../EventListener.js'
 
-export default listener('guildMemberRemove', {
+export const guildMemberRemoveListener = listener('guildMemberRemove', {
     async execute(member){
-        console.log({
-            type: 'guildMemberRemove',
-            member
+        const user = await database.guildMember.findFirst({
+            where: {
+                user: { snowflake: BigInt(member.id) },
+                guild: { snowflake: BigInt(member.guild.id) }
+            },
+            select: {
+                id: true,
+                name: true,
+                user: {
+                    select: {
+                        name: true,
+                        discriminator: true
+                    }
+                }
+            }
         })
-        // TODO: remove from teams, if removed from any notify
-        // TODO: remove from guild
-        // TODO: prune
+
+        if(!user){
+            debug(`Target user was not in database.`)
+            return
+        }
+        await database.guildMember.update({
+            where: { id: user.id },
+            data: { lostRemoteReferenceAt: new Date() }
+        })
+
+        const name = `${user.name ?? user.user.name}#${user.user.discriminator}`
+        // TODO: notify that ${name} left the server.
     }
 })

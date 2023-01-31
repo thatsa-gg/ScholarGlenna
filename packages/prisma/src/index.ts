@@ -3,6 +3,8 @@ import {
     type Boss
 } from '../generated/client/index.js'
 import { refineExtension } from './extensions/refine.js'
+import { userExtension } from './extensions/user.js'
+import { guildExtension } from './extensions/guild.js'
 
 export * from '../generated/client/index.js'
 export type DatabaseClient = ReturnType<typeof Database.create>
@@ -12,6 +14,8 @@ export namespace Database {
     export function create(){
         const client = new PrismaClient()
             .$extends(refineExtension)
+            .$extends(userExtension)
+            .$extends(guildExtension)
         return client
     }
 

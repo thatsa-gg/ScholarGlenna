@@ -1,11 +1,13 @@
-import { Database, getRedisClient, Guilds } from '@glenna/common'
 import { listener } from '../EventListener.js'
-export default listener('guildDelete', {
+import { database } from '../util/database.js'
+import { info } from '../util/logging.js'
+export const leaveGuildListener = listener('guildDelete', {
     async execute(guild){
-        console.log(`Leaving guild: ${guild.name}`)
+        info(`Leaving guild: ${guild.name}`)
         const snowflake = BigInt(guild.id)
-        const redis = await getRedisClient()
-        await Database.Client.guild.update({ where: { snowflake }, data: { deleted_at: new Date() }})
-        await redis.del(Guilds.getKeys(guild))
+        await database.guild.update({
+            where: { snowflake },
+            data: { lostRemoteReferenceAt: new Date() }
+        })
     }
 })

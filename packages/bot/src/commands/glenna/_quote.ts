@@ -1,9 +1,10 @@
-import { SlashSubcommand } from '../../Command.js'
+import { slashSubcommand, type SlashSubcommandHelper } from '../index.js'
 import { randomFrom } from '@glenna/util'
 
-export default new SlashSubcommand({
-    name: 'quote',
-    builder: (a) => a.setDescription('Admire my brilliance.'),
+export const quoteCommand: SlashSubcommandHelper = slashSubcommand('version', {
+    builder(builder){
+        return builder.setDescription('Admire my brilliance.')
+    },
     async execute(interaction){
         await interaction.reply(randomFrom([
             `I can cast spells when absolutely needed, but for the most part you'll need to keep me alive.`,
@@ -12,6 +13,7 @@ export default new SlashSubcommand({
             `*Totally* not my fault.`,
             `Protect me. I'm about to try something.`,
             `I'm not your puppy!`,
+            `There's an orb talking to me! Again!`
         ]))
     }
 })

@@ -139,7 +139,7 @@ model LogPlayer {
     log Log @relation(references: [id], fields: [logId])
 
     teamMemberId Int? @map("team_member_id")
-    teamMember TeamMember? @relation(fields: [teamMemberId], references: [id])
+    teamMember TeamMember? @relation(fields: [teamMemberId], references: [id], onDelete: SetNull)
 
     character String
     account String
@@ -177,13 +177,38 @@ model Log {
 //                                  USERS                                     //
 // ========================================================================== //
 
+model User {
+    id Int @id @default(autoincrement()) @map("user_id")
+    snowflake BigInt @unique
+    name String
+    discriminator String @db.Char(4)
+    icon String?
+
+    guildMemberships GuildMember[]
+    accounts Account[]
+    @@schema("guild")
+    @@map("user")
+}
+
+model Account {
+    id Int @id @default(autoincrement()) @map("account")
+    snowflake BigInt @unique
+    userId Int @map("user_id")
+    name String @unique
+    apiKey String? @ignore
+
+    user User @relation(fields: [userId], references: [id])
+    @@schema("guild")
+    @@map("account")
+}
+
 // ========================================================================== //
 //                                  GUILDS                                    //
 // ========================================================================== //
 
 
 model Guild {
-    id Int @id @map("guild_id")
+    id Int @id @default(autoincrement()) @map("guild_id")
     snowflake BigInt @unique
     name String
     alias String @unique @db.VarChar(32)
@@ -199,9 +224,16 @@ model Guild {
 }
 
 model GuildMember {
-    id Int @id @map("guild_member_id")
+    id Int @id @default(autoincrement()) @map("guild_member_id")
     guildId Int @map("guild_id")
+    userId Int @map("user_id")
+    name String?
+    icon String?
 
+    // Marks when the bot first became aware a user wasn't in a guild anymore.
+    lostRemoteReferenceAt DateTime? @db.Timestamptz(3) @map("lost_remote_reference_at")
+
+    user User @relation(fields: [userId], references: [id])
     guild Guild @relation(fields: [guildId], references: [id])
     teamMemberships TeamMember[]
     @@schema("guild")
@@ -249,7 +281,7 @@ enum TeamMemberRole {
 
 model Team {
     id Int @id @default(autoincrement()) @map("team_id")
-    snowflake BigInt @unique
+    snowflake BigInt @unique @default(dbgenerated("new_snowflake()"))
     guildId Int @map("guild_id")
     type TeamType @default(Normal)
     name String
@@ -285,13 +317,11 @@ model TeamMember {
     id Int @id @default(autoincrement()) @map("team_member_id")
     teamId Int @map("team_id")
     memberId Int @map("guild_member_id")
-    team Team @relation(fields: [teamId], references: [id])
-    member GuildMember @relation(fields: [memberId], references: [id])
-
     role TeamMemberRole @default(Member)
     // TODO: history
-    // TODO: player
 
+    team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+    member GuildMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
     logParticipation LogPlayer[]
     @@schema("guild")
     @@map("teammember")
