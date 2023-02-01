@@ -10,6 +10,11 @@ function parseDateString(date: string): Date {
     return new Date(date.replace(/^(\d\d\d\d-\d\d-\d\d)\s+(\d\d?:\d\d:\d\d)\s+/, '$1T$2'))
 }
 
+function logHasEmboldened(log: any): boolean {
+    const [ buff, stacks ] = log?.presentInstanceBuffs[0] || []
+    return buff === 68087 && stacks > 0
+}
+
 async function loadDPSReportData(team: Pick<Team, 'id'>, url: URL): Promise<Prisma.LogCreateManyInput> {
     const response = await fetch(`https://dps.report/getJson?permalink=${url.pathname.slice(1)}`)
     const data = await response.json()
@@ -18,7 +23,7 @@ async function loadDPSReportData(team: Pick<Team, 'id'>, url: URL): Promise<Pris
         throw `Unrecognized Boss ID ${boss}`
     return {
         url: url.toString(),
-        difficulty: data.emboldened > 0 ? 'Emboldened' : data.isCM ? 'ChallengeMode' : 'NormalMode', // FIXME: Emboldened is hidden in the instance buffs in full log jsons
+        difficulty: logHasEmboldened(data.emboldened) ? 'Emboldened' : data.isCM ? 'ChallengeMode' : 'NormalMode',
         success: data.success as boolean,
         duration: data.durationMS as number,
         teamId: team.id,
