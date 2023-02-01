@@ -7,7 +7,7 @@ generator client {
 datasource db {
     provider = "postgresql"
     url      = env("DATABASE_URL")
-    schemas = [ "log", "guild", "public" ]
+    schemas = [ "log", "guild", "app", "public" ]
 }
 
 enum CharacterClass {
@@ -136,7 +136,7 @@ enum Boss {
 model LogPlayer {
     id Int @id @default(autoincrement()) @map("log_player_id")
     logId Int @map("log_id")
-    log Log @relation(references: [id], fields: [logId])
+    log Log @relation(references: [id], fields: [logId], onDelete: Cascade)
 
     teamMemberId Int? @map("team_member_id")
     teamMember TeamMember? @relation(fields: [teamMemberId], references: [id], onDelete: SetNull)
@@ -164,7 +164,7 @@ model Log {
     duration Int // milliseconds
 
     players LogPlayer[]
-    team Team @relation(fields: [teamId], references: [id])
+    team Team @relation(fields: [teamId], references: [id], onDelete: Restrict)
 
     startAt DateTime @db.Timestamptz(3) @map("start_at")
     submittedAt DateTime @db.Timestamptz(3) @map("submitted_at")
@@ -186,6 +186,7 @@ model User {
 
     guildMemberships GuildMember[]
     accounts Account[]
+    profile Profile?
     @@schema("guild")
     @@map("user")
 }
@@ -197,7 +198,7 @@ model Account {
     name String @unique
     apiKey String? @ignore
 
-    user User @relation(fields: [userId], references: [id])
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
     @@schema("guild")
     @@map("account")
 }
@@ -205,7 +206,6 @@ model Account {
 // ========================================================================== //
 //                                  GUILDS                                    //
 // ========================================================================== //
-
 
 model Guild {
     id Int @id @default(autoincrement()) @map("guild_id")
@@ -225,6 +225,7 @@ model Guild {
 
 model GuildMember {
     id Int @id @default(autoincrement()) @map("guild_member_id")
+    snowflake BigInt // same as user.snowflake, to ease lookups and handling
     guildId Int @map("guild_id")
     userId Int @map("user_id")
     name String?
@@ -233,9 +234,10 @@ model GuildMember {
     // Marks when the bot first became aware a user wasn't in a guild anymore.
     lostRemoteReferenceAt DateTime? @db.Timestamptz(3) @map("lost_remote_reference_at")
 
-    user User @relation(fields: [userId], references: [id])
-    guild Guild @relation(fields: [guildId], references: [id])
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+    guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
     teamMemberships TeamMember[]
+    @@unique([snowflake, guildId])
     @@schema("guild")
     @@map("guildmember")
 }
@@ -250,7 +252,7 @@ model Division {
     snowflake BigInt @unique
     name String
 
-    guild Guild @relation(fields: [guildId], references: [id])
+    guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
     teams TeamDivision[]
     @@schema("guild")
     @@map("division")
@@ -291,7 +293,7 @@ model Team {
     channel BigInt?
     icon String?
 
-    guild Guild @relation(fields: [guildId], references: [id])
+    guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
     members TeamMember[]
     divisions TeamDivision[]
     logs Log[]
@@ -306,8 +308,8 @@ model TeamDivision {
     teamId Int @map("team_id")
     divisionId Int @map("division_id")
 
-    team Team @relation(fields: [teamId], references: [id])
-    division Division @relation(fields: [divisionId], references: [id])
+    team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+    division Division @relation(fields: [divisionId], references: [id], onDelete: Cascade)
     @@unique([teamId, divisionId])
     @@schema("guild")
     @@map("teamdivision")
@@ -325,4 +327,18 @@ model TeamMember {
     logParticipation LogPlayer[]
     @@schema("guild")
     @@map("teammember")
+}
+
+// ========================================================================== //
+//                                   APP                                      //
+// ========================================================================== //
+
+model Profile {
+    id Int @id @default(autoincrement()) @map("profile_id")
+    snowflake BigInt @unique // same as user.snowflake, to ease lookups and handling
+    userId Int @unique
+
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+    @@schema("app")
+    @@map("profile")
 }

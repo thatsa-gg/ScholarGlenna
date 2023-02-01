@@ -23,15 +23,59 @@ export const teamCreateCommand: SlashSubcommandHelper = slashSubcommand('create'
         const channel = interaction.options.getChannel('channel') || null
         const role = interaction.options.getRole('role') || null
         const name = interaction.options.getString('name', true)
+
+        const guildSnowflake = BigInt(sourceGuild.id)
         const team = await database.team.create({
             data: {
                 name,
                 channel: channel ? BigInt(channel.id) : null,
                 role: role ? BigInt(role.id) : null,
                 alias: slugify(name),
-                guild: { connect: { snowflake: BigInt(sourceGuild.id) }},
+                guild: { connect: { snowflake: guildSnowflake }}
             }
         })
+
+        if(role){
+            const guild = await database.guild.findUniqueOrThrow({ where: { snowflake: guildSnowflake }, select: { id: true }})
+            const real = await interaction.guild.roles.fetch(role.id)
+            if(!real)
+                throw new Error() // TODO
+            for(const member of real.members.values()){
+                const snowflake = BigInt(member.user.id)
+                await database.user.upsert({
+                    where: { snowflake },
+                    create: {
+                        snowflake,
+                        name: member.user.username,
+                        discriminator: member.user.discriminator,
+                        icon: member.user.avatar,
+                        guildMemberships: {
+                            create: {
+                                guildId: guild.id,
+                                name: member.nickname,
+                                icon: member.avatar,
+                                teamMemberships: {
+                                    create: {
+                                        role: 'Member',
+                                        teamId: team.id
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    update: {
+                        name: member.user.username,
+                        discriminator: member.user.discriminator,
+                        icon: member.user.avatar,
+                        guildMemberships: {
+                            connectOrCreate: {
+                                where: { user: { snowflake } }
+                            }
+                        }
+                    }
+                })
+            }
+        }
 
         // TODO: better response
         await interaction.reply(`Raid team created! (id: ${team.id})`)

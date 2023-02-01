@@ -46,7 +46,7 @@ export const readyListener = listener('ready', {
 
         debug(`Reading present data from database.`)
         const presentData = new Map(await database.guild.findMany({
-            where: { lostRemoteReferenceAt: { not: null }},
+            where: { lostRemoteReferenceAt: null },
             select: {
                 id: true,
                 snowflake: true,
@@ -85,10 +85,14 @@ export const readyListener = listener('ready', {
             }
         }).then(results => results.map(result => [ result.snowflake.toString(), result ])))
 
+        debug({
+            message: `Fetched guild data`,
+            presentData
+        })
         debug(`Create new guilds.`)
         for(const guild of client.guilds.cache.filter((_, k) => !presentData.has(k)).values()){
             await database.guild.import(guild)
-            await sendWelcomeMessage(guild)
+            //await sendWelcomeMessage(guild) // TODO: restore welcome message once testing is complete
         }
 
         debug(`Update existing guilds.`)
@@ -96,14 +100,19 @@ export const readyListener = listener('ready', {
             if(!target)
                 continue
 
-            const tasks: PrismaPromise<any>[] = []
+            const data: Prisma.GuildUpdateInput = {}
             if(guild.name !== target.name)
-                tasks.push(database.guild.update({ where: { id: target.id }, data: { name: guild.name }}))
+                data.name = target.name
+            if(Object.keys(data).length > 0)
+                await database.guild.update({ where: { id: target.id }, data })
             for(const team of target.teams.filter(team => team.role !== null || team.channel !== null)){
+                const data: Prisma.TeamUpdateInput = {}
                 if(team.role !== null && !await guild.roles.fetch(team.role.toString()))
-                    tasks.push(database.team.update({ where: { id: team.id }, data: { role: null }}))
+                    data.role = null
                 if(team.channel !== null && !await guild.channels.fetch(team.channel.toString()))
-                    tasks.push(database.team.update({ where: { id: team.id }, data: { channel: null }}))
+                    data.channel = null
+                if(Object.keys(data).length > 0)
+                    await database.team.update({ where: { id: team.id }, data })
             }
             for(const member of target.members){
                 try {
@@ -125,15 +134,14 @@ export const readyListener = listener('ready', {
                     if(Object.keys(user).length > 0)
                         data.user = { update: user }
                     if(Object.keys(data).length > 0)
-                        tasks.push(database.guildMember.update({ where: { id: member.id }, data }))
+                        await database.guildMember.update({ where: { id: member.id }, data })
                 } catch(e) {
                     if(!isUserOrMemberNotFoundError(e))
                         throw e
-                    tasks.push(database.guildMember.update({ where: { id: member.id }, data: { lostRemoteReferenceAt: new Date() }}))
+                    await database.guildMember.update({ where: { id: member.id }, data: { lostRemoteReferenceAt: new Date() }})
                 }
             }
-            tasks.push(database.user.prune())
-            await database.$transaction(tasks)
+            await database.user.prune()
         }
 
         info(`Registering commands.`)
