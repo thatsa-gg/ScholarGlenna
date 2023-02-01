@@ -4,9 +4,11 @@
     "include": [],
     "references": [
         { "path": "./packages/api/tsconfig.json" },
+        { "path": "./packages/auth/tsconfig.json" },
         { "path": "./packages/bot/tsconfig.json" },
-        { "path": "./packages/common/tsconfig.json" },
-        { "path": "./packages/util/tsconfig.json" },
-        { "path": "./packages/prisma/tsconfig.json" }
+        { "path": "./packages/cache/tsconfig.json" },
+        { "path": "./packages/discord/tsconfig.json" },
+        { "path": "./packages/prisma/tsconfig.json" },
+        { "path": "./packages/util/tsconfig.json" }
     ]
 }

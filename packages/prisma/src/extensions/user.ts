@@ -7,6 +7,7 @@ export const userExtension = Prisma.defineExtension(client => client.$extends({
                 return client.user.deleteMany({
                     where: {
                         guildMemberships: { none: {}},
+                        profile: null
                     }
                 })
             }

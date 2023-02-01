@@ -1,5 +1,5 @@
 import { redirect, type RequestHandler } from '@sveltejs/kit'
-import { authorizeUser } from '$lib/auth'
+import { authorizeUser } from '@glenna/auth'
 import { createSession } from '$lib/server/session'
 
 export const GET: RequestHandler = async ({ cookies, url }) => {

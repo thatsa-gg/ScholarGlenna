@@ -23,7 +23,7 @@ ChatCommands.set(glennaCommand.name, glennaCommand)
 
 let client: REST | null = null
 const commandList: RESTPostAPIApplicationCommandsJSONBody[] = []
-export async function registercommands(args: {
+export async function registerCommands(args: {
     token: string,
     clientId: string,
     guildId: string

@@ -1,9 +1,7 @@
-import type * as Glenna from '@glenna/common'
-
 type Alias = { alias: string }
 type GuildAlias = { guild_alias: string }
 type TeamAlias = { team_alias: string }
-type TeamLookup = Pick<Glenna.TeamLookup, 'team_alias' | 'guild_alias'>
+type TeamLookup = any // Pick<Glenna.TeamLookup, 'team_alias' | 'guild_alias'>
 type Either<T1, T2> = (T1 & Partial<T2>) | (T2 & Partial<T1>)
 
 const DISCORD_CDN = 'https://cdn.discordapp.com'
@@ -11,7 +9,7 @@ const DISCORD_CDN = 'https://cdn.discordapp.com'
 function guild(guild: Either<Alias, GuildAlias>): string {
     return `/${guild.guild_alias ?? guild.alias}`
 }
-guild.splash = function(guild: Pick<Glenna.Guild, 'snowflake' | 'splash'>, options?: Record<string, string | number>): string | null {
+guild.splash = function(guild: any, options?: Record<string, string | number>): string | null {
     if(!guild.splash)
         return null
     const base = `${DISCORD_CDN}/splashes/${guild.snowflake}/${guild.splash}.webp`
@@ -35,7 +33,7 @@ function team(...args: [ lookup: TeamLookup ] | [ guild: Either<Alias, GuildAlia
     return `${guild(a)}/${team.team_alias ?? team.alias}`
 }
 
-team.icon = function(team: Pick<Glenna.Team, 'role' | 'icon'>, options?: Record<string, string | number>): string | null {
+team.icon = function(team: any, options?: Record<string, string | number>): string | null {
     if(!team.role || !team.icon)
         return null
     const base = `${DISCORD_CDN}/role-icons/${team.role}/${team.icon}.webp`

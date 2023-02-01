@@ -1,0 +1,13 @@
+{
+    "name": "@glenna/auth",
+    "type": "module",
+    "private": true,
+    "main": "dist/index.js",
+    "types": "src/index.ts",
+    "dependencies": {
+        "@glenna/cache": "workspace:*",
+        "@glenna/discord": "workspace:*",
+        "@glenna/prisma": "workspace:*",
+        "dotenv": "^16.0.2"
+    }
+}

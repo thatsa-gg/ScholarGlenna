@@ -3,7 +3,7 @@ import { database } from '../util/database.js'
 import { sendWelcomeMessage } from '../util/guild.js'
 import { listener } from '../EventListener.js'
 import { DISCORD_TOKEN, OAUTH_CLIENT_ID } from '../config.js'
-import { registerCommands } from '../Command.js'
+import { registerCommands } from '../commands/index.js'
 import type { Prisma, PrismaPromise } from '@glenna/prisma'
 import { DiscordAPIError } from 'discord.js'
 

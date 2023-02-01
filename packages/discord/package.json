@@ -1,0 +1,16 @@
+{
+    "name": "@glenna/discord",
+    "type": "module",
+    "private": true,
+    "main": "dist/index.js",
+    "types": "src/index.ts",
+    "dependencies": {
+        "@glenna/cache": "workspace:*",
+        "@glenna/prisma": "workspace:*",
+        "discord.js": "^14.7.1",
+        "dotenv": "^16.0.2"
+    },
+    "devDependencies": {
+        "@types/node": "^18.11.18"
+    }
+}

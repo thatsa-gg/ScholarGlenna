@@ -1,5 +1,5 @@
 import { Prisma } from '../../generated/client/index.js'
-import type { Guild } from 'discord.js'
+import type { Guild } from '@glenna/discord'
 
 export const guildExtension = Prisma.defineExtension(client => client.$extends({
     model: {

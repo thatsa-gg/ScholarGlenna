@@ -1,6 +1,6 @@
 import { info, debug, error } from './util/logging.js'
 import { VERSION } from './config.js'
-import { Discord } from '@glenna/common'
+import { Discord } from '@glenna/discord'
 
 // import events
 import { channelDeleteListener } from './events/channel-delete.js'

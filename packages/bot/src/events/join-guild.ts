@@ -1,5 +1,5 @@
 import { listener } from '../EventListener.js'
-import { registerCommands } from '../Command.js'
+import { registerCommands } from '../commands/index.js'
 import { DISCORD_TOKEN, OAUTH_CLIENT_ID } from '../config.js'
 import { info, debug } from '../util/logging.js'
 import { database } from '../util/database.js'

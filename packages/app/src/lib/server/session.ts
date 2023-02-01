@@ -1,93 +1,65 @@
-import { Database, UUID, getRedisClient } from '@glenna/common'
-import { reauthorizeUser, type Authorization } from '../auth'
-import { getUserInfo } from './discord-rest'
+import { reauthorizeUser, type Authorization } from '@glenna/auth'
+import { Discord, Routes, type APIUser } from '@glenna/discord'
+import { database, cache } from './index.js'
+import { v4 as uuid } from 'uuid'
 
 export interface Session {
-    id: SessionID
+    id: string
     profileId: number
     accessToken: string
-    expiration?: Date
 }
 
-const FIELD_PROFILE_ID = 'profileID'
-const FIELD_REFRESH_TOKEN = 'refreshToken'
-type Keys = [ accessKey: string, sessionKey: string ]
-function getKeys(sessionID: SessionID): Keys {
-    return [
-        `session_access_${sessionID}`,
-        `session_data_${sessionID}`
-    ]
-}
-export type SessionID = UUID & { __TYPE__: 'SessionID' }
 export const SESSION_EXPIRATION_DURATION_SECONDS = 30 * 24 * 60 * 60
 
-export async function createSession(authorization: Authorization): Promise<Required<Session>> {
-    const redis = await getRedisClient()
-    const sessionID = UUID.create() as SessionID
-    const [ accessKey, sessionKey ] = getKeys(sessionID)
-    const discordUser = await getUserInfo(authorization.access_token)
-    const appProfile = await Database.Profiles.import(discordUser)
-    // TODO: use authorization token to fetch guilds member is a part of and check if they're a member?
-    // TODO: that or keep the current process and remove guilds from the required permissions (we would only need to see people's names)
-    await Promise.all([
-        redis.set(accessKey, authorization.access_token, { EX: authorization.expires_in }),
-        redis.hSet(sessionKey, {
-            [FIELD_PROFILE_ID]: appProfile.profile_id,
-            [FIELD_REFRESH_TOKEN]: authorization.refresh_token
-        }),
-        redis.expire(sessionKey, SESSION_EXPIRATION_DURATION_SECONDS),
-    ])
+export async function createSession(authorization: Authorization): Promise<Session & { expiration: Date }> {
+    const client = Discord.Rest.createUserClient(authorization.accessToken)
+    const user = await client.get(Routes.user()) as APIUser
+    const profile = await database.profile.import(user)
+    const id = uuid()
+
+    await cache.client.pipeline()
+        .set(`session:access:${id}`, authorization.accessToken, "EX", authorization.expiresIn)
+        .hset(`session:data:${id}`, { profile: profile.id, refresh: authorization.refreshToken })
+        .expire(`session:data:${id}`, SESSION_EXPIRATION_DURATION_SECONDS)
+        .exec()
+
     return {
-        id: sessionID,
-        profileId: appProfile.profile_id,
-        accessToken: authorization.access_token,
+        id,
+        profileId: profile.id,
+        accessToken: authorization.accessToken,
         expiration: new Date(Date.now() + SESSION_EXPIRATION_DURATION_SECONDS * 1000),
     }
 }
 
 export async function getSession(sessionID: string): Promise<Session | null> {
-    const redis = await getRedisClient()
-    const [ accessKey, sessionKey ] = getKeys(sessionID as SessionID)
-    const [ accessToken, sessionData ] = await Promise.all([
-        redis.get(accessKey),
-        redis.hmGet(sessionKey, [ FIELD_REFRESH_TOKEN, FIELD_PROFILE_ID ])
-    ])
-    const [ refreshToken, profileId ] = sessionData
-    if(!profileId)
+    const accessToken = await cache.client.get(`session:access:${sessionID}`)
+    const [ profile, refresh ] = await cache.client.hmget(`session:data:${sessionID}`, 'profile', 'refresh')
+    if(!profile)
         return null
+    const profileId = Number.parseInt(profile)
     if(!accessToken)
-        return await refreshSession(sessionID as SessionID, Number.parseInt(profileId), refreshToken)
-    return {
-        id: sessionID as SessionID,
-        profileId: Number.parseInt(profileId),
-        accessToken
-    }
+        return await refreshSession(sessionID, profileId, refresh)
+    return { id: sessionID, profileId, accessToken }
 }
 
-export async function refreshSession(sessionID: SessionID, profileId: number, refreshToken: string | null): Promise<Session> {
-    const redis = await getRedisClient()
-    const [ accessKey, sessionKey ] = getKeys(sessionID)
-    if(!refreshToken){
-        await redis.del([ accessKey, sessionKey ])
+export async function refreshSession(sessionID: string, profileId: number, refreshToken: string | null): Promise<Session> {
+    if(null === refreshToken){
+        await cache.client.del(`session:access:${sessionID}`, `session:data:${sessionID}`)
         throw new Error("Could not refresh session. Please log in again.")
     }
-
     const authorization = await reauthorizeUser(refreshToken)
-    await redis.set(accessKey, authorization.access_token, { EX: authorization.expires_in })
-    if(authorization.refresh_token){
-        await Promise.all([
-            redis.hSet(sessionKey, FIELD_REFRESH_TOKEN, authorization.refresh_token),
-            redis.expire(sessionKey, SESSION_EXPIRATION_DURATION_SECONDS),
-        ])
-    }
+
+    await cache.client.pipeline()
+        .set(`session:access:${sessionID}`, authorization.accessToken, "EX", authorization.expiresIn)
+        .hset(`session:data:${sessionID}`, { refresh: authorization.refreshToken })
+        .exec()
 
     return {
         id: sessionID, profileId,
-        accessToken: authorization.access_token
+        accessToken: authorization.accessToken
     }
 }
 
-export async function destroySession(sessionID: string): Promise<void> {
-    const redis = await getRedisClient()
-    await redis.del(getKeys(sessionID as SessionID))
+export async function destroySession(sessionID: string){
+    await cache.client.del(`session:access:${sessionID}`, `session:data:${sessionID}`)
 }

@@ -4,7 +4,7 @@
     "private": true,
     "main": "dist/_entry.js",
     "dependencies": {
-        "@glenna/common": "workspace:*",
+        "@glenna/discord": "workspace:*",
         "@glenna/prisma": "workspace:*",
         "@glenna/util": "workspace:*",
         "discord.js": "^14.7.1",

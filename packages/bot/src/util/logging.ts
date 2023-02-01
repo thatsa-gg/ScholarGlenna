@@ -1,5 +1,4 @@
-import { createLogger, format } from 'winston'
-import { Console } from 'winston/lib/winston/transports'
+import { createLogger, format, transports } from 'winston'
 
 const errorFormat = format(info => {
     if(info instanceof Error){
@@ -16,7 +15,7 @@ export const logger = createLogger({
         format.printf(({ level, message }) => `${level}: ${message}`)
     ),
     transports: [
-        new Console({ level: 'info' })
+        new transports.Console({ level: 'info' })
     ]
 })
 
