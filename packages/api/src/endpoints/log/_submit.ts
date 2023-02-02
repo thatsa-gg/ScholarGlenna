@@ -56,7 +56,7 @@ export const submitProcedure = procedure
         teamSnowflake: database.team.validateSnowflake('teamSnowflake'),
         logs: z.array(z
             .string()
-            .regex(/^(?:https:\/\/)?(?:dps\.report\/[a-zA-Z0-9_-]+|gw2wingman\.nevermindcreations\.de\/log\/[a-ZA-Z0-9_-]+)$/))
+            .regex(/^(?:https:\/\/)?(?:dps\.report\/[a-zA-Z0-9_-]+|gw2wingman\.nevermindcreations\.de\/log\/[a-zA-Z0-9_-]+)$/))
     }))
     .mutation(async ({ input: { teamSnowflake: snowflake, logs } }) => {
         const team = await database.team.findUniqueOrThrow({ where: { snowflake }, select: { id: true }})

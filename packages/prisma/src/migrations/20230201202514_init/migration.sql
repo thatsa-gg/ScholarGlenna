@@ -160,6 +160,7 @@ create table "guild"."guildmember" (
     "name" text,
     "icon" text,
     "lost_remote_reference_at" timestamptz(3),
+    unique("user_id", "guild_id"),
     unique("snowflake", "guild_id")
 );
 
@@ -194,12 +195,19 @@ create table "guild"."teamdivision" (
     unique("team_id", "division_id")
 );
 
+create table "guild"."teamtime" (
+    "team_time_id" serial primary key not null,
+    "team_id" integer not null references "guild"."team"("team_id") on delete cascade,
+    "time" timestamptz(0) not null
+);
+
 -- CreateTable
 create table "guild"."teammember" (
     "team_member_id" serial primary key not null,
     "team_id" integer not null references "guild"."team"("team_id") on delete cascade,
     "guild_member_id" integer not null references "guild"."guildmember"("guild_member_id") on delete cascade,
-    "role" "guild"."teammemberrole" not null default 'member'
+    "role" "guild"."teammemberrole" not null default 'member',
+    unique("team_id", "guild_member_id")
 );
 
 -- CreateTable

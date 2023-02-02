@@ -3,15 +3,18 @@ import { listener } from '../EventListener.js'
 import { database } from '../util/database.js'
 
 export const userUpdateListener = listener('userUpdate', {
-    async execute(oldUser, newUser){
+    async execute(_, newUser){
+        const currentUser = await database.user.findUnique({ where: { snowflake: BigInt(newUser.id) }})
+        if(!currentUser)
+            return
         const data: Prisma.UserUpdateInput = {}
-        if(oldUser.avatar !== newUser.avatar)
+        if(currentUser.icon !== newUser.avatar)
             data.icon = newUser.avatar
-        if(oldUser.username !== newUser.username)
+        if(currentUser.name !== newUser.username)
             data.name = newUser.username
-        if(oldUser.discriminator !== newUser.discriminator)
+        if(currentUser.discriminator !== newUser.discriminator)
             data.discriminator = newUser.discriminator
         if(Object.keys(data).length > 0)
-            await database.user.update({ where: { snowflake: BigInt(newUser.id) }, data })
+            await database.user.update({ where: { id: currentUser.id }, data })
     }
 })

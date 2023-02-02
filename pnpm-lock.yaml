@@ -95,12 +95,14 @@ importers:
       '@glenna/util': workspace:*
       discord.js: ^14.7.1
       winston: ^3.8.2
+      zod: ^3.20.2
     dependencies:
       '@glenna/discord': link:../discord
       '@glenna/prisma': link:../prisma
       '@glenna/util': link:../util
       discord.js: 14.7.1
       winston: 3.8.2
+      zod: 3.20.2
 
   packages/cache:
     specifiers:

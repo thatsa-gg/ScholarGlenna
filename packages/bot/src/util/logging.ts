@@ -7,7 +7,7 @@ const errorFormat = format(info => {
     return info
 })
 export const logger = createLogger({
-    level: 'info',
+    level: 'debug',
     format: format.combine(
         errorFormat(),
         format.colorize(),
@@ -15,7 +15,7 @@ export const logger = createLogger({
         format.printf(({ level, message }) => `${level}: ${message}`)
     ),
     transports: [
-        new transports.Console({ level: 'info' })
+        new transports.Console({ level: 'debug' })
     ]
 })
 

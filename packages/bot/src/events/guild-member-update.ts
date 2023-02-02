@@ -59,7 +59,7 @@ export const guildMemberUpdateListener = listener('guildMemberUpdate', {
         const removedTeams: number[] = Array.from(removedRoles.filter((_, k) => teamRoles.has(k)).map((_, k) => teamRoles.get(k)!))
         if(removedTeams.length > 0){
             data.teamMemberships ??= {}
-            data.teamMemberships.deleteMany = { id: { in: removedTeams }}
+            data.teamMemberships.deleteMany = { teamId: { in: removedTeams }}
         }
 
         const addedTeams: Prisma.TeamMemberCreateManyMemberInput[] = Array.from(

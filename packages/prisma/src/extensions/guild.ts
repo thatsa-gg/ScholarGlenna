@@ -26,6 +26,7 @@ export const guildExtension = Prisma.defineExtension(client => client.$extends({
                         },
                         members: {
                             create: {
+                                snowflake: ownerId,
                                 name: owner.nickname,
                                 icon: owner.avatar,
                                 user: {

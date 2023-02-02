@@ -1,7 +1,8 @@
 import { database } from '../../util/database.js'
-import { ChannelType } from 'discord.js'
+import { ChannelType, EmbedBuilder } from 'discord.js'
 import { slashSubcommand, type SlashSubcommandHelper } from '../index.js'
 import { slugify } from '@glenna/util'
+import { debug } from '../../util/logging.js'
 
 export const teamCreateCommand: SlashSubcommandHelper = slashSubcommand('create', {
     builder(builder){
@@ -20,8 +21,8 @@ export const teamCreateCommand: SlashSubcommandHelper = slashSubcommand('create'
             return
         }
 
-        const channel = interaction.options.getChannel('channel') || null
-        const role = interaction.options.getRole('role') || null
+        const channel = interaction.options.getChannel('channel')
+        const role = interaction.options.getRole('role')
         const name = interaction.options.getString('name', true)
 
         const guildSnowflake = BigInt(sourceGuild.id)
@@ -34,42 +35,43 @@ export const teamCreateCommand: SlashSubcommandHelper = slashSubcommand('create'
                 guild: { connect: { snowflake: guildSnowflake }}
             }
         })
+        debug(`Create team "${team.name}" (${team.id}) in guild "${sourceGuild.name}" (${sourceGuild.id})`)
 
+        const members: string[] = []
         if(role){
             const guild = await database.guild.findUniqueOrThrow({ where: { snowflake: guildSnowflake }, select: { id: true }})
+            await interaction.guild.members.fetch() // awful hack to load all the user info so the next line works as expected.
             const real = await interaction.guild.roles.fetch(role.id)
             if(!real)
                 throw new Error() // TODO
             for(const member of real.members.values()){
                 const snowflake = BigInt(member.user.id)
-                await database.user.upsert({
-                    where: { snowflake },
-                    create: {
-                        snowflake,
-                        name: member.user.username,
-                        discriminator: member.user.discriminator,
-                        icon: member.user.avatar,
-                        guildMemberships: {
-                            create: {
-                                guildId: guild.id,
-                                name: member.nickname,
-                                icon: member.avatar,
-                                teamMemberships: {
-                                    create: {
-                                        role: 'Member',
-                                        teamId: team.id
+                members.push(member.displayName)
+                debug(`Adding "${member.displayName}" to "${team.name}".`)
+                await database.teamMember.create({
+                    data: {
+                        role: 'Member',
+                        team: { connect: { id: team.id }},
+                        member: {
+                            connectOrCreate: {
+                                where: { snowflake_guildId: { snowflake, guildId: guild.id }},
+                                create: {
+                                    snowflake,
+                                    name: member.nickname,
+                                    icon: member.avatar,
+                                    guild: { connect: { id: guild.id }},
+                                    user: {
+                                        connectOrCreate: {
+                                            where: { snowflake },
+                                            create: {
+                                                snowflake,
+                                                name: member.user.username,
+                                                discriminator: member.user.discriminator,
+                                                icon: member.user.avatar
+                                            }
+                                        }
                                     }
                                 }
-                            }
-                        }
-                    },
-                    update: {
-                        name: member.user.username,
-                        discriminator: member.user.discriminator,
-                        icon: member.user.avatar,
-                        guildMemberships: {
-                            connectOrCreate: {
-                                where: { user: { snowflake } }
                             }
                         }
                     }
@@ -77,7 +79,19 @@ export const teamCreateCommand: SlashSubcommandHelper = slashSubcommand('create'
             }
         }
 
+        const embed = new EmbedBuilder({
+            color: 0x40a86d,
+            title: `Team ${team.name} created.`,
+            description: `${team.role ? `<@&${team.role}>` : team.name} has been registered.`,
+            fields: [
+                {
+                    name: 'Members',
+                    value: members.length > 0 ? members.map(a => `- ${a}`).join(`\n`) : `*Use \`/team add\` to add members to this team.*`
+                }
+            ]
+        })
+
         // TODO: better response
-        await interaction.reply(`Raid team created! (id: ${team.id})`)
+        await interaction.reply({ embeds: [ embed ]})
     }
 })

@@ -237,6 +237,7 @@ model GuildMember {
     user User @relation(fields: [userId], references: [id], onDelete: Cascade)
     guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
     teamMemberships TeamMember[]
+    @@unique([userId, guildId])
     @@unique([snowflake, guildId])
     @@schema("guild")
     @@map("guildmember")
@@ -297,6 +298,7 @@ model Team {
     members TeamMember[]
     divisions TeamDivision[]
     logs Log[]
+    times TeamTime[]
 
     @@unique([guildId, alias])
     @@schema("guild")
@@ -315,6 +317,16 @@ model TeamDivision {
     @@map("teamdivision")
 }
 
+model TeamTime {
+    id Int @id @default(autoincrement()) @map("team_time_id")
+    teamId Int @map("team_id")
+    time DateTime @db.Timestamptz(0)
+
+    team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+    @@schema("guild")
+    @@map("teamtime")
+}
+
 model TeamMember {
     id Int @id @default(autoincrement()) @map("team_member_id")
     teamId Int @map("team_id")
@@ -325,6 +337,7 @@ model TeamMember {
     team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
     member GuildMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
     logParticipation LogPlayer[]
+    @@unique([teamId, memberId])
     @@schema("guild")
     @@map("teammember")
 }

@@ -3,8 +3,9 @@ import { fastifyTRPCPlugin } from '@trpc/server/adapters/fastify'
 import { createContext } from './context.js'
 import { appRouter } from './router.js'
 
-export { AppRouter } from './router'
+export { AppRouter } from './router.js'
 
+// TODO: move this to the web app or its own package (?)
 const server = fastify({ maxParamLength: 5000 })
 server.register(fastifyTRPCPlugin, {
     prefix: '/trpc',
