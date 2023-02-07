@@ -12,7 +12,7 @@ export const refineExtension = Prisma.defineExtension((client) => client.$extend
         guild: {
             validateSnowflake<T extends string>(name: T){
                 return bigintString(name).refine(
-                    async snowflake => client.guild.findUnique({ where: { snowflake }, select: {}}),
+                    async snowflake => client.guild.findUnique({ where: { snowflake }, select: { _count: true }}),
                     snowflake => ({ message: `No guild with snowflake "${snowflake}" found.` })
                 )
             }
@@ -20,7 +20,7 @@ export const refineExtension = Prisma.defineExtension((client) => client.$extend
         team: {
             validateSnowflake<T extends string>(name: T){
                 return bigintString(name).refine(
-                    async snowflake => client.team.findUnique({ where: { snowflake }, select: {}}),
+                    async snowflake => client.team.findUnique({ where: { snowflake }, select: { _count: true }}),
                     snowflake => ({ message: `No team with snowflake "${snowflake}" found.`})
                 )
             }
@@ -28,7 +28,7 @@ export const refineExtension = Prisma.defineExtension((client) => client.$extend
         division: {
             validateSnowflake<T extends string>(name: T){
                 return bigintString(name).refine(
-                    async snowflake => client.division.findUnique({ where: { snowflake }, select: {}}),
+                    async snowflake => client.division.findUnique({ where: { snowflake }, select: { _count: true }}),
                     snowflake => ({ message: `No division with snowflake "${snowflake}" found.`})
                 )
             }

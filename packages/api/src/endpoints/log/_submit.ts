@@ -10,20 +10,17 @@ function parseDateString(date: string): Date {
     return new Date(date.replace(/^(\d\d\d\d-\d\d-\d\d)\s+(\d\d?:\d\d:\d\d)\s+/, '$1T$2'))
 }
 
-function logHasEmboldened(log: any): boolean {
-    const [ buff, stacks ] = log?.presentInstanceBuffs[0] || []
-    return buff === 68087 && stacks > 0
-}
-
 async function loadDPSReportData(team: Pick<Team, 'id'>, url: URL): Promise<Prisma.LogCreateManyInput> {
     const response = await fetch(`https://dps.report/getJson?permalink=${url.pathname.slice(1)}`)
     const data = await response.json()
     const boss = triggerIDToBoss(data.triggerID as number)
     if(null === boss)
         throw `Unrecognized Boss ID ${boss}`
+    const [ buff, stacks ] = data?.presentInstanceBuffs[0] || []
     return {
         url: url.toString(),
-        difficulty: logHasEmboldened(data.emboldened) ? 'Emboldened' : data.isCM ? 'ChallengeMode' : 'NormalMode',
+        difficulty: buff === 68087 && stacks > 0 ? 'Emboldened' : data.isCM ? 'ChallengeMode' : 'NormalMode',
+        emboldenedLevel: buff === 68087 ? stacks : 0,
         success: data.success as boolean,
         duration: data.durationMS as number,
         teamId: team.id,
@@ -42,6 +39,7 @@ async function loadWingmanData(team: Pick<Team, 'id'>, url: URL): Promise<Prisma
     return {
         url: url.toString(),
         difficulty: data.emboldened > 0 ? 'Emboldened' : data.isCM ? 'ChallengeMode' : 'NormalMode',
+        emboldenedLevel: data.emboldened || 0,
         success: data.success as boolean,
         duration: data.durationMS as number,
         teamId: team.id,
