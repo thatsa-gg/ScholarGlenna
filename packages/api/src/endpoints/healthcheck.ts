@@ -1,11 +1,11 @@
 import { z } from 'zod'
 import { procedure } from '../trpc.js'
 
-export const healthCheckProcedure = procedure
+export const healthcheckProcedure = procedure
     .input(z.any().describe("echo"))
     .query(async ({ input }) => {
         return {
-            healthCheck: true,
+            healthcheck: true,
             date: new Date(),
             input
         }
