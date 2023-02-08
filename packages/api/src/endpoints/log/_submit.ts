@@ -51,15 +51,15 @@ async function loadWingmanData(team: Pick<Team, 'id'>, url: URL): Promise<Prisma
 
 export const submitProcedure = procedure
     .input(z.object({
-        teamSnowflake: database.team.validateSnowflake('teamSnowflake'),
+        team: database.team.fetch('team', { id: true }),
         logs: z.array(z
             .string()
             .regex(/^(?:https:\/\/)?(?:dps\.report\/[a-zA-Z0-9_-]+|gw2wingman\.nevermindcreations\.de\/log\/[a-zA-Z0-9_-]+)$/))
     }))
-    .mutation(async ({ input: { teamSnowflake: snowflake, logs } }) => {
-        const team = await database.team.findUniqueOrThrow({ where: { snowflake }, select: { id: true }})
+    .mutation(async ({ input: { team, logs } }) => {
         const data = await Promise.all(logs
             .map(url => new URL(url))
             .map(url => url.host === 'dps.report' ? loadDPSReportData(team, url) : loadWingmanData(team, url)))
+        // TODO: log players.
         await database.log.createMany({ data })
     })

@@ -212,6 +212,7 @@ model Guild {
     snowflake BigInt @unique
     name String
     alias String @unique @db.VarChar(32)
+    primaryDivisionId Int? @unique @map("primary_division_id")
 
     // Marks when the bot first became aware it wasn't in a guild anymore.
     lostRemoteReferenceAt DateTime? @db.Timestamptz(3) @map("lost_remote_reference_at")
@@ -219,6 +220,7 @@ model Guild {
     teams Team[]
     members GuildMember[]
     divisions Division[]
+    primaryDivision Division? @relation("primaryDivision", fields: [primaryDivisionId], references: [id], onDelete: SetNull)
     @@schema("guild")
     @@map("guild")
 }
@@ -250,10 +252,11 @@ model GuildMember {
 model Division {
     id Int @id @default(autoincrement()) @map("division_id")
     guildId Int @map("guild_id")
-    snowflake BigInt @unique
+    snowflake BigInt @unique @default(dbgenerated("new_snowflake()"))
     name String
 
     guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+    primaryDivisionFor Guild? @relation("primaryDivision")
     teams TeamDivision[]
     @@schema("guild")
     @@map("division")
@@ -282,6 +285,42 @@ enum TeamMemberRole {
     @@map("teammemberrole")
 }
 
+enum TeamFocus {
+    HOT             @map("hot")
+    POF             @map("pof")
+    RaidCM          @map("raid_cm")
+    FullClear       @map("full_clear")
+    FullClearCM     @map("full_clear_cm")
+    EODCM           @map("eod_cm")
+    HarvestTempleCM @map("harvest_temple_cm")
+    Memes           @map("memes")
+    IBS             @map("ibs")
+    EOD             @map("eod")
+    Dungeons        @map("dungeons")
+    Fractals        @map("fractals")
+
+    @@schema("guild")
+    @@map("teamfocus")
+}
+
+enum TeamLevel {
+    Progression     @map("progression")
+    Experienced     @map("experienced")
+
+    @@schema("guild")
+    @@map("teamlevel")
+}
+
+enum TeamRegion {
+    NorthAmerica    @map("north_america")
+    Europe          @map("europe")
+    AustraliaNA     @map("ocx_na")
+    AustraliaEU     @map("ocx_eu")
+
+    @@schema("guild")
+    @@map("teamregion")
+}
+
 model Team {
     id Int @id @default(autoincrement()) @map("team_id")
     snowflake BigInt @unique @default(dbgenerated("new_snowflake()"))
@@ -289,6 +328,10 @@ model Team {
     type TeamType @default(Normal)
     name String
     alias String @db.VarChar(32)
+    focus TeamFocus @default(HOT)
+    level TeamLevel @default(Progression)
+    region TeamRegion @default(NorthAmerica)
+    capacity Int? @db.SmallInt @default(10)
 
     role BigInt?
     channel BigInt?

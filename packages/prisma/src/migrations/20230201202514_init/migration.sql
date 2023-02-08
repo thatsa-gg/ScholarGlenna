@@ -124,6 +124,36 @@ create type "guild"."teammemberrole" as enum (
     'captain'
 );
 
+-- CreateEnum
+create type "guild"."teamfocus" as enum (
+    'hot',
+    'pof',
+    'raid_cm',
+    'full_clear',
+    'full_clear_cm',
+    'eod_cm',
+    'harvest_temple_cm',
+    'memes',
+    'ibs',
+    'eod',
+    'dungeons',
+    'fractals'
+);
+
+-- CreateEnum
+create type "guild"."teamlevel" as enum (
+    'progression',
+    'experienced'
+);
+
+-- CreateEnum
+create type "guild"."teamregion" as enum (
+    'north_america',
+    'europe',
+    'ocx_na',
+    'ocx_eu'
+);
+
 -- CreateTable
 create table "guild"."user" (
     "user_id" serial primary key not null,
@@ -148,6 +178,7 @@ create table "guild"."guild" (
     "snowflake" bigint unique not null,
     "name" text not null,
     "alias" varchar(32) unique not null,
+    "primary_division_id" int unique references "guild"."division" on delete set null,
     "lost_remote_reference_at" timestamptz(3)
 );
 
@@ -168,7 +199,7 @@ create table "guild"."guildmember" (
 create table "guild"."division" (
     "division_id" serial primary key not null,
     "guild_id" integer not null references "guild"."guild"("guild_id") on delete cascade,
-    "snowflake" bigint unique not null,
+    "snowflake" bigint unique not null default new_snowflake(),
     "name" text not null
 );
 
@@ -180,6 +211,10 @@ create table "guild"."team" (
     "type" "guild"."teamtype" not null default 'normal',
     "name" text not null,
     "alias" varchar(32) not null,
+    "focus" "guild"."teamfocus" not null default 'hot',
+    "level" "guild"."teamlevel" not null default 'progression',
+    "region" "guild"."teamregion" not null default 'north_america',
+    "capacity" smallint default 10,
     "role" bigint,
     "channel" bigint,
     "icon" text,

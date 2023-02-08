@@ -5,9 +5,9 @@ import { stringifySnowflake } from '@glenna/prisma'
 
 export const divisionsProcedure = procedure
     .input(z.object({
-        guildSnowflake: database.guild.validateSnowflake('guildSnowflake')
+        guild: database.guild.validateSnowflake('guildSnowflake')
     }))
-    .query(async ({ input: { guildSnowflake: snowflake }}) => {
+    .query(async ({ input: { guild: snowflake }}) => {
         const divisions = await database.division.findMany({
             where: { guild: { snowflake }},
             select: {

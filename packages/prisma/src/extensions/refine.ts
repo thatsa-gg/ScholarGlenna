@@ -12,23 +12,39 @@ export const refineExtension = Prisma.defineExtension((client) => client.$extend
         guild: {
             validateSnowflake<T extends string>(name: T){
                 return bigintString(name).refine(
-                    async snowflake => client.guild.findUnique({ where: { snowflake }, select: { _count: true }}),
+                    async snowflake => await client.guild.findUnique({ where: { snowflake }, select: { _count: true }}),
                     snowflake => ({ message: `No guild with snowflake "${snowflake}" found.` })
                 )
+            },
+            fetch<T extends Prisma.GuildSelect>(name: string, properties: T){
+                return bigintString(name)
+                    .transform(async snowflake => await client.guild.findUnique({ where: { snowflake }, select: properties }) ?? snowflake)
+                    .refine(
+                        <T>(a: T): a is Exclude<T, bigint> => typeof a !== 'bigint',
+                        snowflake => ({ message: `No guild with snowflake "${snowflake}" found.` })
+                    )
             }
         },
         team: {
             validateSnowflake<T extends string>(name: T){
                 return bigintString(name).refine(
-                    async snowflake => client.team.findUnique({ where: { snowflake }, select: { _count: true }}),
+                    async snowflake => await client.team.findUnique({ where: { snowflake }, select: { _count: true }}),
                     snowflake => ({ message: `No team with snowflake "${snowflake}" found.`})
                 )
+            },
+            fetch<T extends Prisma.TeamSelect>(name: string, properties: T){
+                return bigintString(name)
+                    .transform(async snowflake => await client.team.findUnique({ where: { snowflake }, select: properties }) ?? snowflake)
+                    .refine(
+                        <T>(a: T): a is Exclude<T, bigint> => typeof a !== 'bigint',
+                        snowflake => ({ message: `No team with snowflake "${snowflake}" found.` })
+                    )
             }
         },
         division: {
             validateSnowflake<T extends string>(name: T){
                 return bigintString(name).refine(
-                    async snowflake => client.division.findUnique({ where: { snowflake }, select: { _count: true }}),
+                    async snowflake => await client.division.findUnique({ where: { snowflake }, select: { _count: true }}),
                     snowflake => ({ message: `No division with snowflake "${snowflake}" found.`})
                 )
             }

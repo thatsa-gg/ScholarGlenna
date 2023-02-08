@@ -6,6 +6,7 @@ import { refineExtension } from './extensions/refine.js'
 import { userExtension } from './extensions/user.js'
 import { guildExtension } from './extensions/guild.js'
 import { profileExtension } from './extensions/profile.js'
+import { authorizationExtension } from './extensions/authorization.js'
 
 export * from '../generated/client/index.js'
 export type DatabaseClient = ReturnType<typeof Database.create>
@@ -18,6 +19,7 @@ export namespace Database {
             .$extends(userExtension)
             .$extends(guildExtension)
             .$extends(profileExtension)
+            .$extends(authorizationExtension)
         return client
     }
 

@@ -1,4 +1,5 @@
 import {
+    ChatInputCommandInteraction,
     REST,
     Routes,
     type RESTPostAPIApplicationCommandsJSONBody
@@ -34,4 +35,26 @@ export async function registerCommands(args: {
             commandList.push(command.toJSON())
     }
     await client.put(Routes.applicationGuildCommands(args.clientId, args.guildId), { body: commandList })
+}
+
+export async function getGuildAndUser(interaction: ChatInputCommandInteraction){
+    const sourceGuild = interaction.guild
+    if(!sourceGuild){
+        await interaction.reply({
+            ephemeral: true,
+            content: `This command must be executed in a guild.`
+        })
+        return
+    }
+
+    const sourceUser = interaction.member
+    if(!sourceUser){
+        await interaction.reply({
+            ephemeral: true,
+            content: `Somehow, you don't exist in the Discord API.`
+        })
+        return
+    }
+
+    return [ sourceGuild, sourceUser ] as const
 }
