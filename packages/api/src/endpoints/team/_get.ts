@@ -5,10 +5,6 @@ import { stringifySnowflake } from '@glenna/prisma'
 
 export const getProcedure = procedure
     .input(z.object({
-        guild: database.guild.fetch('guild', {
-            snowflake: true,
-            name: true,
-            alias: true
-        })
+        team: database.team.fetch('team', { snowflake: true, name: true })
     }))
-    .query(({ input: { guild }}) => stringifySnowflake(guild))
+    .query(({ input: { team } }) => stringifySnowflake(team))

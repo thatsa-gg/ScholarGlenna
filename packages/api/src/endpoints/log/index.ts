@@ -1,9 +1,11 @@
 import { router } from '../../trpc.js'
 
+import { topRouter } from './top/index.js'
+import { findProcedure } from './_find.js'
 import { submitProcedure } from './_submit.js'
-import { topLogsProcedure } from './_topLogs.js'
 
 export const logRouter = router({
+    top: topRouter,
+    find: findProcedure,
     submit: submitProcedure,
-    topLogs: topLogsProcedure
 })

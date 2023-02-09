@@ -1,6 +1,6 @@
 import { database } from '../../util/database.js'
 import { ChannelType, EmbedBuilder } from 'discord.js'
-import { slashSubcommand, type SlashSubcommandHelper } from '../index.js'
+import { getGuildAndUser, slashSubcommand, type SlashSubcommandHelper } from '../index.js'
 import { slugify } from '@glenna/util'
 import { debug } from '../../util/logging.js'
 
@@ -12,14 +12,10 @@ export const teamCreateCommand: SlashSubcommandHelper = slashSubcommand('create'
             .addRoleOption(o => o.setName('role').setDescription('Team role for member syncing and pinging.'))
     },
     async execute(interaction){
-        const sourceGuild = interaction.guild
-        if(!sourceGuild){
-            await interaction.reply({
-                ephemeral: true,
-                content: `This command must be executed in a guild.`
-            })
-            return
-        }
+        const [ sourceGuild, sourceUser ] = await getGuildAndUser(interaction) || []
+        if(!sourceGuild || !sourceUser) return
+
+        // TODO: permission check
 
         const channel = interaction.options.getChannel('channel')
         const role = interaction.options.getRole('role')
@@ -40,8 +36,8 @@ export const teamCreateCommand: SlashSubcommandHelper = slashSubcommand('create'
         const members: string[] = []
         if(role){
             const guild = await database.guild.findUniqueOrThrow({ where: { snowflake: guildSnowflake }, select: { id: true }})
-            await interaction.guild.members.fetch() // awful hack to load all the user info so the next line works as expected.
-            const real = await interaction.guild.roles.fetch(role.id)
+            await sourceGuild.members.fetch() // awful hack to load all the user info so the next line works as expected.
+            const real = await sourceGuild.roles.fetch(role.id)
             if(!real)
                 throw new Error() // TODO
             for(const member of real.members.values()){

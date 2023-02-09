@@ -3,9 +3,9 @@ import { procedure } from '../../trpc.js'
 import { database } from "../../database.js"
 import { stringifySnowflake } from '@glenna/prisma'
 
-export const divisionsProcedure = procedure
+export const findProcedure = procedure
     .input(z.object({
-        guild: database.guild.validateSnowflake('guildSnowflake')
+        guild: database.guild.validateSnowflake('guild')
     }))
     .query(async ({ input: { guild: snowflake }}) => {
         const divisions = await database.division.findMany({

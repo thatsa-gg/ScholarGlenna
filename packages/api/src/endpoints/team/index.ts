@@ -1,7 +1,8 @@
 import { router } from '../../trpc.js'
-
-import { topLogsProcedure } from './_topLogs.js'
+import { findProcedure } from './_find.js'
+import { getProcedure } from './_get.js'
 
 export const teamRouter = router({
-    topLogs: topLogsProcedure
+    get: getProcedure,
+    find: findProcedure,
 })
