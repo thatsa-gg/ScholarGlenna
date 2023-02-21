@@ -46,10 +46,9 @@ export const findProcedure = procedure
                 difficulty: Array.isArray(input.difficulty) ? { in: input.difficulty } : input.difficulty,
                 team: Array.isArray(input.team) ? { snowflake: { in: input.team }}
                     : typeof input.team === 'bigint' ? { snowflake: input.team }
-                    : input.team ? input.team
-                    : 'guild' in input ? { guild: { snowflake: Array.isArray(input.guild) ? { in: input.guild } : input.guild }}
-                    : 'division' in input ? { divisions: { some: { division: { snowflake: Array.isArray(input.division) ? { in: input.division } : input.division }}}}
-                    : undefined,
+                    : 'guild' in input ? { ...input.team, guild: { snowflake: Array.isArray(input.guild) ? { in: input.guild } : input.guild }}
+                    : 'division' in input ? { ...input.team, divisions: { some: { division: { snowflake: Array.isArray(input.division) ? { in: input.division } : input.division }}}}
+                    : input.team,
                 startAt: {
                     gte: input.after,
                     lt: input.before

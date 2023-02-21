@@ -49,6 +49,18 @@ export const divisionCreateCommand: SlashSubcommandHelper = slashSubcommand('cre
                     primaryDivisionId: division.guild.id
                 }
             })
+            const unassociatedTeams = await database.team.findMany({
+                where: {
+                    guild: { id: division.guild.id },
+                    divisions: { none: {} }
+                },
+                select: {
+                    id: true
+                }
+            })
+            await database.teamDivision.createMany({
+                data: unassociatedTeams.map(team => ({ teamId: team.id, divisionId: division.id }))
+            })
             division.guild.primaryDivisionId = division.id
             debug(`Set division "${division.name}" (${division.id}) as primary for guild "${sourceGuild.name}" (${sourceGuild.id}) -- missing primary.`)
         }

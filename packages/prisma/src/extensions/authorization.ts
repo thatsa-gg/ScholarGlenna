@@ -11,7 +11,7 @@ export const authorizationExtension = Prisma.defineExtension(client => client.$e
         async isAuthorized(
             guild: bigint | Pick<Guild, 'snowflake'> | Pick<Guild, 'id'>,
             user: bigint | Pick<GuildMember, 'snowflake'> | Pick<User, 'snowflake'>,
-            role?: TeamMemberRole
+            role?: Prisma.TeamMemberWhereInput['role']
         ){
             const snowflake = typeof user === 'bigint' ? user : user.snowflake
             if(typeof guild === 'object' && 'id' in guild)

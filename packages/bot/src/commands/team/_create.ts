@@ -15,13 +15,20 @@ export const teamCreateCommand: SlashSubcommandHelper = slashSubcommand('create'
         const [ sourceGuild, sourceUser ] = await getGuildAndUser(interaction) || []
         if(!sourceGuild || !sourceUser) return
 
-        // TODO: permission check
+        const guildSnowflake = BigInt(sourceGuild.id)
+        const actorSnowflake = BigInt(sourceUser.user.id)
+        if(!database.isAuthorized(guildSnowflake, actorSnowflake)){
+            await interaction.reply({
+                ephemeral: true,
+                content: `You are not authorized to execute this command.`
+            })
+            return
+        }
 
         const channel = interaction.options.getChannel('channel')
         const role = interaction.options.getRole('role')
         const name = interaction.options.getString('name', true)
 
-        const guildSnowflake = BigInt(sourceGuild.id)
         const team = await database.team.create({
             data: {
                 name,
