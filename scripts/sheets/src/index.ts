@@ -1,7 +1,8 @@
-import { DOUBLE } from './double'
-function TRIPLE(a: number){
-    return a * 3
-}
+import {
+    TOPLOGS_DIVISION,
+    TOPLOGS_TEAM
+} from './logs'
 
-(global as any).DOUBLE = DOUBLE;
-(global as any).TRIPLE = TRIPLE;
+// need to use exports.* pattern here to properly generate stubs for GAS.
+exports.TOPLOGS_DIVISION = TOPLOGS_DIVISION
+exports.TOPLOGS_TEAM = TOPLOGS_TEAM

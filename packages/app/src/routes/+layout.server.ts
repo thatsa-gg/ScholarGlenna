@@ -1,5 +1,5 @@
 import { getSession } from '$lib/server/session'
-import { Database } from '@glenna/common'
+import { database } from '$lib/server'
 import { redirect } from '@sveltejs/kit'
 import type { LayoutServerLoad } from './$types'
 
@@ -13,19 +13,23 @@ export const load: LayoutServerLoad = async ({ cookies }) => {
     if(!session)
         throw redirect(303, '/api/logout')
 
-    const user = await Database.Client.userProfile.findUnique({
-        where: { profile_id: session.profileId },
+    const profile = await database.profile.findUnique({
+        where: { id: session.profileId },
         select: {
-            user_id: true,
-            username: true,
-            discriminator: true,
-            displayName: true,
-            snowflake: true,
-            avatar: true
+            id: true,
+            user: {
+                select: {
+                    id: true,
+                    name: true,
+                    discriminator: true,
+                    snowflake: true,
+                    icon: true
+                }
+            }
         }
     })
-    if(!user)
+    if(!profile)
         throw redirect(303, '/api/logout')
 
-    return { user }
+    return { user: profile.user }
 }

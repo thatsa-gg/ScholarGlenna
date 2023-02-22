@@ -1,9 +1,12 @@
-import { redirect, type RequestHandler } from '@sveltejs/kit'
+import { error, redirect, type RequestHandler } from '@sveltejs/kit'
 import { authorizeUser } from '@glenna/auth'
 import { createSession } from '$lib/server/session'
 
 export const GET: RequestHandler = async ({ cookies, url }) => {
-    const authorization = await authorizeUser(url.searchParams.get('code'))
+    const code = url.searchParams.get('code')
+    if(!code)
+        throw error(400, `Missing authorization code.`)
+    const authorization = await authorizeUser(code)
     const session = await createSession(authorization)
     cookies.set('session_id', session.id, {
         path: '/',

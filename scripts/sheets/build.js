@@ -1,5 +1,5 @@
 const esbuild = require('esbuild')
-const { readFileSync, writeFileSync, fstat } = require('fs')
+const { readFileSync, writeFileSync } = require('fs')
 const { generate } = require('gas-entry-generator')
 
 void async function(){
@@ -12,14 +12,16 @@ void async function(){
         logLevel: 'info',
         platform: 'node',
         target: 'node16',
+        format: 'cjs',
+        treeShaking: true,
         plugins: [
             {
                 name: 'gas',
                 setup(build){
-                    build.onEnd(result => {
+                    build.onEnd(() => {
                         const content = readFileSync(build.initialOptions.outfile, 'utf-8')
-                        const gas = generate(content, { comment: true, autoGlobalExports: true })
-                        writeFileSync(build.initialOptions.outfile, `var global=this;${gas.entryPointFunctions.replace(/\n/g, '')};(()=>{${content.trim()}})()`)
+                        const gas = generate(content, { comment: true })
+                        writeFileSync(build.initialOptions.outfile, `var exports=this;${gas.entryPointFunctions.replace(/\n/g, '')};(()=>{${content.trim()}})()`)
                     })
                 }
             }

@@ -17,6 +17,7 @@ export namespace Discord {
                 IntentsBitField.Flags.GuildMembers,
                 IntentsBitField.Flags.GuildMessages,
                 IntentsBitField.Flags.GuildMessageReactions,
+                IntentsBitField.Flags.GuildPresences,
             ]
         })
     }
