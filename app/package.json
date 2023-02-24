@@ -38,8 +38,11 @@
         "@trpc/client": "^10.12.0",
         "@trpc/server": "^10.12.0",
         "@types/ws": "^8.5.4",
+        "autoprefixer": "^10.4.13",
         "dotenv": "^16.0.3",
+        "postcss": "^8.4.21",
         "svelte-gestures": "^1.4.1",
+        "tailwindcss": "^3.2.7",
         "trpc-sveltekit": "^3.4.2",
         "uuid": "^9.0.0",
         "ws": "^8.12.1"

@@ -15,6 +15,22 @@
         "**/.npmrc": false,
         "pnpm-lock.yaml": false
     },
+    "files.associations": {
+        "*.css": "tailwindcss"
+    },
+    "tailwindCSS.files.exclude": [
+        "**/.git/**",
+        "**/node_modules/**",
+        "**/.hg/**",
+        "**/.svn/**",
+        "packages/**",
+        "scripts/**"
+    ],
+    "editor.quickSuggestions": {
+        "other": "on",
+        "comments": "off",
+        "strings": "on"
+    },
     "svelte.enable-ts-plugin": true,
     "cSpell.words": [
         "sveltejs"
