@@ -16,9 +16,9 @@
   "scripts": {
     "migrate": "pnpm --prefix packages/prisma run migrate",
     "bot": "pnpm --prefix packages/bot run bot",
-    "dev": "pnpm --prefix packages/app run dev",
     "generate": "pnpm --prefix packages/prisma run generate",
     "build": "pnpm exec tsc --build",
-    "sync": "pnpm --prefix packages/app run sync"
+    "dev": "pnpm --prefix app run dev",
+    "sync": "pnpm --prefix app run sync"
   }
 }

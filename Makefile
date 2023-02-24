@@ -14,7 +14,8 @@ install:
 
 clean:
 	find packages -type d -name node_modules -prune -o -type f -name *.tsbuildinfo -exec rm {} \;
-	rm -rf build packages/*/dist *.tsbuildinfo
+	find scripts -type d -name node_modules -prune -o -type f -name *.tsbuildinfo -exec rm {} \;
+	rm -rf build packages/*/dist app/build *.tsbuildinfo
 
 init: install
 
@@ -25,19 +26,19 @@ ts-build:
 	pnpm run build
 
 dev:
-	pnpm --prefix packages/app run dev
+	pnpm --prefix app run dev
 
 svelte-build:
-	pnpm --prefix packages/app run build
+	pnpm --prefix app run build
 
 svelte-package:
-	pnpm --prefix packages/app run package
+	pnpm --prefix app run package
 
 svelte-preview:
-	pnpm --prefix packages/app run preview
+	pnpm --prefix app run preview
 
 svelte-prepare:
-	pnpm --prefix packages/app run prepare
+	pnpm --prefix app run prepare
 
 sync:
-	pnpm --prefix packages/app run prepare
+	pnpm --prefix app run prepare
