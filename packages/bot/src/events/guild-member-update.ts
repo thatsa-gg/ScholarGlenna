@@ -18,7 +18,8 @@ export const guildMemberUpdateListener = listener('guildMemberUpdate', {
                     select: {
                         id: true,
                         name: true,
-                        icon: true
+                        icon: true,
+                        lostRemoteReferenceAt: true,
                     }
                 }
             }

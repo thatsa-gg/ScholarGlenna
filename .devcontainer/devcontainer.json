@@ -13,15 +13,16 @@
     "customizations": {
         "vscode": {
             "extensions": [
-                "dbaeumer.vscode-eslint",
-                "ms-azuretools.vscode-docker",
-                "EditorConfig.EditorConfig",
-                "eamodio.gitlens",
-                "svelte.svelte-vscode",
-                "amodio.toggle-excluded-files",
-                "Tobermory.es6-string-html",
-                "Prisma.prisma"
-            ]
+				"dbaeumer.vscode-eslint",
+				"ms-azuretools.vscode-docker",
+				"EditorConfig.EditorConfig",
+				"eamodio.gitlens",
+				"svelte.svelte-vscode",
+				"amodio.toggle-excluded-files",
+				"Tobermory.es6-string-html",
+				"Prisma.prisma",
+				"bradlc.vscode-tailwindcss"
+			]
         }
     },
 

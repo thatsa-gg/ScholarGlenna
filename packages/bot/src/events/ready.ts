@@ -4,7 +4,7 @@ import { sendWelcomeMessage } from '../util/guild.js'
 import { listener } from '../EventListener.js'
 import { DISCORD_TOKEN, OAUTH_CLIENT_ID } from '../config.js'
 import { registerCommands } from '../commands/index.js'
-import type { Prisma, PrismaPromise } from '@glenna/prisma'
+import type { Prisma } from '@glenna/prisma'
 import { DiscordAPIError } from 'discord.js'
 
 function isUserOrMemberNotFoundError(e: any): e is (DiscordAPIError & { code: 10013 | 10007 }) {

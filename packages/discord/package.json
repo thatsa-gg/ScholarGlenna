@@ -6,7 +6,6 @@
     "types": "src/index.ts",
     "dependencies": {
         "@glenna/cache": "workspace:*",
-        "@glenna/prisma": "workspace:*",
         "discord.js": "^14.7.1",
         "dotenv": "^16.0.2"
     },
