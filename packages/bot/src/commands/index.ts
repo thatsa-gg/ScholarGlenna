@@ -32,7 +32,7 @@ ChatCommands.set(glennaCommand.name, glennaCommand)
 import { messageSubmitLogs } from './_message/submit-logs.js'
 
 export const MessageCommands: Map<string, MessageCommandHelper> = new Map<string, MessageCommandHelper>()
-MessageCommands.set(messageSubmitLogs.name, messageSubmitLogs)
+//MessageCommands.set(messageSubmitLogs.name, messageSubmitLogs)
 
 let client: REST | null = null
 const commandList: RESTPostAPIApplicationCommandsJSONBody[] = []

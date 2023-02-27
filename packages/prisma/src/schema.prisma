@@ -7,7 +7,7 @@ generator client {
 datasource db {
     provider = "postgresql"
     url      = env("DATABASE_URL")
-    schemas = [ "log", "guild", "app", "public" ]
+    schemas  = [ "log", "guild", "app", "public" ]
 }
 
 enum CharacterClass {
@@ -155,11 +155,11 @@ model LogPlayer {
 
 model Log {
     id Int @id @default(autoincrement()) @map("log_id")
-    teamId Int
+    teamId Int @map("team_id")
     url String @unique
     boss Boss
     difficulty LogDifficultyType
-    emboldenedLevel Int? @db.SmallInt @default(dbgenerated("null"))
+    emboldenedLevel Int? @db.SmallInt @map("emboldened_level") @default(dbgenerated("null"))
     success Boolean
     duration Int // milliseconds
 
@@ -212,7 +212,6 @@ model Guild {
     snowflake BigInt @unique
     name String
     alias String @unique @db.VarChar(32)
-    primaryDivisionId Int? @unique @map("primary_division_id")
 
     // Marks when the bot first became aware it wasn't in a guild anymore.
     lostRemoteReferenceAt DateTime? @db.Timestamptz(3) @map("lost_remote_reference_at")
@@ -220,7 +219,6 @@ model Guild {
     teams Team[]
     members GuildMember[]
     divisions Division[]
-    primaryDivision Division? @relation("primaryDivision", fields: [primaryDivisionId], references: [id], onDelete: SetNull)
     @@schema("guild")
     @@map("guild")
 }
@@ -254,10 +252,10 @@ model Division {
     guildId Int @map("guild_id")
     snowflake BigInt @unique @default(dbgenerated("new_snowflake()"))
     name String
+    primary Boolean @default(false)
 
     guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
-    primaryDivisionFor Guild? @relation("primaryDivision")
-    teams TeamDivision[]
+    teams Team[]
     @@schema("guild")
     @@map("division")
 }
@@ -325,6 +323,7 @@ model Team {
     id Int @id @default(autoincrement()) @map("team_id")
     snowflake BigInt @unique @default(dbgenerated("new_snowflake()"))
     guildId Int @map("guild_id")
+    divisionId Int @map("division_id")
     type TeamType @default(Normal)
     name String
     alias String @db.VarChar(32)
@@ -338,26 +337,14 @@ model Team {
     icon String?
 
     guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+    division Division @relation(fields: [divisionId], references: [id], onDelete: Restrict)
     members TeamMember[]
-    divisions TeamDivision[]
     logs Log[]
     times TeamTime[]
 
     @@unique([guildId, alias])
     @@schema("guild")
     @@map("team")
-}
-
-model TeamDivision {
-    id Int @id @default(autoincrement()) @map("team_division_id")
-    teamId Int @map("team_id")
-    divisionId Int @map("division_id")
-
-    team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
-    division Division @relation(fields: [divisionId], references: [id], onDelete: Cascade)
-    @@unique([teamId, divisionId])
-    @@schema("guild")
-    @@map("teamdivision")
 }
 
 model TeamTime {

@@ -178,7 +178,6 @@ create table "guild"."guild" (
     "snowflake" bigint unique not null,
     "name" text not null,
     "alias" varchar(32) unique not null,
-    "primary_division_id" int unique references "guild"."division" on delete set null,
     "lost_remote_reference_at" timestamptz(3)
 );
 
@@ -200,7 +199,8 @@ create table "guild"."division" (
     "division_id" serial primary key not null,
     "guild_id" integer not null references "guild"."guild"("guild_id") on delete cascade,
     "snowflake" bigint unique not null default new_snowflake(),
-    "name" text not null
+    "name" text not null,
+    "primary" boolean not null default false
 );
 
 -- CreateTable
@@ -208,6 +208,7 @@ create table "guild"."team" (
     "team_id" serial primary key not null,
     "snowflake" bigint unique not null default new_snowflake(),
     "guild_id" integer not null references "guild"."guild"("guild_id") on delete cascade,
+    "division_id" integer not null references "guild"."division"("division_id") on delete restrict deferrable initially deferred,
     "type" "guild"."teamtype" not null default 'normal',
     "name" text not null,
     "alias" varchar(32) not null,
@@ -220,14 +221,6 @@ create table "guild"."team" (
     "icon" text,
 
     unique("guild_id", "alias")
-);
-
--- CreateTable
-create table "guild"."teamdivision" (
-    "team_division_id" serial primary key not null,
-    "team_id" integer not null references "guild"."team"("team_id") on delete cascade,
-    "division_id" integer not null references "guild"."division"("division_id") on delete cascade,
-    unique("team_id", "division_id")
 );
 
 create table "guild"."teamtime" (
@@ -255,11 +248,11 @@ create table "app"."profile" (
 -- CreateTable
 create table "public"."log" (
     "log_id" serial primary key not null,
-    "teamId" integer not null references "guild"."team"("team_id") on delete restrict,
+    "team_id" integer not null references "guild"."team"("team_id") on delete restrict,
     "url" text unique not null,
     "boss" "log"."boss" not null,
     "difficulty" "log"."logdifficultytype" not null,
-    "emboldenedLevel" smallint default null,
+    "emboldened_level" smallint default null,
     "success" boolean not null,
     "duration" integer not null,
     "start_at" timestamptz(3) not null,

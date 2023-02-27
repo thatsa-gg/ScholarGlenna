@@ -7,7 +7,8 @@ export const findProcedure = procedure
     .input(z.union([
         z.object({ name: z.string() }),
         z.object({ alias: z.string() }),
-        z.undefined()
+        z.undefined(),
+        z.null()
     ]))
     .query(async ({ input }) => {
         const guilds = await database.guild.findMany({

@@ -7,6 +7,7 @@ export const divisionCreateCommand: SlashSubcommandHelper = slashSubcommand('cre
     builder(builder){
         return builder.setDescription('Create a new raid division.')
             .addStringOption(o => o.setName('name').setDescription('Division name.').setRequired(true))
+            .addBooleanOption(o => o.setName('primary').setDescription('Is this the new primary division for this guild?'))
     },
     async execute(interaction){
         const [ sourceGuild, sourceUser ] = await getGuildAndUser(interaction) || []
@@ -23,9 +24,14 @@ export const divisionCreateCommand: SlashSubcommandHelper = slashSubcommand('cre
         }
 
         const name = interaction.options.getString('name', true)
+        const primary = interaction.options.getBoolean('primary') || false
+        if(primary){
+            // unmark the old primary
+            await database.division.updateMany({ where: { primary: true }, data: { primary: false }})
+        }
         const division = await database.division.create({
             data: {
-                name,
+                name, primary,
                 guild: { connect: { snowflake: guildSnowflake }}
             },
             select: {
@@ -34,42 +40,18 @@ export const divisionCreateCommand: SlashSubcommandHelper = slashSubcommand('cre
                 snowflake: true,
                 guild: {
                     select: {
-                        id: true,
-                        primaryDivisionId: true
+                        id: true
                     }
                 }
             }
         })
         debug(`Create division "${division.name}" (${division.id}) in guild "${sourceGuild.name}" (${sourceGuild.id})`)
 
-        if(null === division.guild.primaryDivisionId){
-            await database.guild.update({
-                where: { id: division.guild.id },
-                data: {
-                    primaryDivisionId: division.guild.id
-                }
-            })
-            const unassociatedTeams = await database.team.findMany({
-                where: {
-                    guild: { id: division.guild.id },
-                    divisions: { none: {} }
-                },
-                select: {
-                    id: true
-                }
-            })
-            await database.teamDivision.createMany({
-                data: unassociatedTeams.map(team => ({ teamId: team.id, divisionId: division.id }))
-            })
-            division.guild.primaryDivisionId = division.id
-            debug(`Set division "${division.name}" (${division.id}) as primary for guild "${sourceGuild.name}" (${sourceGuild.id}) -- missing primary.`)
-        }
-
         const embed = new EmbedBuilder({
             color: 0x40a86d,
             title: `Division ${division.name} registered.`
         })
-        if(division.guild.primaryDivisionId === division.id){
+        if(primary){
             embed.addFields({
                 inline: true,
                 name: 'Default division',

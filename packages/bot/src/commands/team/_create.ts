@@ -28,6 +28,12 @@ export const teamCreateCommand: SlashSubcommandHelper = slashSubcommand('create'
         const channel = interaction.options.getChannel('channel')
         const role = interaction.options.getRole('role')
         const name = interaction.options.getString('name', true)
+        const division = await database.division.findFirstOrThrow({
+            where: { guild: { snowflake: guildSnowflake }, primary: true },
+            select: {
+                id: true
+            }
+        })
 
         const team = await database.team.create({
             data: {
@@ -35,7 +41,8 @@ export const teamCreateCommand: SlashSubcommandHelper = slashSubcommand('create'
                 channel: channel ? BigInt(channel.id) : null,
                 role: role ? BigInt(role.id) : null,
                 alias: slugify(name),
-                guild: { connect: { snowflake: guildSnowflake }}
+                guild: { connect: { snowflake: guildSnowflake }},
+                division: { connect: division }
             }
         })
         debug(`Create team "${team.name}" (${team.id}) in guild "${sourceGuild.name}" (${sourceGuild.id})`)

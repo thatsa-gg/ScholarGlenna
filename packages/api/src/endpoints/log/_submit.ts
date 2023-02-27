@@ -13,10 +13,10 @@ function parseDateString(date: string): Date {
 async function loadDPSReportData(team: Pick<Team, 'id'>, url: URL): Promise<Prisma.LogCreateManyInput> {
     const response = await fetch(`https://dps.report/getJson?permalink=${url.pathname.slice(1)}`)
     const data = await response.json()
-    const boss = triggerIDToBoss(data.triggerID as number)
+    const boss = triggerIDToBoss(Number(data.triggerID))
     if(null === boss)
-        throw `Unrecognized Boss ID ${boss}`
-    const [ buff, stacks ] = data?.presentInstanceBuffs[0] || []
+        throw `Unrecognized Boss ID ${data.triggerID}`
+    const [ buff, stacks ] = data?.presentInstanceBuffs?.[0] || []
     return {
         url: url.toString(),
         difficulty: buff === 68087 && stacks > 0 ? 'Emboldened' : data.isCM ? 'ChallengeMode' : 'NormalMode',
@@ -35,7 +35,7 @@ async function loadWingmanData(team: Pick<Team, 'id'>, url: URL): Promise<Prisma
     const data = await response.json()
     const boss = triggerIDToBoss(data.triggerID as number)
     if(null === boss)
-        throw `Unrecognized Boss ID ${boss}`
+        throw `Unrecognized Boss ID ${data.triggerID}`
     return {
         url: url.toString(),
         difficulty: data.emboldened > 0 ? 'Emboldened' : data.isCM ? 'ChallengeMode' : 'NormalMode',
@@ -58,6 +58,7 @@ export const submitProcedure = procedure
     }))
     .mutation(async ({ input: { team, logs } }) => {
         const data = await Promise.all(logs
+            .map(url => url.startsWith('https://') ? url : `https://${url}`)
             .map(url => new URL(url))
             .map(url => url.host === 'dps.report' ? loadDPSReportData(team, url) : loadWingmanData(team, url)))
         // TODO: log players.

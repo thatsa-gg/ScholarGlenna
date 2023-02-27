@@ -16,14 +16,17 @@ export const teamCreateCommand: SlashCommandHelper = slashCommand({
         source: djs.guild()
     }),
     async execute({ name, channel, role, source }, interaction){
-        const guild = await database.guild.lookupOrThrow(source, { id: true })
+        const guild = await database.guild.lookupOrThrow(source, { id: true, divisions: { where: { primary: true }, select: { id: true }}})
+        if(guild.divisions.length !== 1)
+            throw `Fatal error: number of primary divisions in guild ${guild.id} is ${guild.divisions.length}`;
         const team = await database.team.create({
             data: {
                 name,
                 role: role ? BigInt(role.id) : null,
                 channel: channel ? BigInt(channel.id) : null,
                 alias: slugify(name),
-                guild: { connect: { id: guild.id }}
+                guild: { connect: { id: guild.id }},
+                division: { connect: guild.divisions[0] }
             }
         })
         debug(`Create team "${team.name}" (${team.id}) in guild "${source.name}" (${guild.id})`)

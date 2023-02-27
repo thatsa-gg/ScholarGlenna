@@ -52,7 +52,7 @@ export function triggerIDToBoss(id: number): Boss | null {
 
         // Wing 3
         case 16253: return 'Escort'
-        case 16234: return 'KeepConstruct'
+        case 16235: return 'KeepConstruct'
         case 16247: return 'TwistedCastle'
         case 16246: return 'Xera'
 

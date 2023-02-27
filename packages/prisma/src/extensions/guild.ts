@@ -11,50 +11,73 @@ export const guildExtension = Prisma.defineExtension(client => client.$extends({
                 const guildAlias = guild.vanityURLCode && await client.guild.findUnique({ where: { alias: guild.vanityURLCode }})
                     ? guild.vanityURLCode
                     : guildId.toString(36)
-                const guildData = await client.guild.create({
-                    data: {
-                        name: guild.name,
-                        snowflake: guildId,
-                        alias: guildAlias,
-                        teams: {
-                            create: {
-                                snowflake: guildId,
-                                alias: 'management-team',
-                                name: 'Management Team',
-                                type: 'Management',
-                            }
-                        },
-                        members: {
-                            create: {
-                                snowflake: ownerId,
-                                name: owner.nickname,
-                                icon: owner.avatar,
-                                user: {
-                                    connectOrCreate: {
-                                        where: { snowflake: ownerId },
-                                        create: {
-                                            snowflake: ownerId,
-                                            name: owner.user.username,
-                                            discriminator: owner.user.discriminator,
-                                            icon: owner.user.avatar
+                client.$transaction(async client => {
+                    await client.$executeRaw`set constraints all deferred;`
+                    const guildData = await client.guild.create({
+                        data: {
+                            name: guild.name,
+                            snowflake: guildId,
+                            alias: guildAlias,
+                            divisions: {
+                                create: {
+                                    name: guild.name,
+                                    snowflake: guildId,
+                                    primary: true
+                                }
+                            },
+                            teams: {
+                                create: {
+                                    snowflake: guildId,
+                                    alias: 'management-team',
+                                    name: 'Management Team',
+                                    type: 'Management',
+                                    capacity: null,
+                                    divisionId: 0 // placeholder, updated below
+                                }
+                            },
+                            members: {
+                                create: {
+                                    snowflake: ownerId,
+                                    name: owner.nickname,
+                                    icon: owner.avatar,
+                                    user: {
+                                        connectOrCreate: {
+                                            where: { snowflake: ownerId },
+                                            create: {
+                                                snowflake: ownerId,
+                                                name: owner.user.username,
+                                                discriminator: owner.user.discriminator,
+                                                icon: owner.user.avatar
+                                            }
                                         }
                                     }
                                 }
                             }
+                        },
+                        select: {
+                            id: true,
+                            divisions: { select: { id: true }},
+                            teams: { select: { id: true }},
+                            members: { select: { id: true }}
                         }
-                    },
-                    select: {
-                        id: true,
-                        teams: { select: { id: true }},
-                        members: { select: { id: true }}
-                    }
-                })
-                await client.teamMember.create({
-                    data: {
-                        role: 'Captain',
-                        team: { connect: guildData.teams[0]! },
-                        member: { connect: guildData.members[0]! }
-                    }
+                    })
+
+                    // repair links
+                    await client.team.update({
+                        where: guildData.teams[0]!,
+                        data: {
+                            division: { connect: guildData.divisions[0]! }
+                        }
+                    })
+
+                    // add owner as captain of management team
+                    await client.teamMember.create({
+                        data: {
+                            role: 'Captain',
+                            team: { connect: guildData.teams[0]! },
+                            member: { connect: guildData.members[0]! }
+                        }
+                    })
                 })
             }
         }

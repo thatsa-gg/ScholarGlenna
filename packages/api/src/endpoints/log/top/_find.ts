@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { procedure, scalarOrArray } from '../../../trpc.js'
 import { database } from "../../../database.js"
-import { Boss, LogDifficultyType, TeamFocus, TeamLevel, TeamRegion } from '@glenna/prisma'
+import { Boss, LogDifficultyType, Prisma, stringifySnowflake, TeamFocus, TeamLevel, TeamRegion } from '@glenna/prisma'
 
 const commonProperties = z.object({
     boss: scalarOrArray(z.nativeEnum(Boss)).optional(),
@@ -10,7 +10,7 @@ const commonProperties = z.object({
     after: z.date().optional(),
     before: z.date().optional(),
     limit: z.number().min(1).max(1000).default(1),
-    skip: z.number().min(0).optional()
+    skip: z.number().min(0).default(0)
 })
 
 const withTeamFilters = commonProperties.extend({
@@ -36,21 +36,21 @@ export const findProcedure = procedure
                 difficulty: Array.isArray(input.difficulty) ? { in: input.difficulty } : input.difficulty,
                 team: Array.isArray(input.team) ? { snowflake: { in: input.team }}
                     : typeof input.team === 'bigint' ? { snowflake: input.team }
-                    : input.team ? input.team
-                    : 'guild' in input ? { guild: { snowflake: Array.isArray(input.guild) ? { in: input.guild } : input.guild }}
-                    : 'division' in input ? { divisions: { some: { division: { snowflake: Array.isArray(input.division) ? { in: input.division } : input.division }}}}
-                    : undefined,
+                    : 'guild' in input ? { ...input.team, guild: { snowflake: Array.isArray(input.guild) ? { in: input.guild } : input.guild }}
+                    : 'division' in input ? { ...input.team, division: { snowflake: Array.isArray(input.division) ? { in: input.division } : input.division }}
+                    : input.team,
                 startAt: {
                     gte: input.after,
                     lt: input.before
                 }
             },
-            take: input.limit,
-            skip: input.skip,
-            orderBy: {
-                duration: 'asc'
-            },
-            distinct: [ 'boss', 'difficulty' ],
+            orderBy: [
+                { success: 'asc' },
+                { difficulty: 'asc' },
+                { emboldenedLevel: 'asc' },
+                { duration: 'asc' },
+            ],
+            distinct: [ 'teamId', 'boss', 'difficulty' ],
             select: {
                 id: true,
                 url: true,
@@ -69,5 +69,24 @@ export const findProcedure = procedure
                 }
             }
         })
-        return logs
+
+        // weird types so we can stable-sort remove any extra teams with the same ordering as the initial query
+        const buckets = new Map<`${Boss}${LogDifficultyType}`, [teams: Set<bigint>, logs: typeof logs]>();
+        for(const log of logs){
+            const encounter = `${log.boss}${log.difficulty}` as const
+            const [ teams, logs ] = buckets.get(encounter) ?? buckets.set(encounter, [new Set(), []]).get(encounter)!
+            if(!teams.has(log.team.snowflake)){
+                teams.add(log.team.snowflake)
+                logs.push(log)
+            }
+        }
+
+        // *hurk*
+        return Object.fromEntries(Array.from(buckets.entries(), ([ encounter, [, logs] ]) => [
+            encounter,
+            logs.slice(input.skip, input.skip + input.limit).map(log => ({
+                ...log,
+                team: stringifySnowflake(log.team)
+            }))
+        ]))
     })

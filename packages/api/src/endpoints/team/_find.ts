@@ -26,7 +26,7 @@ export const findProcedure = procedure
                 region: input.region,
                 type: Array.isArray(input.type) ? { in: input.type } : input.type,
                 guild: 'guild' in input ? { snowflake: input.guild } : undefined,
-                divisions: 'division' in input ? { some: { division: { snowflake: input.division }}} : undefined
+                division: 'division' in input ? { snowflake: input.division } : undefined
             },
             select: {
                 snowflake: true,
