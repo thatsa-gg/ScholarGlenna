@@ -4,7 +4,7 @@ import { createTRPCProxyClient, httpLink } from '@trpc/client'
 export const client: ReturnType<typeof createTRPCProxyClient<AppRouter>> = createTRPCProxyClient<AppRouter>({
     links: [
         httpLink({
-            url: 'http://159.65.235.188:3000/trpc',
+            url: 'http://159.65.235.188/api/trpc',
             fetch: async function(...args){
                 // fake the heck out of these types because it *technically* works for TRPC.
                 const response = UrlFetchApp.fetch(...(args as Parameters<typeof UrlFetchApp['fetch']>))
