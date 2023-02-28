@@ -8,8 +8,5 @@
         "@glenna/cache": "workspace:*",
         "discord.js": "^14.7.1",
         "dotenv": "^16.0.2"
-    },
-    "devDependencies": {
-        "@types/node": "^18.11.18"
     }
 }
