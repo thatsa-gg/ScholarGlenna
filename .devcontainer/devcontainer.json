@@ -25,10 +25,9 @@
 			]
         }
     },
-
     "forwardPorts": [
         8080
     ],
-    "postCreateCommand": "make install",
+    "postCreateCommand": ".vscode/setup.sh",
     "remoteUser": "vscode"
 }

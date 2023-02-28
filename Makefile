@@ -1,44 +1,31 @@
-TSC=npx tsc
-PROJECT=glenna
-.PHONY: all $(PROJECT) build clean run install svelte-dev svelte-build svelte-package svelte-preview svelte-prepare ts-build ts-dev init
+DELEGATE_PRISMA = migrate migrate-reset migrate-status generate
+DELEGATE_APP = $(addprefix app.,build dev package sync check)
+.PHONY: glenna all clean install
+.PHONY: build build-app build-bot build-ts
+.PHONY: $(DELEGATE_PRISMA) $(DELEGATE_APP)
 
-$(PROJECT): build
-all: clean install $(PROJECT)
-
-build: ts-build svelte-build
-run:
-	node --es-module-specifier-resolution=node --experimental-import-meta-resolve .
-
-install:
-	pnpm install
+glenna: install build
+all: clean install build
 
 clean:
 	find packages -type d -name node_modules -prune -o -type f -name *.tsbuildinfo -exec rm {} \;
 	find scripts -type d -name node_modules -prune -o -type f -name *.tsbuildinfo -exec rm {} \;
 	rm -rf build packages/*/dist app/build *.tsbuildinfo
 
-init: install
+install:
+	pnpm install
 
-ts-dev:
-	$(TSC) --watch
+build: build-app build-bot
+build-app: build-ts app.build
+build-bot: build-ts
+build-ts:
+	pnpm exec tsc --build
 
-ts-build:
-	pnpm run build
+run:
+	node --es-module-specifier-resolution=node --experimental-import-meta-resolve .
 
-dev:
-	pnpm --prefix app run dev
+$(DELEGATE_PRISMA):
+	pnpm --prefix packages/prisma run $@
 
-svelte-build:
-	pnpm --prefix app run build
-
-svelte-package:
-	pnpm --prefix app run package
-
-svelte-preview:
-	pnpm --prefix app run preview
-
-svelte-prepare:
-	pnpm --prefix app run prepare
-
-sync:
-	pnpm --prefix app run prepare
+$(DELEGATE_APP):
+	pnpm --prefix app run $(patsubst app.%,%,$@)

@@ -1,7 +1,11 @@
 import { config } from 'dotenv'
 import path from 'path/posix'
 import { fileURLToPath } from 'url'
-config({ path: path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../../config.env") })
+
+import { building } from '$app/environment'
+if(!building){
+    config({ path: path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../../config.env") })
+}
 
 export function getConfig(){
     const {
