@@ -1,4 +1,0 @@
-shared-workspace-lockfile: true
-packages:
-    - 'packages/**'
-    - 'src/**'

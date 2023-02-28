@@ -16,15 +16,16 @@
         "pnpm-lock.yaml": false
     },
     "files.associations": {
-        "*.css": "tailwindcss"
+        "*.css": "tailwindcss",
+        "rush.json": "jsonc",
+        "common/config/rush/*.json": "jsonc"
     },
     "tailwindCSS.files.exclude": [
         "**/.git/**",
         "**/node_modules/**",
         "**/.hg/**",
         "**/.svn/**",
-        "packages/**",
-        "scripts/**"
+        "packages/**"
     ],
     "editor.quickSuggestions": {
         "other": "on",

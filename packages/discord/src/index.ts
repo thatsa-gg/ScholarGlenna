@@ -2,8 +2,6 @@ import {
     Client,
     IntentsBitField,
     REST,
-    Routes,
-    type User,
 } from 'discord.js'
 import { getConfig } from './config.js'
 

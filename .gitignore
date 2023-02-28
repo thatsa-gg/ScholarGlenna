@@ -11,3 +11,19 @@ config.env
 
 # junk
 .DS_Store
+*.log
+npm-debug.log*
+*.pid
+*.seed
+*.pid.lock
+.lock-wscript
+jspm_packages/
+.npm
+.eslintcache
+.node_repl_history
+
+# Rush temporary files
+common/deploy/
+common/temp/
+common/autoinstallers/*/.npmrc
+**/.rush/temp/

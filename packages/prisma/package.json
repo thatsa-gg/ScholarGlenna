@@ -6,9 +6,12 @@
     "main": "dist/index.js",
     "types": "src/index.ts",
     "devDependencies": {
-        "prisma": "^4.10.1"
+        "prisma": "^4.10.1",
+        "@types/node": "^18",
+        "typescript": "^4.9"
     },
     "dependencies": {
+        "@rushstack/heft": "^0.49.7",
         "@glenna/discord": "workspace:*",
         "@prisma/client": "^4.10.1",
         "zod": "^3.20.6"
@@ -17,7 +20,8 @@
         "migrate": "pnpm exec prisma migrate deploy",
         "migrate-reset": "pnpm exec prisma migrate reset",
         "migrate-status": "pnpm exec prisma migrate status",
-        "generate": "pnpm exec prisma generate"
+        "generate": "pnpm exec prisma generate",
+        "build": "heft build"
     },
     "prisma": {
         "schema": "src/schema.prisma"
