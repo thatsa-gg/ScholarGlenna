@@ -3,9 +3,9 @@
     "files": [],
     "include": [],
     "references": [
+        { "path": "./src/bot/tsconfig.json" },
         { "path": "./packages/api/tsconfig.json" },
         { "path": "./packages/auth/tsconfig.json" },
-        { "path": "./packages/bot/tsconfig.json" },
         { "path": "./packages/cache/tsconfig.json" },
         { "path": "./packages/discord/tsconfig.json" },
         { "path": "./packages/prisma/tsconfig.json" },

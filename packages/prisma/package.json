@@ -14,8 +14,8 @@
         "zod": "^3.20.6"
     },
     "scripts": {
-        "migrate-reset": "pnpm exec prisma migrate reset",
         "migrate": "pnpm exec prisma migrate deploy",
+        "migrate-reset": "pnpm exec prisma migrate reset",
         "migrate-status": "pnpm exec prisma migrate status",
         "generate": "pnpm exec prisma generate",
         "postinstall": "pnpm exec prisma generate"
