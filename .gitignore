@@ -5,6 +5,7 @@ node_modules/
 invite.url
 *.tsbuildinfo
 .parcel-cache
+.rush
 
 # base version present, up to the user for the rest
 config.env

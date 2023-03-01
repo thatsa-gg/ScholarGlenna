@@ -1,6 +1,6 @@
 DELEGATE_PRISMA = $(addprefix prisma.,migrate migrate-reset migrate-status generate)
 DELEGATE_APP = $(addprefix app.,build dev package sync check)
-.PHONY: glenna all clean clean-build clean-deploy install rush-install build deploy
+.PHONY: glenna all clean clean-build clean-deploy install build deploy
 .PHONY: $(DELEGATE_PRISMA) $(DELEGATE_APP)
 
 glenna: install build
@@ -11,9 +11,10 @@ clean-build:
 	rush clean
 clean-deploy:
 	rm -rf common/deploy
+pwd:
+	pwd
 
-install: rush-install prisma.generate
-rush-install:
+install:
 	rush install
 
 build:

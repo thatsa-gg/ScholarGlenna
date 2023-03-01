@@ -1,24 +1,15 @@
 {
     "files.exclude": {
-        "**/.git": false,
-        "**/.svn": false,
-        "**/.hg": false,
-        "**/CVS": false,
-        "**/.DS_Store": false,
-        "**/Thumbs.db": false,
-        "**/.pnpm-store": false,
-        "**/node_modules": false,
-        "**/*.tsbuildinfo": false,
-        "**/dist": false,
-        "**/build": false,
-        "**/.svelte-kit": false,
-        "**/.npmrc": false,
-        "pnpm-lock.yaml": false
+        "**/.git": true,
+        "**/.DS_Store": true,
+        "packages/**/node_modules": true,
+        "src/**/node_modules": true,
+        "**/.svelte-kit": true
     },
     "files.associations": {
         "*.css": "tailwindcss",
-        "rush.json": "jsonc",
-        "common/config/rush/*.json": "jsonc"
+        "**/rush.json": "jsonc",
+        "**/common/config/rush/*.json": "jsonc"
     },
     "tailwindCSS.files.exclude": [
         "**/.git/**",
