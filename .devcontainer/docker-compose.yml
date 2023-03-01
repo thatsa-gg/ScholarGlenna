@@ -2,11 +2,7 @@ version: '3'
 
 services:
   devcontainer:
-    build:
-      context: ../.devcontainer
-      dockerfile: Dockerfile
-      args:
-        VARIANT: "bullseye"
+    image: mcr.microsoft.com/devcontainers/base:bullseye
     env_file:
         - ../docker/.env
         - ../docker/db.env
@@ -17,4 +13,3 @@ services:
       - ..:/workspace:cached
     entrypoint: /usr/local/share/docker-init.sh
     command: sleep infinity
-    user: vscode
