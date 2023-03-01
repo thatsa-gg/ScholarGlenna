@@ -4,7 +4,8 @@
     "private": true,
     "version": "0.0.1",
     "scripts": {
-        "build": "vite build",
+        "build": "rimraf build && vite build 2>&1",
+        "clean": "rimraf build",
         "dev": "vite dev --port 8080",
         "preview": "vite preview --port 8080",
         "package": "svelte-kit package",
@@ -13,6 +14,7 @@
         "check:watch": "svelte-check --tsconfig ./tsconfig.json --watch"
     },
     "devDependencies": {
+        "rimraf": "^4.1.2",
         "@sveltejs/adapter-node": "^1.2.0",
         "@sveltejs/kit": "^1.8.5",
         "@types/uuid": "^9.0.1",

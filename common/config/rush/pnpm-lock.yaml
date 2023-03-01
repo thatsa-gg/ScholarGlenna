@@ -27,6 +27,7 @@ importers:
       '@glenna/cache': workspace:*
       '@glenna/discord': workspace:*
       '@glenna/prisma': workspace:*
+      '@rushstack/heft': ^0.49.7
       '@types/node': ^18
       dotenv: ^16.0.2
       typescript: ^4.9
@@ -36,6 +37,7 @@ importers:
       '@glenna/prisma': link:../prisma
       dotenv: 16.0.3
     devDependencies:
+      '@rushstack/heft': 0.49.7_@types+node@18.14.2
       '@types/node': 18.14.2
       typescript: 4.9.5
 
@@ -56,6 +58,7 @@ importers:
 
   ../../packages/discord:
     specifiers:
+      '@rushstack/heft': ^0.49.7
       '@types/node': ^18
       discord.js: ^14.7.1
       dotenv: ^16.0.2
@@ -64,6 +67,7 @@ importers:
       discord.js: 14.7.1
       dotenv: 16.0.3
     devDependencies:
+      '@rushstack/heft': 0.49.7_@types+node@18.14.2
       '@types/node': 18.14.2
       typescript: 4.9.5
 
@@ -71,6 +75,7 @@ importers:
     specifiers:
       '@glenna/discord': workspace:*
       '@prisma/client': ^4.10.1
+      '@rushstack/heft': ^0.49.7
       '@types/node': ^18
       prisma: ^4.10.1
       typescript: ^4.9
@@ -80,6 +85,7 @@ importers:
       '@prisma/client': 4.11.0_prisma@4.11.0
       zod: 3.20.6
     devDependencies:
+      '@rushstack/heft': 0.49.7_@types+node@18.14.2
       '@types/node': 18.14.2
       prisma: 4.11.0
       typescript: 4.9.5
@@ -87,11 +93,13 @@ importers:
   ../../packages/util:
     specifiers:
       '@js-temporal/polyfill': ^0.4.2
+      '@rushstack/heft': ^0.49.7
       '@types/node': ^18
       typescript: ^4.9
     dependencies:
       '@js-temporal/polyfill': 0.4.3
     devDependencies:
+      '@rushstack/heft': 0.49.7_@types+node@18.14.2
       '@types/node': 18.14.2
       typescript: 4.9.5
 
@@ -116,6 +124,7 @@ importers:
       autoprefixer: ^10.4.13
       dotenv: ^16.0.2
       postcss: ^8.4.21
+      rimraf: ^4.1.2
       svelte: ^3.55.1
       svelte-check: ^3.0.4
       svelte-fa: ^3.0.3
@@ -151,6 +160,7 @@ importers:
       '@types/ws': 8.5.4
       autoprefixer: 10.4.13_postcss@8.4.21
       postcss: 8.4.21
+      rimraf: 4.1.2
       svelte: 3.55.1
       svelte-check: 3.0.4_pehl75e5jsy22vp33udjja4soi
       svelte-fa: 3.0.3
@@ -165,6 +175,7 @@ importers:
       '@glenna/discord': workspace:*
       '@glenna/prisma': workspace:*
       '@glenna/util': workspace:*
+      '@rushstack/heft': ^0.49.7
       '@types/node': ^18
       typescript: ^4.9
       winston: ^3.8.2
@@ -176,6 +187,7 @@ importers:
       winston: 3.8.2
       zod: 3.20.6
     devDependencies:
+      '@rushstack/heft': 0.49.7_@types+node@18.14.2
       '@types/node': 18.14.2
       typescript: 4.9.5
 
@@ -1742,6 +1754,12 @@ packages:
     hasBin: true
     dependencies:
       glob: 7.2.3
+    dev: true
+
+  /rimraf/4.1.2:
+    resolution: {integrity: sha512-BlIbgFryTbw3Dz6hyoWFhKk+unCcHMSkZGrTFVAx2WmttdBSonsdtRlwiuTbDqTKr+UlXIUqJVS4QT5tUzGENQ==}
+    engines: {node: '>=14'}
+    hasBin: true
     dev: true
 
   /rollup/3.17.3:

@@ -1,7 +1,6 @@
 DELEGATE_PRISMA = $(addprefix prisma.,migrate migrate-reset migrate-status generate)
 DELEGATE_APP = $(addprefix app.,build dev package sync check)
-.PHONY: glenna all clean clean-build clean-deploy install pnpm-install
-.PHONY: build build-app build-bot build-ts
+.PHONY: glenna all clean clean-build clean-deploy install rush-install build deploy
 .PHONY: $(DELEGATE_PRISMA) $(DELEGATE_APP)
 
 glenna: install build
@@ -9,28 +8,21 @@ all: clean install build
 
 clean: clean-build clean-deploy
 clean-build:
-	find packages src \
-		-type d -name node_modules -prune \
-		-type d -name .svelte-kit -prune \
-		-o -type f -name *.tsbuildinfo \
-		-o -type d -name dist \
-		-o -type d -name build \
-		-exec rm -r {} \;
+	rush clean
 clean-deploy:
-	rm -rf build
+	rm -rf common/deploy
 
-install: pnpm-install prisma.generate
-pnpm-install:
-	pnpm install
+install: rush-install prisma.generate
+rush-install:
+	rush install
 
-build: build-app build-bot
-build-app: build-ts app.build
-build-bot: build-ts
-build-ts: prisma.generate
-	pnpm exec tsc --build
+build:
+	rush build
 
-run:
-	node --es-module-specifier-resolution=node --experimental-import-meta-resolve .
+deploy: build clean-deploy common/deploy/app common/deploy/bot
+common/deploy/%:
+	mkdir -p $@
+	rush deploy --target-folder $@ --scenario $(patsubst common/deploy/%,%,$@)
 
 $(DELEGATE_PRISMA):
 	pnpm --prefix packages/prisma run $(patsubst prisma.%,%,$@)

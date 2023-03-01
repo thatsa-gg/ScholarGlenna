@@ -1,0 +1,13 @@
+{
+    "$schema": "https://developer.microsoft.com/json-schemas/heft/heft.schema.json",
+    "eventActions": [
+        {
+            "actionId": "clean",
+            "actionKind": "deleteGlobs",
+            "heftEvent": "clean",
+            "globsToDelete": [
+                "dist"
+            ]
+        }
+    ]
+}

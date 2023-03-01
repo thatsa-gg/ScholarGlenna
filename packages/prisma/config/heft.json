@@ -1,0 +1,26 @@
+{
+    "$schema": "https://developer.microsoft.com/json-schemas/heft/heft.schema.json",
+    "eventActions": [
+        {
+            "actionId": "prisma-clean",
+            "actionKind": "deleteGlobs",
+            "heftEvent": "clean",
+            "globsToDelete": [
+                "dist",
+                "generated"
+            ]
+        },
+        {
+            "actionId": "prisma-generate",
+            "actionKind": "runScript",
+            "heftEvent": "pre-compile",
+            "scriptPath": "../../common/scripts/cli.build.cjs",
+            "scriptOptions": {
+                "command": "./node_modules/.bin/prisma",
+                "args": [
+                    "generate"
+                ]
+            }
+        }
+    ]
+}

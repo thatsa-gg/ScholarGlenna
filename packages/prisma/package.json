@@ -6,22 +6,23 @@
     "main": "dist/index.js",
     "types": "src/index.ts",
     "devDependencies": {
+        "@rushstack/heft": "^0.49.7",
+        "typescript": "^4.9",
         "prisma": "^4.10.1",
-        "@types/node": "^18",
-        "typescript": "^4.9"
+        "@types/node": "^18"
     },
     "dependencies": {
-        "@rushstack/heft": "^0.49.7",
         "@glenna/discord": "workspace:*",
         "@prisma/client": "^4.10.1",
         "zod": "^3.20.6"
     },
     "scripts": {
-        "migrate": "pnpm exec prisma migrate deploy",
-        "migrate-reset": "pnpm exec prisma migrate reset",
-        "migrate-status": "pnpm exec prisma migrate status",
-        "generate": "pnpm exec prisma generate",
-        "build": "heft build"
+        "migrate": "prisma migrate deploy",
+        "migrate-reset": "prisma migrate reset",
+        "migrate-status": "prisma migrate status",
+        "generate": "prisma generate",
+        "build": "heft build --clean",
+        "clean": "heft clean && prisma generate"
     },
     "prisma": {
         "schema": "src/schema.prisma"

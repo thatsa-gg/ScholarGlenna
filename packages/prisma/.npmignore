@@ -1,7 +1,4 @@
-src
-tsconfig.json
-*.tsbuildinfo
-*.js.map
-*.d.ts
-!dist
-!generated
+*
+!/package.json
+!/generated
+!/dist
