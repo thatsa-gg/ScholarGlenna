@@ -12,7 +12,7 @@ services:
         entrypoint: /usr/local/share/docker-init.sh
         command: sleep infinity
     postgres:
-        image: postgres:14.2-alpine
+        image: postgres:15.2-alpine
         env_file: development.env
         volumes:
             - type: volume
