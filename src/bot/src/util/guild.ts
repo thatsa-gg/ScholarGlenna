@@ -1,4 +1,4 @@
-import { ChannelType, Guild, TextChannel } from 'discord.js'
+import { ChannelType, Guild, TextChannel } from '@glenna/discord'
 export async function sendWelcomeMessage(guild: Guild){
     const self = await guild.members.fetchMe()
     const channels = await guild.channels.fetch()

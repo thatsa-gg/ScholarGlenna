@@ -1,4 +1,6 @@
 *
-!/package.json
-!/resources
-!/dist
+!package.json
+!resources/**
+!dist/**
+*.js.map
+*.d.ts

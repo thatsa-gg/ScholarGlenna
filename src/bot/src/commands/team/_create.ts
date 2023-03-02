@@ -1,5 +1,5 @@
 import { database } from '../../util/database.js'
-import { ChannelType, EmbedBuilder } from 'discord.js'
+import { ChannelType, EmbedBuilder } from '@glenna/discord'
 import { getGuildAndUser, slashSubcommand, type SlashSubcommandHelper } from '../index.js'
 import { slugify } from '@glenna/util'
 import { debug } from '../../util/logging.js'

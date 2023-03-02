@@ -1,6 +1,6 @@
 import { listener } from '../EventListener.js'
 import { error } from '../util/logging.js'
-import { InteractionType } from 'discord.js'
+import { InteractionType } from '@glenna/discord'
 import { ChatCommands, MessageCommands } from '../commands/index.js'
 
 export const onCommandListener = listener('interactionCreate', {

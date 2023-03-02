@@ -33,5 +33,6 @@
         "ghcr.io/rocker-org/devcontainer-features/apt-packages": {
             "packages": "make,redis-tools,postgresql-client"
         }
-    }
+    },
+    "postCreateCommand": "make prepare-dev-environment inject-make-function"
 }

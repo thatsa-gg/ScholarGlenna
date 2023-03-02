@@ -4,7 +4,7 @@ import {
     type ChatInputCommandInteraction,
     SlashCommandBuilder,
     SlashCommandSubcommandBuilder
-} from "discord.js"
+} from "@glenna/discord"
 
 type ChatCommandHandler = (interaction: ChatInputCommandInteraction) => Awaitable<void>
 type ChatAutocompleteHandler = (interaction: AutocompleteInteraction) => Promise<void>

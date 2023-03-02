@@ -18,6 +18,7 @@
     },
     "scripts": {
         "build": "heft build --clean",
-        "clean": "heft clean"
+        "clean": "heft clean",
+        "start": "node ."
     }
 }

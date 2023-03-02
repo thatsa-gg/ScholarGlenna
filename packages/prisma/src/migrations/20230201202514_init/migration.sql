@@ -252,7 +252,7 @@ create table "public"."log" (
     "url" text unique not null,
     "boss" "log"."boss" not null,
     "difficulty" "log"."logdifficultytype" not null,
-    "emboldened_level" smallint default null,
+    "emboldened_level" smallint not null default 0,
     "success" boolean not null,
     "duration" integer not null,
     "start_at" timestamptz(3) not null,

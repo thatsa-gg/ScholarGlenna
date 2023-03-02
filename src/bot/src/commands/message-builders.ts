@@ -1,4 +1,4 @@
-import { Awaitable, ContextMenuCommandBuilder, MessageContextMenuCommandInteraction } from "discord.js"
+import { Awaitable, ContextMenuCommandBuilder, MessageContextMenuCommandInteraction } from "@glenna/discord"
 
 type MessageCommandHandler = (interaction: MessageContextMenuCommandInteraction) => Awaitable<void>
 export type MessageCommandHelper = ReturnType<typeof messageCommand>

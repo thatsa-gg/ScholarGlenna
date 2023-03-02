@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js'
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from '@glenna/discord'
 import { database } from '../../util/database.js'
 import { getGuildAndUser } from '../index.js'
 import { messageCommand, type MessageCommandHelper } from '../message-builders.js'

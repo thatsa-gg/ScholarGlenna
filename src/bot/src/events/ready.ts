@@ -5,7 +5,7 @@ import { listener } from '../EventListener.js'
 import { DISCORD_TOKEN, OAUTH_CLIENT_ID } from '../config.js'
 import { registerCommands } from '../commands/index.js'
 import type { Prisma } from '@glenna/prisma'
-import { DiscordAPIError } from 'discord.js'
+import { DiscordAPIError } from '@glenna/discord'
 
 function isUserOrMemberNotFoundError(e: any): e is (DiscordAPIError & { code: 10013 | 10007 }) {
     if(!(e instanceof DiscordAPIError))

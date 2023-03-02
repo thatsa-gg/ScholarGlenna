@@ -1,5 +1,5 @@
 import { sleep, minutes, range, random, randomFrom } from '@glenna/util'
-import type { ClientUser } from 'discord.js'
+import type { ClientUser } from '@glenna/discord'
 import { VERSION } from './config.js'
 const statuses = [
     `Now updated to version ${VERSION}!`,

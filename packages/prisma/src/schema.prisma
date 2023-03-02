@@ -80,7 +80,7 @@ enum Boss {
 
     // Wing 2
     Slothasor       @map("slothasor")
-    BandiTrio       @map("bandit_trio")
+    BanditTrio      @map("bandit_trio")
     Matthias        @map("matthias")
 
     // Wing 3
@@ -159,7 +159,7 @@ model Log {
     url String @unique
     boss Boss
     difficulty LogDifficultyType
-    emboldenedLevel Int? @db.SmallInt @map("emboldened_level") @default(dbgenerated("null"))
+    emboldenedLevel Int @db.SmallInt @map("emboldened_level") @default(0)
     success Boolean
     duration Int // milliseconds
 

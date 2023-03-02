@@ -1,13 +1,14 @@
-import { slashCommandChildren, type SlashCommandHelper } from '../index.js'
+import { slashCommandGroup, type SlashCommandGroup } from '../_schema.js'
 import { githubCommand } from './_github.js'
 import { quoteCommand } from './_quote.js'
 import { versionCommand } from './_version.js'
 
-export const glennaCommand: SlashCommandHelper = slashCommandChildren('glenna', {
+export const glennaCommand: SlashCommandGroup = slashCommandGroup({
+    name: 'glenna',
     description: 'General info and management.',
-    children: {
-        github: githubCommand,
-        quote: quoteCommand,
-        version: versionCommand,
-    }
+    children: [
+        githubCommand,
+        quoteCommand,
+        versionCommand,
+    ]
 })

@@ -1,4 +1,4 @@
-import type { Awaitable, Client, ClientEvents } from 'discord.js'
+import type { Awaitable, Client, ClientEvents } from '@glenna/discord'
 
 export type EventListener<K extends keyof ClientEvents = keyof ClientEvents> = {
     name: K

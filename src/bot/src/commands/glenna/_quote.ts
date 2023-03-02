@@ -1,11 +1,10 @@
-import { slashSubcommand, type SlashSubcommandHelper } from '../index.js'
+import { slashCommand, type SlashCommandHelper } from '../_schema.js'
 import { randomFrom } from '@glenna/util'
 
-export const quoteCommand: SlashSubcommandHelper = slashSubcommand('version', {
-    builder(builder){
-        return builder.setDescription('Admire my brilliance.')
-    },
-    async execute(interaction){
+export const quoteCommand: SlashCommandHelper = slashCommand({
+    name: 'quote',
+    description: 'Admire my brilliance.',
+    async execute(_, interaction){
         await interaction.reply(randomFrom([
             `I can cast spells when absolutely needed, but for the most part you'll need to keep me alive.`,
             `Has everyone made peace with their gods, spirits, deities...or trees? Good.`,

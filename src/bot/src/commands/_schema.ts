@@ -1,7 +1,39 @@
 import { z } from 'zod'
-import { Awaitable, ChatInputCommandInteraction, SlashCommandBuilder, SlashCommandSubcommandBuilder, SlashCommandAttachmentOption, SlashCommandBooleanOption, SlashCommandChannelOption, SlashCommandIntegerOption, SlashCommandNumberOption, SlashCommandMentionableOption, SlashCommandRoleOption, SlashCommandStringOption, SlashCommandUserOption, ApplicationCommandOptionAllowedChannelTypes, Guild, Role, GuildTextBasedChannel, GuildMember, Options, ChannelType, TextChannel, VoiceChannel, CategoryChannel, ForumChannel, StageChannel, PrivateThreadChannel, PublicThreadChannel, NewsChannel, GuildChannel, Channel } from 'discord.js'
+import {
+    Awaitable,
+    ChatInputCommandInteraction,
+    SlashCommandBuilder,
+    SlashCommandSubcommandBuilder,
+    SlashCommandAttachmentOption,
+    SlashCommandBooleanOption,
+    SlashCommandChannelOption,
+    SlashCommandIntegerOption,
+    SlashCommandNumberOption,
+    SlashCommandMentionableOption,
+    SlashCommandRoleOption,
+    SlashCommandStringOption,
+    SlashCommandUserOption,
+    ApplicationCommandOptionAllowedChannelTypes,
+    Guild,
+    Role,
+    GuildMember,
+    ChannelType,
+    TextChannel,
+    VoiceChannel,
+    CategoryChannel,
+    ForumChannel,
+    StageChannel,
+    PrivateThreadChannel,
+    PublicThreadChannel,
+    NewsChannel,
+    Channel,
+    BaseChannel,
+    AutocompleteInteraction
+} from '@glenna/discord'
 import type { Prisma, TeamMemberRole } from '@glenna/prisma'
 import { database } from '../util/database.js'
+import type { SlashSubcommandHelper } from './builders.js'
+import type { SlashCommandHelper as IndexSlashCommandHelper } from './builders.js'
 
 type AuthorizationRole = true | TeamMemberRole | [ TeamMemberRole, ...TeamMemberRole[] ]
 type AuthorizationScope = { scope: 'guild' | 'team', role?: AuthorizationRole }
@@ -124,6 +156,13 @@ export class AuthorizationError extends Error {
     }
 }
 
+async function error(interaction: ChatInputCommandInteraction, content: string){
+    await interaction.reply({
+        ephemeral: true,
+        content
+    })
+}
+
 export type SlashCommandHelper = ReturnType<typeof slashCommand>
 export function slashCommand<T extends z.AnyZodObject = typeof emptyObject>(props: {
     name: string
@@ -131,7 +170,7 @@ export function slashCommand<T extends z.AnyZodObject = typeof emptyObject>(prop
     input?: T
     authorized?: AuthorizationRole | AuthorizationScope
     execute: (data: z.output<T>, interaction: ChatInputCommandInteraction) => Awaitable<void>
-}){
+}): SlashSubcommandHelper {
     const input = props.input ?? emptyObject
     const options = Object.entries<z.ZodTypeAny>(input.shape).map(([ name, value ]) => {
         const required = !value.isNullable() && !value.isOptional()
@@ -144,7 +183,7 @@ export function slashCommand<T extends z.AnyZodObject = typeof emptyObject>(prop
     })
     return {
         name: props.name,
-        builder(builder: SlashCommandBuilder | SlashCommandSubcommandBuilder){
+        builder(builder: SlashCommandSubcommandBuilder){
             if(props.description)
                 builder.setDescription(props.description)
             else if(input.description)
@@ -191,6 +230,7 @@ export function slashCommand<T extends z.AnyZodObject = typeof emptyObject>(prop
                         break
                 }
             }
+            return builder
         },
         async execute(interaction: ChatInputCommandInteraction){
             try {
@@ -218,8 +258,42 @@ export function slashCommand<T extends z.AnyZodObject = typeof emptyObject>(prop
                         content: e.message
                     })
                 }
-                // TODO: handle other errors
+
+                await error(interaction, `Unknown error.`) // TODO: better error message
             }
+        }
+    }
+}
+
+export type SlashCommandGroup = ReturnType<typeof slashCommandGroup>
+export function slashCommandGroup(options: {
+    name: string
+    description?: string
+    builder?: (a: SlashCommandBuilder) => SlashCommandBuilder
+    children: SlashCommandHelper[]
+}): IndexSlashCommandHelper {
+    const builder = new SlashCommandBuilder().setName(options.name)
+    if(options.description)
+        builder.setDescription(options.description)
+    options.builder?.(builder)
+    const children = new Map<string, SlashCommandHelper>(options.children.map(command => [ command.name, command ]))
+    return {
+        name: options.name,
+        toJSON(){ return builder.toJSON() },
+        async execute(interaction: ChatInputCommandInteraction){
+            const subcommand = interaction.options.getSubcommand()
+            if(!subcommand)
+                return await error(interaction, "Unrecognized subcommand.")
+            const target = children.get(subcommand)
+            if(!target)
+                return await error(interaction, "Unrecognized subcommand.")
+            await target.execute(interaction)
+        },
+        async autocomplete(interaction: AutocompleteInteraction){
+            const subcommand = interaction.options.getSubcommand()
+            if(!subcommand)
+                return
+            children.get(subcommand)?.autocomplete?.(interaction)
         }
     }
 }
@@ -252,21 +326,24 @@ type RealChannel<T extends ApplicationCommandOptionAllowedChannelTypes> =
 export namespace djs {
     export const guild = () => tag(z.unknown(), 'guild').refine<Guild>((a): a is Guild => a instanceof Guild)
     export const member = () => tag(z.unknown(), 'member').refine<GuildMember>((a): a is GuildMember => a instanceof GuildMember)
-    export const channel = <TChannel extends ApplicationCommandOptionAllowedChannelTypes>(options?: { type: MaybeArray<TChannel> }) => tag(z.unknown(), 'channel', option => {
-        if(options?.type){
+    export const channel = <TChannel extends ApplicationCommandOptionAllowedChannelTypes>(options?: { type: MaybeArray<TChannel> }) =>
+        tag(z.unknown(), 'channel', option => {
+            if(options?.type){
+                if(Array.isArray(options.type))
+                    option.addChannelTypes(...options.type)
+                else
+                    option.addChannelTypes(options.type)
+            }
+            return option
+        })
+        .refine((a): a is BaseChannel => a instanceof BaseChannel)
+        .refine((a): a is RealChannel<TChannel> => {
+            if(!options?.type)
+                return true
             if(Array.isArray(options.type))
-                option.addChannelTypes(...options.type)
-            else
-                option.addChannelTypes(options.type)
-        }
-        return option
-    }).refine((a): a is RealChannel<TChannel> => {
-        if(!options)
-            return true
-        if(Array.isArray(options.type))
-            return options.type.includes((a as Channel).type as TChannel)
-        return options.type === (a as Channel).type
-    })
+                return options.type.includes(a.type as TChannel)
+            return options.type === a.type
+        })
     export const role = () => extend(tag(z.unknown(), 'role').refine<Role>((a): a is Role => a instanceof Role), {
         fetch(){
             (this._def as unknown as {[djsApplySymbol]: OptionAppyFn<Role>})[djsApplySymbol] = async (interaction, role) => {

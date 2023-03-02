@@ -35,77 +35,82 @@ export function stringifySnowflake<T extends { snowflake: bigint }>({ snowflake,
     }
 }
 
-export function triggerIDToBoss(id: number): Boss | null {
-    switch(id){
-        // Wing 1
-        case 15438: return 'ValeGuardian'
-        case 15375: return 'Sabetha'
-        case 15429: return 'Gorseval'
+const BossTriggerIdMap = new Map<number, Boss>([
+    // Wing 1
+    [ 15438, 'ValeGuardian' ],
+    [ 15375, 'Sabetha' ],
+    [ 15429, 'Gorseval' ],
 
-        // Wing 2
-        case 16123: return 'Slothasor'
-        case 16088: // Berg
-        case 16137: // Zane
-        case 16125: // Narella
-            return 'BandiTrio'
-        case 16115: return 'Matthias'
+    // Wing 2
+    [ 16123, 'Slothasor' ],
+    [ 16088, 'BanditTrio' ], // Berg
+    [ 16137, 'BanditTrio' ], // Zane
+    [ 16125, 'BanditTrio' ], // Narella
+    [ 16115, 'Matthias' ],
 
-        // Wing 3
-        case 16253: return 'Escort'
-        case 16235: return 'KeepConstruct'
-        case 16247: return 'TwistedCastle'
-        case 16246: return 'Xera'
+    // Wing 3
+    [ 16253, 'Escort' ],
+    [ 16235, 'KeepConstruct' ],
+    [ 16247, 'TwistedCastle' ],
+    [ 16246, 'Xera' ],
 
-        // Wing 4
-        case 17194: return 'Cairn'
-        case 17172: return 'MursaatOverseer'
-        case 17188: return 'Samarog'
-        case 17154: return 'Deimos'
+    // Wing 4
+    [ 17194, 'Cairn' ],
+    [ 17172, 'MursaatOverseer' ],
+    [ 17188, 'Samarog' ],
+    [ 17154, 'Deimos' ],
 
-        // Wing 5
-        case 19767: return 'SoullessHorror'
-        case 19828: return 'RiverOfSouls'
-        case 19691: return 'BrokenKing'
-        case 19536: return 'SoulEater'
-        case 19651: // Eye of Judgement
-        case 19844: // Eye of Fate
-            return 'EyeOfJudgmentFate'
-        case 19450: return 'Dhuum'
+    // Wing 5
+    [ 19767, 'SoullessHorror' ],
+    [ 19828, 'RiverOfSouls' ],
+    [ 19691, 'BrokenKing' ],
+    [ 19536, 'SoulEater' ],
+    [ 19651, 'EyeOfJudgmentFate' ], // Eye of Judgement
+    [ 19844, 'EyeOfJudgmentFate' ], // Eye of Fate
+    [ 19450, 'Dhuum' ],
 
-        // Wing 6
-        case 43974: return 'ConjuredAmalgamate'
-        case 21089: // Kenu
-        case 21105: // Nikare
-            return 'TwinLargos'
-        case 20934: return 'Qadim'
+    // Wing 6
+    [ 43974, 'ConjuredAmalgamate' ],
+    [ 21089, 'TwinLargos' ], // Kenut
+    [ 21105, 'TwinLargos' ], // Nikare
+    [ 20934, 'Qadim' ],
 
-        // Wing 7
-        case 21964: return 'Sabir'
-        case 22006: return 'Adina'
-        case 22000: return 'QadimThePeerless'
+    // Wing 7
+    [ 21964, 'Sabir' ],
+    [ 22006, 'Adina' ],
+    [ 22000, 'QadimThePeerless' ],
 
-        // Strikes
-        case 21333: return 'Freezie'
-        case 22154: return 'IcebroodConstruct'
-        case 22492: return 'FraenirOfJormag'
-        case 22343: return 'VoiceClawOfTheFallen'
-        case 22521: return 'Boneskinner'
-        case 22711: return 'WhisperOfJormag'
-        case 22836: return 'ColdWar'
+    // Strikes
+    [ 21333, 'Freezie' ],
+    [ 22154, 'IcebroodConstruct' ],
+    [ 22492, 'FraenirOfJormag' ],
+    [ 22343, 'VoiceClawOfTheFallen' ],
+    [ 22521, 'Boneskinner' ],
+    [ 22711, 'WhisperOfJormag' ],
+    [ 22836, 'ColdWar' ],
 
-        // EOD Strikes
-        case 24033: return 'AetherbladeHideout'
-        case 23957: return 'XunlaiJadeJunkyard'
-        case 24485: // Minister Li
-        case 24266: // Minister Li CM
-            return 'KainengOverlook'
-        case 43488: return 'HarvestTemple'
-        case 25413: // Watchnight Triumvirate
-        case 25416: // Arsenite CM
-        case 25423: // Indigo CM
-        case 25414: // Vermillion CM
-            return 'OldLionsCourt'
-        default:
-            return null // Unrecognized Fight
-    }
+    // EOD Strikes
+    [ 24033, 'AetherbladeHideout' ],
+    [ 23957, 'XunlaiJadeJunkyard' ],
+    [ 24485, 'KainengOverlook' ], // Minister Li
+    [ 24266, 'KainengOverlook' ], // Minister Li CM
+    [ 43488, 'HarvestTemple' ],
+    [ 25413, 'OldLionsCourt' ], // Watchnight Triumvirate
+    [ 25416, 'OldLionsCourt' ], // Arsenite CM
+    [ 25423, 'OldLionsCourt' ], // Indigo CM
+    [ 25414, 'OldLionsCourt' ], // Vermillion CM
+])
+
+export type TriggerId = number & { __TYPE__: 'TriggerId' }
+export function isTriggerId(candidate: number): candidate is TriggerId {
+    return BossTriggerIdMap.has(candidate)
+}
+
+//export function triggerIDToBoss(id: TriggerId): Boss;
+//export function triggerIDToBoss(id: number): Boss | null;
+export function triggerIDToBoss(id: TriggerId): Boss {
+    const boss = BossTriggerIdMap.get(id)
+    if(!boss)
+        throw `Unrecognized Trigger ID ${id}`
+    return boss
 }

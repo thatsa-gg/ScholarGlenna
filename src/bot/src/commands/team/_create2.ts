@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { djs, slashCommand, type SlashCommandHelper } from '../_schema.js'
 import { database } from '../../util/database.js'
-import { ChannelType, EmbedBuilder } from 'discord.js'
+import { ChannelType, EmbedBuilder } from '@glenna/discord'
 import { slugify } from '@glenna/util'
 import { debug } from '../../util/logging.js'
 

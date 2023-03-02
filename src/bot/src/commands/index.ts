@@ -4,7 +4,7 @@ import {
     REST,
     Routes,
     type RESTPostAPIApplicationCommandsJSONBody
-} from 'discord.js'
+} from '@glenna/discord'
 import type { SlashCommandHelper } from './builders.js'
 
 export {

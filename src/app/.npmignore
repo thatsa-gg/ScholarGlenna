@@ -1,7 +1,6 @@
-/*.config.*
-src
-tsconfig.json
-*.tsbuildinfo
+*
+!package.json
+!static/**
+!build/**
 *.js.map
 *.d.ts
-!build

@@ -1,4 +1,6 @@
 *
-!/package.json
-!/generated
-!/dist
+!package.json
+!generated/**
+!dist/**
+*.js.map
+*.d.ts

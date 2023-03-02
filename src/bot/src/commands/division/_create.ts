@@ -1,5 +1,5 @@
 import { database } from '../../util/database.js'
-import { EmbedBuilder } from 'discord.js'
+import { EmbedBuilder } from '@glenna/discord'
 import { getGuildAndUser, slashSubcommand, type SlashSubcommandHelper } from '../index.js'
 import { debug } from '../../util/logging.js'
 
