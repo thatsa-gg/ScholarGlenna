@@ -31,7 +31,7 @@
             "version": "18"
         },
         "ghcr.io/rocker-org/devcontainer-features/apt-packages": {
-            "packages": "make"
+            "packages": "make,redis-tools,postgresql-client"
         }
     }
 }
