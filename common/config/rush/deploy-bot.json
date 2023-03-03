@@ -4,6 +4,8 @@
     "includeDevDependencies": false,
     "includeNpmIgnoreFiles": false,
     "omitPnpmWorkaroundLinks": true,
+    "linkCreation": "script",
+    "folderToCopy": "docker/bot",
     "projectSettings": [
         {
             "projectName": "@glenna/bot",

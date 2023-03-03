@@ -4,6 +4,8 @@
     "includeDevDependencies": false,
     "includeNpmIgnoreFiles": false,
     "omitPnpmWorkaroundLinks": true,
+    "linkCreation": "script",
+    "folderToCopy": "docker/app",
     "projectSettings": [
         {
             "projectName": "@glenna/app",

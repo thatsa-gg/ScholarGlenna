@@ -3,6 +3,7 @@
     "type": "module",
     "private": true,
     "version": "0.0.1",
+    "main": "build/index.js",
     "scripts": {
         "build": "rimraf build && vite build 2>&1",
         "clean": "rimraf build",
