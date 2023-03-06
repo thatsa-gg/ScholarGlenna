@@ -2,21 +2,68 @@ version: '3'
 
 services:
     app:
+        image: thatsa-gg/scholar-glenna-app:latest
+        env_file:
+            - common.env
+            - ../config.env
+        environment:
+            - PORT=80
+        expose:
+            - 80
+        restart: on-failure
+        depends_on:
+            postgres:
+                condition: service_healthy
+            bootstrap:
+                condition: service_completed_successfully
+            redis:
+                condition: service_healthy
     bot:
-    postgres:
-        image: postgres:15.2-alpine
-        env_file: development.env
-        volumes:
-            - type: volume
-              source: sql-db
-              target: /var/lib/postgresql/data
+        image: thatsa-gg/scholar-glenna-bot:latest
+        env_file:
+            - common.env
+            - ../config.env
+        restart: on-failure
+        depends_on:
+            postgres:
+                condition: service_healthy
+            bootstrap:
+                condition: service_completed_successfully
+            redis:
+                condition: service_healthy
     redis:
         image: redis:7.0-alpine
-        env_file: development.env
         volumes:
             - type: volume
               source: redis-db
               target: /data
+        restart: on-failure
+        healthcheck:
+            test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+            interval: 5s
+            timeout: 5s
+            retries: 5
+            start_period: 30s
+    postgres:
+        image: postgres:15.2-alpine
+        env_file: postgres.env
+        volumes:
+            - type: volume
+              source: sql-db
+              target: /var/lib/postgresql/data
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+            start_period: 30s
+    bootstrap:
+        image: thatsa-gg/scholar-glenna-bootstrap:latest
+        env_file:
+            - common.env
+        depends_on:
+            postgres:
+                condition: service_healthy
 
 volumes:
     sql-db:

@@ -1,0 +1,21 @@
+{
+    "name": "@glenna/bootstrap",
+    "version": "0.0.1",
+    "type": "module",
+    "private": true,
+    "dependencies": {
+        "prisma": "^4.10.1",
+        "@glenna/prisma": "workspace:*"
+    },
+    "devDependencies": {
+        "@rushstack/heft": "^0.49.7"
+    },
+    "scripts": {
+        "build": "heft build --clean",
+        "clean": "heft clean",
+        "start": "node_modules/prisma/build/index.js migrate deploy"
+    },
+    "prisma": {
+        "schema": "dist/schema.prisma"
+    }
+}

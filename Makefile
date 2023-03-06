@@ -17,25 +17,32 @@ clean-build:
 	rush clean
 clean-deploy: clean-common/deploy/app clean-common/deploy/bot
 
-.PHONY: clean-common/deploy/app clean-common/deploy/bot
-deploy: common/deploy/app common/deploy/bot
+.PHONY: clean-common/deploy/app clean-common/deploy/bot common/deploy/bootstrap
+deploy: common/deploy/app common/deploy/bot common/deploy/bootstrap
 common/deploy/app: build clean-common/deploy/app
 	mkdir -p $@
 	rush deploy --target-folder $@ --scenario $(notdir $@)
 common/deploy/bot: build clean-common/deploy/bot
 	mkdir -p $@
 	rush deploy --target-folder $@ --scenario $(notdir $@)
+common/deploy/bootstrap: build clean-common/deploy/bootstrap
+	mkdir -p $@
+	rush deploy --target-folder $@ --scenario $(notdir $@)
 clean-common/deploy/app:
 	rm -rf common/deploy/app
 clean-common/deploy/bot:
 	rm -rf common/deploy/bot
+clean-common/deploy/bootstrap:
+	rm -rf common/deploy/bootstrap
 
 .PHONY: docker docker/app docker/bot
 docker: docker/app docker/bot
 docker/app: common/deploy/app
-	docker build "$<" -f "$@/Dockerfile" -t thatsa-gg/scholar-glenna/app:latest
+	docker build "$<" -f "$@/Dockerfile" -t thatsa-gg/scholar-glenna-app:latest
 docker/bot: common/deploy/bot
-	docker build "$<" -f "$@/Dockerfile" -t thatsa-gg/scholar-glenna/bot:latest
+	docker build "$<" -f "$@/Dockerfile" -t thatsa-gg/scholar-glenna-bot:latest
+docker/bootstrap: common/deploy/bootstrap
+	docker build "$<" -f "$@/Dockerfile" -t thatsa-gg/scholar-glenna-bootstrap:latest
 
 $(DELEGATE_PRISMA):
 	pnpm --prefix packages/prisma run $(patsubst prisma.%,%,$@)

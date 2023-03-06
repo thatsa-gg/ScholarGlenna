@@ -43,6 +43,10 @@
         {
             "packageName": "@glenna/bot",
             "projectFolder": "src/bot"
+        },
+        {
+            "packageName": "@glenna/bootstrap",
+            "projectFolder": "src/bootstrap"
         }
     ]
 }

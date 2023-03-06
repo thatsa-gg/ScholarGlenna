@@ -1,0 +1,28 @@
+{
+    "$schema": "https://developer.microsoft.com/json-schemas/heft/heft.schema.json",
+    "eventActions": [
+        {
+            "actionId": "clean",
+            "actionKind": "deleteGlobs",
+            "heftEvent": "clean",
+            "globsToDelete": [
+                "dist"
+            ]
+        },
+        {
+            "actionId": "copy-prisma",
+            "actionKind": "copyFiles",
+            "heftEvent": "post-build",
+            "copyOperations": [
+                {
+                    "sourceFolder": "../../packages/prisma/src",
+                    "destinationFolders": ["dist"],
+                    "includeGlobs": [
+                        "schema.prisma",
+                        "migrations/**/*"
+                    ]
+                }
+            ]
+        }
+    ]
+}

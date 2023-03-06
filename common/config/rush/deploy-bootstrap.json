@@ -1,0 +1,18 @@
+{
+    "$schema": "https://developer.microsoft.com/json-schemas/rush/v5/deploy-scenario.schema.json",
+    "deploymentProjectNames": ["@glenna/bootstrap"],
+    "includeDevDependencies": false,
+    "includeNpmIgnoreFiles": false,
+    "omitPnpmWorkaroundLinks": true,
+    "linkCreation": "script",
+    "folderToCopy": "docker/bootstrap",
+    "projectSettings": [
+        {
+            "projectName": "@glenna/bootstrap",
+            "dependenciesToExclude": [
+                "@types/*",
+                "@glenna/*"
+            ]
+        }
+    ]
+}
