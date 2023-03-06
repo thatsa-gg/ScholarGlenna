@@ -1,15 +1,34 @@
 version: '3'
 
+networks:
+    internal: {}
+    public: {}
+
 services:
+    traefik:
+        image: "traefik:v2.9"
+        container_name: traefik
+        restart: on-failure
+        command:
+            - "--api.insecure=true"
+            - "--providers.docker=true"
+            - "--providers.docker.exposedbydefault=false"
+            - "--entrypoints.web.address=:8000"
+        ports:
+            - "8000:8000"
+            - "443:443"
+            - "8080:8080"
+        volumes:
+            - "/var/run/docker.sock:/var/run/docker.sock:ro"
+        networks:
+            - public
     app:
         image: thatsa-gg/scholar-glenna-app:latest
         env_file:
             - common.env
             - ../config.env
-        environment:
-            - PORT=80
         expose:
-            - 80
+            - 3000
         restart: on-failure
         depends_on:
             postgres:
@@ -18,6 +37,13 @@ services:
                 condition: service_completed_successfully
             redis:
                 condition: service_healthy
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.glenna.rule=Host(`localhost`)"
+            - "traefik.http.routers.glenna.entrypoints=web"
+        networks:
+            - public
+            - internal
     bot:
         image: thatsa-gg/scholar-glenna-bot:latest
         env_file:
@@ -31,6 +57,8 @@ services:
                 condition: service_completed_successfully
             redis:
                 condition: service_healthy
+        networks:
+            - internal
     redis:
         image: redis:7.0-alpine
         volumes:
@@ -44,6 +72,8 @@ services:
             timeout: 5s
             retries: 5
             start_period: 30s
+        networks:
+            - internal
     postgres:
         image: postgres:15.2-alpine
         env_file: postgres.env
@@ -57,6 +87,8 @@ services:
             timeout: 5s
             retries: 5
             start_period: 30s
+        networks:
+            - internal
     bootstrap:
         image: thatsa-gg/scholar-glenna-bootstrap:latest
         env_file:
@@ -64,6 +96,8 @@ services:
         depends_on:
             postgres:
                 condition: service_healthy
+        networks:
+            - internal
 
 volumes:
     sql-db:
