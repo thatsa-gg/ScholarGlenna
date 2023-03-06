@@ -1,60 +1,48 @@
+import { command } from '../_chat-command.js'
+import { djs } from '../_djs.js'
+import { z } from 'zod'
 import { database } from '../../util/database.js'
-import { ChannelType, EmbedBuilder } from '@glenna/discord'
-import { getGuildAndUser, slashSubcommand, type SlashSubcommandHelper } from '../index.js'
 import { slugify } from '@glenna/util'
 import { debug } from '../../util/logging.js'
+import { EmbedBuilder } from '@glenna/discord'
 
-export const teamCreateCommand: SlashSubcommandHelper = slashSubcommand('create', {
-    builder(builder){
-        return builder.setDescription('Create a new raid team.')
-            .addStringOption(o => o.setName('name').setDescription('Team name.').setRequired(true))
-            .addChannelOption(o => o.setName('channel').setDescription('Team channel.').addChannelTypes(ChannelType.GuildText))
-            .addRoleOption(o => o.setName('role').setDescription('Team role for member syncing and pinging.'))
-    },
-    async execute(interaction){
-        const [ sourceGuild, sourceUser ] = await getGuildAndUser(interaction) || []
-        if(!sourceGuild || !sourceUser) return
-
-        const guildSnowflake = BigInt(sourceGuild.id)
-        const actorSnowflake = BigInt(sourceUser.user.id)
-        if(!database.isAuthorized(guildSnowflake, actorSnowflake)){
-            await interaction.reply({
-                ephemeral: true,
-                content: `You are not authorized to execute this command.`
-            })
-            return
-        }
-
-        const channel = interaction.options.getChannel('channel')
-        const role = interaction.options.getRole('role')
-        const name = interaction.options.getString('name', true)
-        const division = await database.division.findFirstOrThrow({
-            where: { guild: { snowflake: guildSnowflake }, primary: true },
-            select: {
-                id: true
+export const create = command({
+    description: 'Create a new raid team',
+    input: z.object({
+        name: z.string().describe('Team name.'),
+        channel: djs.channel().describe('Team channel.'),
+        role: djs.role().describe('Team role for member syncing and pinging.'),
+        source: djs.guild(),
+        guild: djs.guild().transform(database.guild.transformOrThrow({
+            id: true,
+            divisions: {
+                where: { primary: true },
+                select: { id: true }
             }
-        })
-
+        }))
+    }),
+    async execute({ name, channel, role, source, guild, guild: { divisions: [ division ]}}){
+        if(!division)
+            throw `Fatal error: guild ${guild.id} is missing a primary division!`
         const team = await database.team.create({
             data: {
                 name,
-                channel: channel ? BigInt(channel.id) : null,
                 role: role ? BigInt(role.id) : null,
+                channel: channel ? BigInt(channel.id) : null,
                 alias: slugify(name),
-                guild: { connect: { snowflake: guildSnowflake }},
+                guild: { connect: { id: guild.id }},
                 division: { connect: division }
             }
         })
-        debug(`Create team "${team.name}" (${team.id}) in guild "${sourceGuild.name}" (${sourceGuild.id})`)
+        debug(`Create team "${team.name}" (${team.id}) in guild "${source.name}" (${guild.id})`)
 
         const members: string[] = []
         if(role){
-            const guild = await database.guild.findUniqueOrThrow({ where: { snowflake: guildSnowflake }, select: { id: true }})
-            await sourceGuild.members.fetch() // awful hack to load all the user info so the next line works as expected.
-            const real = await sourceGuild.roles.fetch(role.id)
-            if(!real)
-                throw new Error() // TODO
-            for(const member of real.members.values()){
+            await source.members.fetch()
+            const realizedRole = await source.roles.fetch(role.id)
+            if(!realizedRole)
+                throw `Could not fetch role with members!`
+            for(const member of realizedRole.members.values()){
                 const snowflake = BigInt(member.user.id)
                 members.push(member.displayName)
                 debug(`Adding "${member.displayName}" to "${team.name}".`)
@@ -89,19 +77,20 @@ export const teamCreateCommand: SlashSubcommandHelper = slashSubcommand('create'
             }
         }
 
-        const embed = new EmbedBuilder({
-            color: 0x40a86d,
-            title: `Team ${team.name} created.`,
-            description: `${team.role ? `<@&${team.role}>` : team.name} has been registered.`,
-            fields: [
-                {
-                    name: 'Members',
-                    value: members.length > 0 ? members.map(a => `- ${a}`).join(`\n`) : `*Use \`/team add\` to add members to this team.*`
-                }
+        return {
+            embeds: [
+                new EmbedBuilder({
+                    color: 0x40a86d,
+                    title: `Team ${team.name} created.`,
+                    description: `${team.role ? `<@&${team.role}>` : team.name} has been registered.`,
+                    fields: [
+                        {
+                            name: 'Members',
+                            value: members.length > 0 ? members.map(a => `- ${a}`).join(`\n`) : `*Use \`/team add\` to add members to this team.*`
+                        }
+                    ]
+                })
             ]
-        })
-
-        // TODO: better response
-        await interaction.reply({ embeds: [ embed ]})
+        }
     }
 })

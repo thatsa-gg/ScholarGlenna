@@ -203,6 +203,10 @@ create table "guild"."division" (
     "primary" boolean not null default false
 );
 
+-- CreateIndex
+create unique index only_one_primary_division_per_guild on "guild"."division"("guild_id")
+    where "primary";
+
 -- CreateTable
 create table "guild"."team" (
     "team_id" serial primary key not null,

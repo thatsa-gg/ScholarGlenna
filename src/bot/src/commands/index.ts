@@ -1,74 +1,54 @@
 import {
+    AutocompleteInteraction,
     ChatInputCommandInteraction,
     MessageContextMenuCommandInteraction,
     REST,
+    RESTPostAPIApplicationCommandsJSONBody,
     Routes,
-    type RESTPostAPIApplicationCommandsJSONBody
+    SlashCommandBuilder,
+    SlashCommandSubcommandBuilder
 } from '@glenna/discord'
-import type { SlashCommandHelper } from './builders.js'
 
-export {
-    slashCommand,
-    slashCommandChildren,
-    slashSubcommand,
-    SlashSubcommandHelper,
-    SlashCommandHelper
-} from './builders.js'
+export type AutocompleteFn = (interaction: AutocompleteInteraction) => void | Promise<void>
+export type MessageContextFn = (interaction: MessageContextMenuCommandInteraction) => void | Promise<void>
+export type ChatCommandFn = (interaction: ChatInputCommandInteraction) => void | Promise<void>
+export type BuilderFn<T> = (builder: T) => T
 
-import type { MessageCommandHelper } from './message-builders.js'
-export {
-    MessageCommandHelper
-} from './message-builders.js'
+interface _Command {
+    description: string
+    command?: BuilderFn<SlashCommandBuilder>
+    subcommand?: BuilderFn<SlashCommandSubcommandBuilder>
+    chat?: ChatCommandFn
+}
+export type Command<T extends Exclude<keyof _Command, 'name' | 'description'> = 'chat'> = _Command & Required<Pick<_Command, T>>
 
-// commands
-import { teamCommand } from './team/index.js'
-import { glennaCommand } from './glenna/index.js'
+import { team } from './team/index.js'
+import { glenna } from './glenna/index.js'
 
-export const ChatCommands: Map<string, SlashCommandHelper> = new Map<string, SlashCommandHelper>()
-ChatCommands.set(teamCommand.name, teamCommand)
-ChatCommands.set(glennaCommand.name, glennaCommand)
+export const ChatCommands = new Map<string, ChatCommandFn>(Object.entries({
+    team: team.chat,
+    glenna: glenna.chat,
+}))
+export const AutocompleteCommands = new Map<string, AutocompleteFn>(Object.entries({
 
-// message commands
-import { messageSubmitLogs } from './_message/submit-logs.js'
+}))
+export const MessageContextCommands = new Map<string, MessageContextFn>(Object.entries({
 
-export const MessageCommands: Map<string, MessageCommandHelper> = new Map<string, MessageCommandHelper>()
-//MessageCommands.set(messageSubmitLogs.name, messageSubmitLogs)
+}))
 
 let client: REST | null = null
-const commandList: RESTPostAPIApplicationCommandsJSONBody[] = []
+const CommandList: RESTPostAPIApplicationCommandsJSONBody[] = []
 export async function registerCommands(args: {
-    token: string,
-    clientId: string,
+    token: string
+    clientId: string
     guildId: string
 }): Promise<void> {
     if(null === client){
         client = new REST({ version: '10' }).setToken(args.token)
-        for(const command of ChatCommands.values())
-            commandList.push(command.toJSON())
-        for(const command of MessageCommands.values())
-            commandList.push(command.toJSON())
+        CommandList.push(...[
+            team.command(new SlashCommandBuilder()).toJSON(),
+            glenna.command(new SlashCommandBuilder()).toJSON(),
+        ])
     }
-    await client.put(Routes.applicationGuildCommands(args.clientId, args.guildId), { body: commandList })
-}
-
-export async function getGuildAndUser(interaction: ChatInputCommandInteraction | MessageContextMenuCommandInteraction){
-    const sourceGuild = interaction.guild
-    if(!sourceGuild){
-        await interaction.reply({
-            ephemeral: true,
-            content: `This command must be executed in a guild.`
-        })
-        return
-    }
-
-    const sourceUser = interaction.member
-    if(!sourceUser){
-        await interaction.reply({
-            ephemeral: true,
-            content: `Somehow, you don't exist in the Discord API.`
-        })
-        return
-    }
-
-    return [ sourceGuild, sourceUser ] as const
+    await client.put(Routes.applicationGuildCommands(args.clientId, args.guildId), { body: CommandList })
 }

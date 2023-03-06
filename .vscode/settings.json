@@ -4,7 +4,11 @@
         "**/.DS_Store": true,
         "packages/**/node_modules": true,
         "src/**/node_modules": true,
-        "**/.svelte-kit": true
+        "**/.svelte-kit": true,
+        "**/.rush": true,
+        "**/tsconfig.tsbuildinfo": true,
+        "packages/*/*.build.log": true,
+        "src/*/*.build.log": true,
     },
     "files.associations": {
         "*.css": "tailwindcss",

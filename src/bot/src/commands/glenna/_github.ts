@@ -1,9 +1,8 @@
-import { slashCommand, type SlashCommandHelper } from '../_schema.js'
+import { command } from '../_chat-command.js'
 
-export const githubCommand: SlashCommandHelper = slashCommand({
-    name: 'github',
-    description: 'Return the URL to my source code.',
-    async execute(_, interaction){
-        await interaction.reply(`You can find the secrets of the Eternal Alchemy at: https://github.com/cofl/ScholarGlenna`)
+export const github = command({
+    description: 'Fetch the link to my source code.',
+    async execute(){
+        return `You can find the secrets of the Eternal Alchemy at: https://github.com/cofl/ScholarGlenna`
     }
 })

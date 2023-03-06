@@ -1,9 +1,9 @@
-import { slashCommandChildren, type SlashCommandHelper } from '../index.js'
-import { teamCreateCommand } from './_create2.js'
+import { delegate } from '../_chat-command.js'
 
-export const teamCommand: SlashCommandHelper = slashCommandChildren('team', {
-    description: 'Raid team management.',
-    children: {
-        create: teamCreateCommand
+import { create } from './_create.js'
+export const team = delegate({
+    description: 'Raid team management commands',
+    members: {
+        create
     }
 })

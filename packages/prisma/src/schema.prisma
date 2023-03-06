@@ -253,6 +253,8 @@ model Division {
     guildId Int @map("guild_id")
     snowflake BigInt @unique @default(dbgenerated("new_snowflake()"))
     name String
+
+    // There will be at most one primary division per guild (unique index: only_one_primary_division_per_guild)
     primary Boolean @default(false)
 
     guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)

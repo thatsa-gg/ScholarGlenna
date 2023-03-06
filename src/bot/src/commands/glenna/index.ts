@@ -1,14 +1,14 @@
-import { slashCommandGroup, type SlashCommandGroup } from '../_schema.js'
-import { githubCommand } from './_github.js'
-import { quoteCommand } from './_quote.js'
-import { versionCommand } from './_version.js'
+import { delegate } from '../_chat-command.js'
 
-export const glennaCommand: SlashCommandGroup = slashCommandGroup({
-    name: 'glenna',
+import { github } from './_github.js'
+import { quote } from './_quote.js'
+import { version } from './_version.js'
+
+export const glenna = delegate({
     description: 'General info and management.',
-    children: [
-        githubCommand,
-        quoteCommand,
-        versionCommand,
-    ]
+    members: {
+        github,
+        quote,
+        version,
+    }
 })

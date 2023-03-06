@@ -1,11 +1,10 @@
-import { slashCommand, type SlashCommandHelper } from '../_schema.js'
+import { command } from '../_chat-command.js'
 import { randomFrom } from '@glenna/util'
 
-export const quoteCommand: SlashCommandHelper = slashCommand({
-    name: 'quote',
+export const quote = command({
     description: 'Admire my brilliance.',
-    async execute(_, interaction){
-        await interaction.reply(randomFrom([
+    async execute(){
+        return randomFrom([
             `I can cast spells when absolutely needed, but for the most part you'll need to keep me alive.`,
             `Has everyone made peace with their gods, spirits, deities...or trees? Good.`,
             `Not *my* fault!`,
@@ -13,6 +12,6 @@ export const quoteCommand: SlashCommandHelper = slashCommand({
             `Protect me. I'm about to try something.`,
             `I'm not your puppy!`,
             `There's an orb talking to me! Again!`
-        ]))
+        ])
     }
 })

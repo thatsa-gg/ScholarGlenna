@@ -27,8 +27,8 @@ export const refineExtension = Prisma.defineExtension((client) => client.$extend
                         snowflake => ({ message: `No guild with snowflake "${snowflake}" found.` })
                     )
             },
-            lookupOrThrow<T extends Prisma.GuildSelect>(guild: Guild, select: T){
-                return client.guild.findUniqueOrThrow({
+            transformOrThrow<T extends Prisma.GuildSelect>(select: T){
+                return (guild: Guild) => client.guild.findUniqueOrThrow({
                     where: {
                         snowflake: BigInt(guild.id)
                     }, select

@@ -1,10 +1,9 @@
+import { command } from '../_chat-command.js'
 import { VERSION } from '../../config.js'
-import { slashCommand, type SlashCommandHelper } from '../_schema.js'
 
-export const versionCommand: SlashCommandHelper = slashCommand({
-    name: 'version',
-    description: 'Return the current version of the bot.',
-    async execute(_, interaction){
-        await interaction.reply(`This is Glenna v${VERSION}.`)
+export const version = command({
+    description: 'Fetch the running version of my instructions.',
+    async execute(){
+        return `This is Glenna v${VERSION}.`
     }
 })

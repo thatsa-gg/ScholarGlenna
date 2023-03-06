@@ -1,52 +1,45 @@
+import { command } from '../_chat-command.js'
+import { djs } from '../_djs.js'
+import { z } from 'zod'
 import { database } from '../../util/database.js'
-import { EmbedBuilder } from '@glenna/discord'
-import { getGuildAndUser, slashSubcommand, type SlashSubcommandHelper } from '../index.js'
 import { debug } from '../../util/logging.js'
+import { EmbedBuilder } from '@glenna/discord'
 
-export const divisionCreateCommand: SlashSubcommandHelper = slashSubcommand('create', {
-    builder(builder){
-        return builder.setDescription('Create a new raid division.')
-            .addStringOption(o => o.setName('name').setDescription('Division name.').setRequired(true))
-            .addBooleanOption(o => o.setName('primary').setDescription('Is this the new primary division for this guild?'))
-    },
-    async execute(interaction){
-        const [ sourceGuild, sourceUser ] = await getGuildAndUser(interaction) || []
-        if(!sourceGuild || !sourceUser) return
-        const guildSnowflake = BigInt(sourceGuild.id)
-        const userSnowflake = BigInt(sourceUser.user.id)
-
-        if(!database.isAuthorized(guildSnowflake, userSnowflake)){
-            await interaction.reply({
-                ephemeral: true,
-                content: `You are not authorized to execute this command.`
-            })
-            return
-        }
-
-        const name = interaction.options.getString('name', true)
-        const primary = interaction.options.getBoolean('primary') || false
-        if(primary){
-            // unmark the old primary
-            await database.division.updateMany({ where: { primary: true }, data: { primary: false }})
-        }
-        const division = await database.division.create({
-            data: {
-                name, primary,
-                guild: { connect: { snowflake: guildSnowflake }}
-            },
-            select: {
-                id: true,
-                name: true,
-                snowflake: true,
-                guild: {
-                    select: {
-                        id: true
+export const create = command({
+    description: 'Create a new raid division.',
+    input: z.object({
+        name: z.string().describe('Division name.'),
+        primary: z.boolean().default(false).describe('Is this the new primary division for the guild?'),
+        source: djs.guild()
+    }),
+    async execute({ name, primary, source }){
+        const snowflake = BigInt(source.id)
+        const division = await database.$transaction(async database => {
+            if(primary){
+                // unmark the old primary
+                await database.division.updateMany({
+                    where: { primary: true, guild: { snowflake }},
+                    data: { primary: false }
+                })
+            }
+            return await database.division.create({
+                data: {
+                    name, primary,
+                    guild: { connect: { snowflake }}
+                },
+                select: {
+                    id: true,
+                    name: true,
+                    snowflake: true,
+                    guild: {
+                        select: {
+                            id: true
+                        }
                     }
                 }
-            }
+            })
         })
-        debug(`Create division "${division.name}" (${division.id}) in guild "${sourceGuild.name}" (${sourceGuild.id})`)
-
+        debug(`Create division "${division.name}" (${division.id}) in guild "${source.name}" (${division.guild.id})`)
         const embed = new EmbedBuilder({
             color: 0x40a86d,
             title: `Division ${division.name} registered.`
@@ -58,7 +51,6 @@ export const divisionCreateCommand: SlashSubcommandHelper = slashSubcommand('cre
                 value: 'This is the default division for this guild.'
             })
         }
-
-        await interaction.reply({ embeds: [ embed ]})
+        return { embeds: [ embed ]}
     }
 })
