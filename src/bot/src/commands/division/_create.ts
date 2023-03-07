@@ -1,11 +1,11 @@
-import { command } from '../_chat-command.js'
+import { subcommand } from '../_chat-command.js'
 import { djs } from '../_djs.js'
 import { z } from 'zod'
 import { database } from '../../util/database.js'
 import { debug } from '../../util/logging.js'
 import { EmbedBuilder } from '@glenna/discord'
 
-export const create = command({
+export const create = subcommand({
     description: 'Create a new raid division.',
     input: z.object({
         name: z.string().describe('Division name.'),

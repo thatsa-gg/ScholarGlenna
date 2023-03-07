@@ -1,4 +1,4 @@
-import { command } from '../_chat-command.js'
+import { subcommand } from '../_chat-command.js'
 import { djs } from '../_djs.js'
 import { z } from 'zod'
 import { database } from '../../util/database.js'
@@ -6,12 +6,12 @@ import { slugify } from '@glenna/util'
 import { debug } from '../../util/logging.js'
 import { EmbedBuilder } from '@glenna/discord'
 
-export const create = command({
+export const create = subcommand({
     description: 'Create a new raid team',
     input: z.object({
         name: z.string().describe('Team name.'),
-        channel: djs.channel().describe('Team channel.'),
-        role: djs.role().describe('Team role for member syncing and pinging.'),
+        channel: djs.channel().nullable().describe('Team channel.'),
+        role: djs.role().nullable().describe('Team role for member syncing and pinging.'),
         source: djs.guild(),
         guild: djs.guild().transform(database.guild.transformOrThrow({
             id: true,
@@ -21,7 +21,9 @@ export const create = command({
             }
         }))
     }),
-    async execute({ name, channel, role, source, guild, guild: { divisions: [ division ]}}){
+    async execute(options) {
+        debug(options)
+        const { name, channel, role, source, guild, guild: { divisions: [division] } } = options
         if(!division)
             throw `Fatal error: guild ${guild.id} is missing a primary division!`
         const team = await database.team.create({
@@ -32,6 +34,11 @@ export const create = command({
                 alias: slugify(name),
                 guild: { connect: { id: guild.id }},
                 division: { connect: division }
+            },
+            select: {
+                id: true,
+                name: true,
+                mention: true
             }
         })
         debug(`Create team "${team.name}" (${team.id}) in guild "${source.name}" (${guild.id})`)
@@ -43,37 +50,10 @@ export const create = command({
             if(!realizedRole)
                 throw `Could not fetch role with members!`
             for(const member of realizedRole.members.values()){
-                const snowflake = BigInt(member.user.id)
                 members.push(member.displayName)
                 debug(`Adding "${member.displayName}" to "${team.name}".`)
-                await database.teamMember.create({
-                    data: {
-                        role: 'Member',
-                        team: { connect: { id: team.id }},
-                        member: {
-                            connectOrCreate: {
-                                where: { snowflake_guildId: { snowflake, guildId: guild.id }},
-                                create: {
-                                    snowflake,
-                                    name: member.nickname,
-                                    icon: member.avatar,
-                                    guild: { connect: { id: guild.id }},
-                                    user: {
-                                        connectOrCreate: {
-                                            where: { snowflake },
-                                            create: {
-                                                snowflake,
-                                                name: member.user.username,
-                                                discriminator: member.user.discriminator,
-                                                icon: member.user.avatar
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                })
+                const guildMember = await database.guildMember.findOrCreate(guild, member)
+                await database.teamMember.add(team, guildMember, { source: realizedRole })
             }
         }
 
@@ -81,8 +61,8 @@ export const create = command({
             embeds: [
                 new EmbedBuilder({
                     color: 0x40a86d,
-                    title: `Team ${team.name} created.`,
-                    description: `${team.role ? `<@&${team.role}>` : team.name} has been registered.`,
+                    title: `Team ${team.mention} created.`,
+                    description: `${team.mention} has been registered.`,
                     fields: [
                         {
                             name: 'Members',

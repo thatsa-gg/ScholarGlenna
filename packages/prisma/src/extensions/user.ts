@@ -12,5 +12,13 @@ export const userExtension = Prisma.defineExtension(client => client.$extends({
                 })
             }
         }
+    },
+    result: {
+        user: {
+            displayName: {
+                needs: { name: true, discriminator: true },
+                compute({ name, discriminator }){ return `${name}#${discriminator}` }
+            }
+        }
     }
 }))

@@ -2,7 +2,7 @@ import { createLogger, format, transports } from 'winston'
 
 const errorFormat = format(info => {
     if(info instanceof Error){
-        Object.assign(info, { message: info.stack })
+        Object.assign({}, info, { message: info.stack })
     }
     return info
 })

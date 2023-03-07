@@ -365,6 +365,7 @@ model TeamMember {
     teamId Int @map("team_id")
     memberId Int @map("guild_member_id")
     role TeamMemberRole @default(Member)
+    source BigInt? // the originating role; if null, then manually added.
     // TODO: history
 
     team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)

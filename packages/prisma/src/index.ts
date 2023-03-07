@@ -5,6 +5,9 @@ import {
 import { refineExtension } from './extensions/refine.js'
 import { userExtension } from './extensions/user.js'
 import { guildExtension } from './extensions/guild.js'
+import { guildMemberExtension } from './extensions/guildMember.js'
+import { teamExtension } from './extensions/team.js'
+import { teamMemberExtension } from './extensions/teamMember.js'
 import { profileExtension } from './extensions/profile.js'
 import { authorizationExtension } from './extensions/authorization.js'
 
@@ -18,6 +21,9 @@ export namespace Database {
             .$extends(refineExtension)
             .$extends(userExtension)
             .$extends(guildExtension)
+            .$extends(guildMemberExtension)
+            .$extends(teamExtension)
+            .$extends(teamMemberExtension)
             .$extends(profileExtension)
             .$extends(authorizationExtension)
         return client

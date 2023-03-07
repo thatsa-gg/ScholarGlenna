@@ -125,6 +125,12 @@ create type "guild"."teammemberrole" as enum (
 );
 
 -- CreateEnum
+create type "guild"."teammembersource" as enum (
+    'synced',
+    'manual'
+);
+
+-- CreateEnum
 create type "guild"."teamfocus" as enum (
     'hot',
     'pof',
@@ -239,6 +245,7 @@ create table "guild"."teammember" (
     "team_id" integer not null references "guild"."team"("team_id") on delete cascade,
     "guild_member_id" integer not null references "guild"."guildmember"("guild_member_id") on delete cascade,
     "role" "guild"."teammemberrole" not null default 'member',
+    "source" bigint,
     unique("team_id", "guild_member_id")
 );
 

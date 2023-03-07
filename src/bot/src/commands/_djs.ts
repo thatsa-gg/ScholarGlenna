@@ -37,7 +37,7 @@ const DJSTypeSymbol = Symbol('djs-type')
 const DJSBuilderSymbol = Symbol('djs-builder')
 function custom<T>(type: string, ...params: Parameters<typeof z.custom<T>>){
     const handler = z.custom<T>(...params)
-    handler._def[DJSTypeSymbol] = type
+    ;(handler._def as any)[DJSTypeSymbol] = type
     return handler
 }
 
@@ -46,7 +46,7 @@ export namespace djs {
         const handler = custom<RealChannelType<T>>('channel', candidate =>
             candidate instanceof BaseChannel
             && ((channelTypes as ChannelType[] | undefined)?.includes(candidate.type) ?? true))
-        handler._def[DJSBuilderSymbol] = (builder: SlashCommandChannelOption) => channelTypes ? builder.addChannelTypes(...channelTypes) : builder
+        ;(handler._def as any)[DJSBuilderSymbol] = (builder: SlashCommandChannelOption) => channelTypes ? builder.addChannelTypes(...channelTypes) : builder
         return handler
     }
 
@@ -60,7 +60,7 @@ export namespace djs {
 
     export function string(builder: (option: SlashCommandStringOption) => SlashCommandStringOption){
         const handler = z.string()
-        handler._def[DJSBuilderSymbol] = builder
+        ;(handler._def as any)[DJSBuilderSymbol] = builder
         return handler
     }
 }
@@ -71,19 +71,37 @@ function inspectType(zodType: z.ZodTypeAny){
     let description: string | undefined = undefined
     let builder: any
     while(obj){
-        if('description' in obj)
+        if('description' in obj){
             description ??= obj.description
-        if('innerType' in obj){
-            obj = obj.innerType._def
+        }
+        if(DJSBuilderSymbol in obj){
+            builder ??= obj[DJSBuilderSymbol]
+        }
+
+        // custom can inject the type symbol on a ZodEffects object
+        // if there's a transformer, so we'll step through one layer
+        // at a time instead of .schema|innerType._def in one go.
+        if(DJSTypeSymbol in obj){
+            type = obj[DJSTypeSymbol]
+            break
+        }
+        if('_def' in obj){
+            obj = obj._def
             continue
         }
         if('schema' in obj){
-            obj = obj.schema._def
+            obj = obj.schema
             continue
         }
-        if(DJSBuilderSymbol in obj)
-            builder ??= obj[DJSBuilderSymbol]
-        type ??= obj[DJSTypeSymbol] ?? obj.typeName
+
+        // .innerType can be a function alongside ._def, so prefer ._def
+        if('innerType' in obj){
+            obj = obj.innerType
+            continue
+        }
+
+        // At this point, we should have reached the bottom of the tree
+        type = obj.typeName
         if(type === 'ZodNumber' && obj.checks?.[0]?.kind === 'int'){
             type = 'integer'
         }
@@ -160,10 +178,16 @@ export function parseCommandOptions(object: z.AnyZodObject | undefined){
     return Object.entries<z.ZodTypeAny>(object.shape).map(([ name, value ]) => {
         const required = !value.isNullable() && !value.isOptional()
         const [ type, accessoryBuilder, description ] = inspectType(value)
+        const builder = builders[type]
+        const fetcher = fetchers[type]
+        if(!builder)
+            throw `Could not find builder for type ${type}`
+        if(!fetcher)
+            throw `Could not find fetcher for type ${type}`
         return {
             name,
-            builder: builders[type](name, description, required, accessoryBuilder),
-            fetcher: fetchers[type](name, required)
+            builder: builder(name, description, required, accessoryBuilder),
+            fetcher: fetcher(name, required)
         }
     })
 }

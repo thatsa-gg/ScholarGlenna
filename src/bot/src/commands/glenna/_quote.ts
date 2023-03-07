@@ -1,7 +1,7 @@
-import { command } from '../_chat-command.js'
+import { subcommand } from '../_chat-command.js'
 import { randomFrom } from '@glenna/util'
 
-export const quote = command({
+export const quote = subcommand({
     description: 'Admire my brilliance.',
     async execute(){
         return randomFrom([

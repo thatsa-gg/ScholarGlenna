@@ -1,20 +1,32 @@
 import { listener } from '../EventListener.js'
-import { error } from '../util/logging.js'
-import { InteractionType } from '@glenna/discord'
-import { ChatCommands, AutocompleteCommands, MessageContextCommands } from '../commands/index.js'
+import { debug, error, warn } from '../util/logging.js'
+import { Commands } from '../commands/index.js'
 
 export const onCommandListener = listener('interactionCreate', {
     async execute(interaction){
         try {
             if(interaction.isMessageContextMenuCommand()){
-                await MessageContextCommands.get(interaction.commandName)?.(interaction)
+                await Commands.get(interaction.commandName)?.message?.(interaction)
             }
-            else if(interaction.type === InteractionType.ApplicationCommandAutocomplete){
-                await AutocompleteCommands.get(interaction.commandName)?.(interaction)
+            else if(interaction.isAutocomplete()){
+                debug(`Dispatching autocomplete for ${interaction.commandName}`)
+                const command = Commands.get(interaction.commandName)
+                if(!command){
+                    warn(`Tried to dispatch unknown command "${interaction.commandName}"`)
+                    return
+                }
+                if(!command.autocomplete){
+                    warn(`Command "${interaction.commandName}" does not support autocomplete.`)
+                    return
+                }
+                await command.autocomplete(interaction)
             }
             else if(interaction.isChatInputCommand()){
                 try {
-                    await ChatCommands.get(interaction.commandName)?.(interaction)
+                    const command = Commands.get(interaction.commandName)?.chat
+                    if(!command)
+                        throw `This command is not a chat command.`
+                    await command(interaction)
                 } catch(err){
                     if(interaction.isRepliable()){
                         await interaction.reply({
