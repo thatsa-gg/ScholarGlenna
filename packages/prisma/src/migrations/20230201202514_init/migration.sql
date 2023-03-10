@@ -249,6 +249,18 @@ create table "guild"."teammember" (
     unique("team_id", "guild_member_id")
 );
 
+-- CreateView
+create view "guild"."teammembercomputed" as select
+    "guild"."teammember"."team_member_id",
+    "guild"."guildmember"."name" as "nickname",
+    "guild"."user"."name" as "username",
+    "guild"."user"."discriminator",
+    "guild"."guildmember"."icon" as "member_avatar",
+    "guild"."user"."icon" as "user_avatar"
+from "guild"."teammember"
+    left outer join "guild"."guildmember" using("guild_member_id")
+    left outer join "guild"."user" using("user_id");
+
 -- CreateTable
 create table "app"."profile" (
     "profile_id" serial primary key not null,

@@ -44,5 +44,15 @@ export const teamMemberExtension = Prisma.defineExtension((client) => client.$ex
                 })
             }
         }
+    },
+    result: {
+        teamMemberComputed: {
+            displayName: {
+                needs: { nickname: true, username: true, discriminator: true },
+                compute({ nickname, username, discriminator }){
+                    return nickname ?? `${username}#${discriminator}`
+                }
+            }
+        }
     }
 }))

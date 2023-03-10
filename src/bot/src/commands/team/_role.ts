@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { database } from '../../util/database.js'
-import { subcommand } from '../_chat-command.js'
+import { subcommand } from '../_command.js'
 import { djs } from '../_djs.js'
 import { debug } from '../../util/logging.js'
 
@@ -8,8 +8,8 @@ export const role = subcommand({
     description: `Modify or remove a team's role.`,
     input: z.object({
         team: djs.string(b => b.setAutocomplete(true)).describe('The team to modify.'),
-        clear: z.boolean().describe('Should the role be removed?'),
-        removesynced: z.boolean().describe('Remove the old role members from the team? Manually added members will not be removed.'),
+        clear: z.boolean().default(false).describe('Should the role be removed?'),
+        removesynced: z.boolean().default(false).describe('Remove the old role members from the team? Manually added members will not be removed.'),
         role: djs.role().nullable().describe('The new role.'),
         source: djs.guild(),
         guild: djs.guild().transform(database.guild.transformOrThrow({ id: true })),
@@ -52,22 +52,8 @@ export const role = subcommand({
         // TODO: message
     },
     async autocomplete({ name, value }, interaction){
-        if(name === 'team'){
-            const teams = await database.team.findMany({
-                where: {
-                    guild: { snowflake: BigInt(interaction.guild!.id) },
-                    OR: [
-                        { name: { startsWith: value }},
-                        { alias: { startsWith: value }}
-                    ]
-                },
-                select: {
-                    name: true,
-                    alias: true
-                }
-            })
-            return teams.map(({ name, alias: value }) => ({ name, value }))
-        }
+        if(name === 'team')
+            return await database.team.autocomplete(BigInt(interaction.guild!.id), value)
 
         return
     }

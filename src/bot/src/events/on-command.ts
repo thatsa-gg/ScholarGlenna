@@ -5,37 +5,47 @@ import { Commands } from '../commands/index.js'
 export const onCommandListener = listener('interactionCreate', {
     async execute(interaction){
         try {
-            if(interaction.isMessageContextMenuCommand()){
-                await Commands.get(interaction.commandName)?.message?.(interaction)
-            }
-            else if(interaction.isAutocomplete()){
-                debug(`Dispatching autocomplete for ${interaction.commandName}`)
+            if(!(interaction.isCommand() || interaction.isAutocomplete()))
+                return
+            try {
                 const command = Commands.get(interaction.commandName)
-                if(!command){
-                    warn(`Tried to dispatch unknown command "${interaction.commandName}"`)
-                    return
+                if(!command)
+                    throw `No such command ${interaction.commandName}`
+                if(interaction.isMessageContextMenuCommand()){
+                    if(!command.message)
+                        throw `Command ${interaction.commandName} does not support message context menu commands.`
+                    await command.message(interaction)
                 }
-                if(!command.autocomplete){
-                    warn(`Command "${interaction.commandName}" does not support autocomplete.`)
-                    return
+                else if(interaction.isUserContextMenuCommand()){
+                    if(!command.user)
+                        throw `Command ${interaction.commandName} does not support user context menu commands.`
+                    await command.user(interaction)
                 }
-                await command.autocomplete(interaction)
-            }
-            else if(interaction.isChatInputCommand()){
-                try {
-                    const command = Commands.get(interaction.commandName)?.chat
-                    if(!command)
+                else if(interaction.isAutocomplete()){
+                    if(!command.autocomplete){
+                        warn(`Command "${interaction.commandName}" does not support autocomplete.`)
+                        return
+                    }
+                    await command.autocomplete(interaction)
+                }
+                else if(interaction.isChatInputCommand()){
+                    if(!command.chat)
                         throw `This command is not a chat command.`
-                    await command(interaction)
-                } catch(err){
-                    if(interaction.isRepliable()){
+                    await command.chat(interaction)
+                }
+            } catch(err){
+                if(interaction.isRepliable()){
+                    if(interaction.replied)
+                        await interaction.editReply({
+                            content: 'There was an error while executing this command!',
+                        })
+                    else
                         await interaction.reply({
                             content: 'There was an error while executing this command!',
                             ephemeral: true
                         })
-                    }
-                    throw err
                 }
+                throw err
             }
         } catch(err) {
             error(err)

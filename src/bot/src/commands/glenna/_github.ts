@@ -1,4 +1,4 @@
-import { subcommand } from '../_chat-command.js'
+import { subcommand } from '../_command.js'
 
 export const github = subcommand({
     description: 'Fetch the link to my source code.',

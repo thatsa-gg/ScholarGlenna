@@ -1,4 +1,4 @@
-import { subcommand } from '../_chat-command.js'
+import { subcommand } from '../_command.js'
 import { randomFrom } from '@glenna/util'
 
 export const quote = subcommand({

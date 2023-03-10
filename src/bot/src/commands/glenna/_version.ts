@@ -1,4 +1,4 @@
-import { subcommand } from '../_chat-command.js'
+import { subcommand } from '../_command.js'
 import { VERSION } from '../../config.js'
 
 export const version = subcommand({

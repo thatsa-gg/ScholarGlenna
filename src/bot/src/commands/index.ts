@@ -5,17 +5,25 @@ import {
 } from '@glenna/discord'
 import type {
     TopCommand,
-} from './_chat-command.js'
+} from './_command.js'
 
 import { team } from './team/index.js'
 import { glenna } from './glenna/index.js'
 import { division } from './division/index.js'
 import { error } from '../util/logging.js'
 
+import { teamMemberAdd } from './_user-context/team-member-add.js'
+import { teamMemberRemove } from './_user-context/team-member-remove.js'
+
 export const Commands = new Map<string, TopCommand>(Object.entries({
+    // Chat Slash Commands
     team,
     glenna,
-    division
+    division,
+
+    // User Context Commands
+    'Add Team Member': teamMemberAdd,
+    'Remove Team Member': teamMemberRemove,
 }))
 
 let client: REST | null = null

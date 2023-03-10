@@ -18,6 +18,7 @@ import type {
 import {
     Role,
     Guild,
+    User,
     BaseChannel
 } from '@glenna/discord'
 import { z } from 'zod'
@@ -56,6 +57,10 @@ export namespace djs {
 
     export function guild(){
         return custom<Guild>('guild', candidate => candidate instanceof Guild)
+    }
+
+    export function user(){
+        return custom<User>('user', candidate => candidate instanceof User)
     }
 
     export function string(builder: (option: SlashCommandStringOption) => SlashCommandStringOption){
@@ -160,6 +165,22 @@ const builders: Record<string, (name: string, description: string | undefined, r
             option.setDescription(description)
         return option
     }),
+    user: (name, description, required, accessoryBuilder) => builder => builder.addUserOption(option => {
+        option.setName(name)
+        option.setRequired(required)
+        accessoryBuilder?.(option)
+        if(description)
+            option.setDescription(description)
+        return option
+    }),
+    mentionable: (name, description, required, accessoryBuilder) => builder => builder.addMentionableOption(option => {
+        option.setName(name)
+        option.setRequired(required)
+        accessoryBuilder?.(option)
+        if(description)
+            option.setDescription(description)
+        return option
+    }),
 }
 
 const fetchers: Record<string, (name: string, required: boolean) => (interaction: ChatInputCommandInteraction) => unknown> = {
@@ -170,6 +191,8 @@ const fetchers: Record<string, (name: string, required: boolean) => (interaction
     guild: () => interaction => interaction.guild,
     role: (name, required) => interaction => interaction.options.getRole(name, required),
     channel: (name, required) => interaction => interaction.options.getChannel(name, required),
+    user: (name, required) => interaction => interaction.options.getUser(name, required),
+    mentionable: (name, required) => interaction => interaction.options.getMentionable(name, required),
 }
 
 export function parseCommandOptions(object: z.AnyZodObject | undefined){

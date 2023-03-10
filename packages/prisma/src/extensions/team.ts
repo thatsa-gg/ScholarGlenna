@@ -12,5 +12,25 @@ export const teamExtension = Prisma.defineExtension((client) => client.$extends(
                 }
             }
         }
+    },
+    model: {
+        team: {
+            async autocomplete(guildSnowflake: bigint, searchValue: string){
+                const teams = await client.team.findMany({
+                    where: {
+                        guild: { snowflake: guildSnowflake },
+                        OR: [
+                            { name: { startsWith: searchValue }},
+                            { alias: { startsWith: searchValue }}
+                        ]
+                    },
+                    select: {
+                        name: true,
+                        alias: true
+                    }
+                })
+                return teams.map(({ name, alias }) => ({ name, value: alias }))
+            }
+        }
     }
 }))

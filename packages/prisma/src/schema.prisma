@@ -368,12 +368,28 @@ model TeamMember {
     source BigInt? // the originating role; if null, then manually added.
     // TODO: history
 
+    computed TeamMemberComputed @relation(fields: [id], references: [id])
     team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
     member GuildMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
     logParticipation LogPlayer[]
     @@unique([teamId, memberId])
     @@schema("guild")
     @@map("teammember")
+}
+
+view TeamMemberComputed {
+    id Int @id @map("team_member_id")
+
+    nickname String?
+    username String
+    discriminator String
+
+    memberAvatar String? @map("member_avatar")
+    userAvatar String? @map("user_avatar")
+
+    member TeamMember?
+    @@schema("guild")
+    @@map("teammembercomputed")
 }
 
 // ========================================================================== //

@@ -1,4 +1,4 @@
-import { subcommand } from '../_chat-command.js'
+import { subcommand } from '../_command.js'
 import { djs } from '../_djs.js'
 import { z } from 'zod'
 import { database } from '../../util/database.js'

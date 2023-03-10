@@ -1,4 +1,4 @@
-import { delegate } from '../_chat-command.js'
+import { delegate } from '../_command.js'
 
 import { github } from './_github.js'
 import { quote } from './_quote.js'

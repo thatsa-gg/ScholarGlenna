@@ -1,4 +1,4 @@
-import { delegate } from '../_chat-command.js'
+import { delegate } from '../_command.js'
 
 import { create } from './_create.js'
 export const division = delegate({
