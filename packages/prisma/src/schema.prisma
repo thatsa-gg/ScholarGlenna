@@ -322,6 +322,14 @@ enum TeamRegion {
     @@map("teamregion")
 }
 
+enum TeamDaylightSavings {
+    RespectTime     @map("respect_time")
+    RespectReset    @map("respect_reset")
+
+    @@schema("guild")
+    @@map("teamdaylightsavings")
+}
+
 model Team {
     id Int @id @default(autoincrement()) @map("team_id")
     snowflake BigInt @unique @default(dbgenerated("new_snowflake()"))
@@ -334,6 +342,8 @@ model Team {
     level TeamLevel @default(Progression)
     region TeamRegion @default(NorthAmerica)
     capacity Int? @db.SmallInt @default(10)
+    primaryTimeZone String @default("America/Los_Angeles") @map("primary_time_zone")
+    daylightSavings TeamDaylightSavings @default(RespectReset) @map("daylight_savings")
 
     role BigInt?
     channel BigInt?
@@ -344,6 +354,7 @@ model Team {
     members TeamMember[]
     logs Log[]
     times TeamTime[]
+    computedTimes TeamTimeComputed[]
 
     @@unique([guildId, alias])
     @@schema("guild")
@@ -356,8 +367,33 @@ model TeamTime {
     time DateTime @db.Timestamptz(0)
 
     team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+    computed TeamTimeComputed @relation(fields: [id], references: [id])
     @@schema("guild")
     @@map("teamtime")
+}
+
+view TeamTimeComputed {
+    id Int @id @map("team_time_id")
+    teamId Int @map("team_id")
+
+    previousTimestamp DateTime @db.Timestamptz(0) @map("prev_timestamp")
+    nextTimestamp DateTime @db.Timestamptz(0) @map("next_timestamp")
+    epoch BigInt
+    dstNoticeWeeks Int @map("dst_notice_weeks")
+
+    time TeamTime?
+    team Team @relation(fields: [teamId], references: [id])
+    @@schema("guild")
+    @@map("teamtimecomputed")
+}
+
+view TimeZone {
+    name String @unique
+    abbreviation String
+    display String
+
+    @@schema("guild")
+    @@map("timezone")
 }
 
 model TeamMember {

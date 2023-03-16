@@ -9,6 +9,8 @@ import type {
     PublicThreadChannel,
     SlashCommandBuilder,
     SlashCommandChannelOption,
+    SlashCommandIntegerOption,
+    SlashCommandNumberOption,
     SlashCommandStringOption,
     SlashCommandSubcommandBuilder,
     StageChannel,
@@ -68,6 +70,12 @@ export namespace djs {
         ;(handler._def as any)[DJSBuilderSymbol] = builder
         return handler
     }
+
+    export function number(min: number, max: number){
+        const handler = z.number().min(min).max(max)
+        ;(handler._def as any)[DJSBuilderSymbol] = (option: SlashCommandNumberOption) => option.setMinValue(min).setMaxValue(max)
+        return handler
+    }
 }
 
 function inspectType(zodType: z.ZodTypeAny){
@@ -109,6 +117,35 @@ function inspectType(zodType: z.ZodTypeAny){
         type = obj.typeName
         if(type === 'ZodNumber' && obj.checks?.[0]?.kind === 'int'){
             type = 'integer'
+        } else if(type === 'ZodEnum'){
+            type = typeof obj.values[0] === 'string' ? 'ZodString'
+                : typeof obj.values[0] === 'number' ? (Number.isInteger(obj.values[0]) ? 'integer' : 'ZodNumber')
+                : (() => { throw `Illegal ZodEnum type ${typeof obj.values[0]}` })()
+            const otherBuilder = builder
+            builder = otherBuilder
+                ? (option: SlashCommandStringOption | SlashCommandIntegerOption | SlashCommandNumberOption) => { option.addChoices(...obj.values); return otherBuilder(option) }
+                : (option: SlashCommandStringOption | SlashCommandIntegerOption | SlashCommandNumberOption) => { option.addChoices(...obj.values); return option }
+        }
+        if(type === 'ZodNumber' || type === 'integer'){
+            type MinMaxCheck = { kind: 'min' | 'max', value: number, inclusive: boolean }
+            const min = obj.checks?.find((check: MinMaxCheck) => check.kind === 'min')
+            const builder1 = builder
+            if(min){
+                if(!min.inclusive)
+                    throw `Minimum values must be inclusive.`
+                builder = builder1
+                    ? (option: SlashCommandNumberOption | SlashCommandIntegerOption) => { option.setMinValue(min.value); return builder1(option) }
+                    : (option: SlashCommandNumberOption | SlashCommandIntegerOption) => { option.setMinValue(min.value); return option }
+            }
+            const max = obj.checks?.find((check: MinMaxCheck) => check.kind === 'max')
+            const builder2 = builder
+            if(max){
+                if(!max.inclusive)
+                    throw `Maximum values must be inclusive.`
+                builder = builder2
+                    ? (option: SlashCommandNumberOption | SlashCommandIntegerOption) => { option.setMaxValue(max.value); return builder2(option) }
+                    : (option: SlashCommandNumberOption | SlashCommandIntegerOption) => { option.setMaxValue(max.value); return option }
+            }
         }
         break
     }

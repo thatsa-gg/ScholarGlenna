@@ -11,6 +11,14 @@ export const teamExtension = Prisma.defineExtension((client) => client.$extends(
                     return name
                 }
             }
+        },
+        teamTimeComputed: {
+            timeCode: {
+                needs: { epoch: true },
+                compute({ epoch }){
+                    return (style: 't' | 'T' | 'd' | 'D' | 'f' | 'F' | 'r' = 'f') => `<t:${epoch}:${style}>`
+                }
+            }
         }
     },
     model: {
@@ -30,6 +38,23 @@ export const teamExtension = Prisma.defineExtension((client) => client.$extends(
                     }
                 })
                 return teams.map(({ name, alias }) => ({ name, value: alias }))
+            }
+        },
+        timeZone: {
+            async autocomplete(searchValue: string){
+                const matches = await client.timeZone.findMany({
+                    where: {
+                        OR: [
+                            { name: { startsWith: searchValue, mode: 'insensitive' }},
+                            { abbreviation: { startsWith: searchValue, mode: 'insensitive' }}
+                        ]
+                    },
+                    select: {
+                        name: true,
+                        display: true
+                    }
+                })
+                return matches.map(({ display, name }) => ({ name: display, value: name }))
             }
         }
     }
