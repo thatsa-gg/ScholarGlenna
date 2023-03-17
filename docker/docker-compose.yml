@@ -23,7 +23,7 @@ services:
         networks:
             - public
     app:
-        image: thatsa-gg/scholar-glenna-app:latest
+        image: registry.digitalocean.com/thatsa-gg/scholar-glenna-app:latest
         env_file:
             - common.env
             - ../config.env
@@ -45,7 +45,7 @@ services:
             - public
             - internal
     bot:
-        image: thatsa-gg/scholar-glenna-bot:latest
+        image: registry.digitalocean.com/thatsa-gg/scholar-glenna-bot:latest
         env_file:
             - common.env
             - ../config.env
@@ -90,7 +90,7 @@ services:
         networks:
             - internal
     bootstrap:
-        image: thatsa-gg/scholar-glenna-bootstrap:latest
+        image: registry.digitalocean.com/thatsa-gg/scholar-glenna-bootstrap:latest
         env_file:
             - common.env
         depends_on:
