@@ -22,6 +22,7 @@ services:
             - "/var/run/docker.sock:/var/run/docker.sock:ro"
         networks:
             - public
+            - internal
     app:
         image: registry.digitalocean.com/thatsa-gg/scholar-glenna-app:latest
         env_file:
