@@ -7,7 +7,6 @@ networks:
 services:
     traefik:
         image: "traefik:v2.9"
-        container_name: traefik
         environment:
             - DO_AUTH_TOKEN
         restart: on-failure
