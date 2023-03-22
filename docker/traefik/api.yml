@@ -2,14 +2,14 @@ http:
     routers:
         api-http:
             rule: Host(`api.ops.thatsa.gg`)
-            services: api@internal
+            service: api@internal
             entryPoints:
                 - web
             middlewares:
                 - api-https
         api:
             rule: Host(`api.ops.thatsa.gg`)
-            services: api@internal
+            service: api@internal
             entryPoints:
                 - websecure
             tls:
