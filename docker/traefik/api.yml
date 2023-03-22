@@ -1,0 +1,23 @@
+http:
+    routers:
+        api-http:
+            rule: Host(`api.ops.thatsa.gg`)
+            services: api@internal
+            entryPoints:
+                - web
+            middlewares:
+                - api-https
+        api:
+            rule: Host(`api.ops.thatsa.gg`)
+            services: api@internal
+            entryPoints:
+                - websecure
+            tls:
+                certresolver: glenna
+                domains:
+                    - main: '*.ops.thatsa.gg'
+    middlewares:
+        api-https:
+            redirectScheme:
+                scheme: https
+                permanent: true

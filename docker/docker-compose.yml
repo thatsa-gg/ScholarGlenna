@@ -8,26 +8,34 @@ services:
     traefik:
         image: "traefik:v2.9"
         container_name: traefik
+        environment:
+            - DO_AUTH_TOKEN
         restart: on-failure
-        command:
-            - "--api.insecure=true"
-            - "--providers.docker=true"
-            - "--providers.docker.exposedbydefault=false"
-            - "--entrypoints.web.address=:80"
         ports:
             - "80:80"
             - "443:443"
             - "8080:8080"
         volumes:
             - "/var/run/docker.sock:/var/run/docker.sock:ro"
+            - "./traefik.yml:/etc/traefik/traefik.yml:ro"
+            - "./traefik:/opt/traefik:ro"
+            - type: volume
+              source: acme
+              target: /etc/traefik/acme
+        healthcheck:
+            test: ["CMD-SHELL", "traefik", "healthcheck"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+            start_period: 30s
         networks:
             - public
-            - internal
     app:
         image: registry.digitalocean.com/thatsa-gg/scholar-glenna-app:latest
         env_file:
             - common.env
             - ../config.env
+            - app/app.env
         expose:
             - 3000
         restart: on-failure
@@ -40,8 +48,33 @@ services:
                 condition: service_healthy
         labels:
             - "traefik.enable=true"
+            # Redirect http://www.thatsa.gg/* -> https://thatsa.gg/*
+            - "traefik.http.routers.glenna-www-http.entrypoints=web"
+            - "traefik.http.routers.glenna-www-http.rule=Host(`www.thatsa.gg`)"
+            - "traefik.http.routers.glenna-www-http.middlewares=glenna-www"
+            # Redirect https://wwww.thatsa.gg/* -> https://thatsa.gg/*
+            - "traefik.http.routers.glenna-www.entrypoints=websecure"
+            - "traefik.http.routers.glenna-www.rule=Host(`www.thatsa.gg`)"
+            - "traefik.http.routers.glenna-www.middlewares=glenna-www"
+            - "traefik.http.routers.glenna-www.tls=true"
+            - "traefik.http.routers.glenna-www.tls.certresolver=glenna"
+            - "traefik.http.routers.glenna-www.tls.domains[0].main=thatsa.gg"
+            - "traefik.http.routers.glenna-www.tls.domains[0].sans=*.thatsa.gg"
+            - "traefik.http.middlewares.glenna-www.redirectregex.regex=^https?://www.thatsa.gg/(.*)"
+            - "traefik.http.middlewares.glenna-www.redirectregex.replacement=https://thatsa.gg/$${1}"
+            # Redirect http -> https
+            - "traefik.http.routers.glenna-http.entrypoints=web"
+            - "traefik.http.routers.glenna-http.rule=Host(`thatsa.gg`)"
+            - "traefik.http.routers.glenna-http.middlewares=glenna-https"
+            - "traefik.http.middlewares.glenna-https.redirectscheme.scheme=https"
+            - "traefik.http.middlewares.glenna-https.redirectscheme.permanent=true"
+            # Primary, https.
+            - "traefik.http.routers.glenna.entrypoints=websecure"
             - "traefik.http.routers.glenna.rule=Host(`thatsa.gg`)"
-            - "traefik.http.routers.glenna.entrypoints=web"
+            - "traefik.http.routers.glenna.tls=true"
+            - "traefik.http.routers.glenna.tls.certresolver=glenna"
+            - "traefik.http.routers.glenna.tls.domains[0].main=thatsa.gg"
+            - "traefik.http.routers.glenna.tls.domains[0].sans=*.thatsa.gg"
         networks:
             - public
             - internal
@@ -101,5 +134,6 @@ services:
             - internal
 
 volumes:
-    sql-db:
+    acme:
     redis-db:
+    sql-db:

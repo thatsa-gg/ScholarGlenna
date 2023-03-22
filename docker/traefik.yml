@@ -1,0 +1,25 @@
+providers:
+    docker:
+        exposedbydefault: false
+        network: public
+    file:
+        directory: "/opt/traefik"
+entrypoints:
+    web:
+        address: ':80'
+    websecure:
+        address: ':443'
+    ping:
+        address: ':8082'
+api:
+    dashboard: true
+ping:
+    entryPoint: "ping"
+certificatesResolvers:
+    glenna:
+        acme:
+            caServer: 'https://acme-staging-v02.api.letsencrypt.org/directory'
+            storage: /etc/traefik/acme/acme.json
+            email: admin+certificates@thatsa.gg
+            dnsChallenge:
+                provider: digitalocean
