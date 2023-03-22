@@ -30,9 +30,7 @@ const wingmanMetadata = z.object({
 }))
 
 const arcdpsLogData = z.object({
-    triggerID: z.string()
-        .refine(id => /^\d+$/.test(id), id => ({ message: `TriggerID "${id}" must be a numeric string.` })).transform(id => Number(id))
-        .refine(isTriggerId, trigger => ({ message: `Unrecognized Boss ID ${trigger}` })).transform(triggerIDToBoss),
+    triggerID: z.number().refine(isTriggerId, trigger => ({ message: `Unrecognized Boss ID ${trigger}` })).transform(triggerIDToBoss),
     success: z.boolean(),
     durationMS: z.number().int(),
     timeStartStd: z.string().transform(parseDateString),
