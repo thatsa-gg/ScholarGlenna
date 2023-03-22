@@ -29,6 +29,7 @@ services:
             start_period: 30s
         networks:
             - public
+            - internal # Still required to avoid gateway timeouts connecting to app
     app:
         image: registry.digitalocean.com/thatsa-gg/scholar-glenna-app:latest
         env_file:

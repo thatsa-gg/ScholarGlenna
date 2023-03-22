@@ -18,7 +18,6 @@ ping:
 certificatesResolvers:
     glenna:
         acme:
-            caServer: 'https://acme-staging-v02.api.letsencrypt.org/directory'
             storage: /etc/traefik/acme/acme.json
             email: admin+certificates@thatsa.gg
             dnsChallenge:
