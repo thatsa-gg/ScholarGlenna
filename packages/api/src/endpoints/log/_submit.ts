@@ -86,10 +86,16 @@ export const submitProcedure = procedure
             .string()
             .regex(/^(?:https:\/\/)?(?:dps\.report\/[a-zA-Z0-9_-]+|gw2wingman\.nevermindcreations\.de\/log\/[a-zA-Z0-9_-]+)$/))
     }))
+    .output(z.object({
+        created: z.number().int()
+    }))
     .mutation(async ({ input: { team, logs } }) => {
         const data = await Promise.all(logs
             .map(url => new URL(url.startsWith('https://') ? url : `https://${url}`))
             .map(url => loadReportData(team, url)))
         // TODO: log players.
-        await database.log.createMany({ data, skipDuplicates: true })
+        const batch = await database.log.createMany({ data, skipDuplicates: true })
+        return {
+            created: batch.count
+        }
     })

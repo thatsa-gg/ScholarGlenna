@@ -6,6 +6,7 @@ DOCKER_REGISTRY = registry.digitalocean.com
 .PHONY: glenna all clean clean-build clean-deploy deploy
 .PHONY: $(RUSH_COMMAND)
 .PHONY: $(DELEGATE_PRISMA) $(DELEGATE_APP) $(DELEGATE_BOT)
+.PHONY: clean-common/deploy/app clean-common/deploy/bot common/deploy/bootstrap
 
 glenna: install build
 all: clean install build
@@ -16,17 +17,16 @@ $(RUSH_COMMAND):
 clean: clean-build clean-deploy
 clean-build:
 	rush clean
-clean-deploy: clean-common/deploy/app clean-common/deploy/bot
+clean-deploy: clean-common/deploy/app clean-common/deploy/bot clean-common/deploy/bootstrap
 
-.PHONY: clean-common/deploy/app clean-common/deploy/bot common/deploy/bootstrap
 deploy: common/deploy/app common/deploy/bot common/deploy/bootstrap
-common/deploy/app: build clean-common/deploy/app
+common/deploy/app: build
 	mkdir -p $@
 	rush deploy --target-folder $@ --scenario $(notdir $@)
-common/deploy/bot: build clean-common/deploy/bot
+common/deploy/bot: build
 	mkdir -p $@
 	rush deploy --target-folder $@ --scenario $(notdir $@)
-common/deploy/bootstrap: build clean-common/deploy/bootstrap
+common/deploy/bootstrap: build
 	mkdir -p $@
 	rush deploy --target-folder $@ --scenario $(notdir $@)
 clean-common/deploy/app:
@@ -47,11 +47,11 @@ docker/bootstrap: common/deploy/bootstrap
 
 .PHONY: push push-app push-bot push-bootstrap
 push: push-app push-bot push-bootstrap
-push-app: docker/app
+push-app:
 	docker image push $(DOCKER_REGISTRY)/thatsa-gg/scholar-glenna-app:latest
-push-bot: docker/bot
+push-bot:
 	docker image push $(DOCKER_REGISTRY)/thatsa-gg/scholar-glenna-bot:latest
-push-bootstrap: docker/bootstrap
+push-bootstrap:
 	docker image push $(DOCKER_REGISTRY)/thatsa-gg/scholar-glenna-bootstrap:latest
 
 $(DELEGATE_PRISMA):
