@@ -35,7 +35,7 @@ const arcdpsLogData = z.object({
     durationMS: z.number().int(),
     timeStartStd: z.string().transform(parseDateString),
     isCM: z.boolean(),
-    presentInstanceBuffs: z.tuple([z.number().int(), z.number().int() ]).array().optional().default([])
+    presentInstanceBuffs: z.tuple([ z.number().int(), z.number().int() ]).array().optional().default([])
         .transform(buffs => new Map<number, number>(buffs))
 }).transform<RefinedTeamOutput>(data => {
     const emboldenedLevel = data.presentInstanceBuffs.get(68087) || 0
