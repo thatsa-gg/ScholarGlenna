@@ -11,8 +11,8 @@ export namespace actions {
         return new ActionRowBuilder<ButtonBuilder>().addComponents(...buttons)
     }
 
-    export function select(select: StringSelectMenuBuilder){
-        return new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(select)
+    export function select(...select: RestOrArray<StringSelectMenuBuilder>){
+        return new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(...select)
     }
 }
 

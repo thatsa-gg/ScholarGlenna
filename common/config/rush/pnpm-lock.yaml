@@ -185,23 +185,29 @@ importers:
 
   ../../src/bot:
     specifiers:
+      '@glenna/api': workspace:*
       '@glenna/discord': workspace:*
       '@glenna/prisma': workspace:*
       '@glenna/util': workspace:*
       '@rushstack/heft': ^0.49.7
       '@types/node': ^18
+      '@types/papaparse': ~5.3.7
+      papaparse: ~5.4.1
       typescript: ^4.9
       winston: ^3.8.2
       zod: ^3.20.6
     dependencies:
+      '@glenna/api': link:../../packages/api
       '@glenna/discord': link:../../packages/discord
       '@glenna/prisma': link:../../packages/prisma
       '@glenna/util': link:../../packages/util
+      papaparse: 5.4.1
       winston: 3.8.2
       zod: 3.20.6
     devDependencies:
       '@rushstack/heft': 0.49.7_@types+node@18.14.2
       '@types/node': 18.14.2
+      '@types/papaparse': 5.3.7
       typescript: 4.9.5
 
 packages:
@@ -813,6 +819,12 @@ packages:
 
   /@types/node/18.14.2:
     resolution: {integrity: sha512-1uEQxww3DaghA0RxqHx0O0ppVlo43pJhepY51OxuQIKHpjbnYLA7vcdwioNPzIqmC2u3I/dmylcqjlh0e7AyUA==}
+
+  /@types/papaparse/5.3.7:
+    resolution: {integrity: sha512-f2HKmlnPdCvS0WI33WtCs5GD7X1cxzzS/aduaxSu3I7TbhWlENjSPs6z5TaB9K0J+BH1jbmqTaM+ja5puis4wg==}
+    dependencies:
+      '@types/node': 18.14.2
+    dev: true
 
   /@types/pug/2.0.6:
     resolution: {integrity: sha512-SnHmG9wN1UVmagJOnyo/qkk0Z7gejYxOYYmaAwr5u2yFYfsupN3sg10kyzN8Hep/2zbHxCnsumxOoRIRMBwKCg==}
@@ -1621,6 +1633,10 @@ packages:
     resolution: {integrity: sha512-5DXOiRKwuSEcQ/l0kGCF6Q3jcADFv5tSmRaJck/OqkVFcOzutB134KRSfF0xDrL39MNnqxbHBbUUcjZIhTgb2g==}
     dependencies:
       fn.name: 1.1.0
+    dev: false
+
+  /papaparse/5.4.1:
+    resolution: {integrity: sha512-HipMsgJkZu8br23pW15uvo6sib6wne/4woLZPlFf3rpDyMe9ywEXUsuD7+6K9PRkJlVT51j/sCOYDKGGS3ZJrw==}
     dev: false
 
   /parent-module/1.0.1:

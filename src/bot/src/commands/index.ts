@@ -15,6 +15,8 @@ import { error } from '../util/logging.js'
 import { teamMemberAdd } from './_user-context/team-member-add.js'
 import { teamMemberRemove } from './_user-context/team-member-remove.js'
 
+import { importLogs } from './_message-context/import-logs.js'
+
 export const Commands = new Map<string, TopCommand>(Object.entries({
     // Chat Slash Commands
     team,
@@ -24,6 +26,9 @@ export const Commands = new Map<string, TopCommand>(Object.entries({
     // User Context Commands
     'Add Team Member': teamMemberAdd,
     'Remove Team Member': teamMemberRemove,
+
+    // Message Context Commands
+    'Import Logs': importLogs,
 }))
 
 let client: REST | null = null

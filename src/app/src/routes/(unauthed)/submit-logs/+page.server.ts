@@ -22,7 +22,7 @@ export const actions: Actions = {
             .filter(link => link !== '')
         if(logs.length === 0)
             return fail(400, { links, missing: true })
-        const invalid = logs.filter(link => !/^(?:https:\/\/)?(?:dps\.report\/[a-zA-Z0-9_-]+|gw2wingman\.nevermindcreations\.de\/log\/[a-zA-Z0-9_-]+)$/.test(link))
+        const invalid = logs.filter(link => !/^(?:https:\/\/)?(?:(?:(?:www|a|b)\.)?dps\.report\/[a-zA-Z0-9_-]+|gw2wingman\.nevermindcreations\.de\/log\/[a-zA-Z0-9_-]+)$/.test(link))
         if(invalid.length > 0)
             return fail(400, { links, invalid })
 

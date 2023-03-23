@@ -12,6 +12,7 @@ import type {
     SlashCommandSubcommandGroupBuilder,
     UserContextMenuCommandInteraction,
     Guild,
+    Message,
 } from '@glenna/discord'
 import {
     ApplicationCommandType,
@@ -190,6 +191,30 @@ export function user(options: {
                 ? targetMember
                 : await guild.members.fetch(targetMember.user.id)
             const result = await options.execute(member, guild, interaction)
+            if(typeof result !== 'undefined'){
+                if(interaction.replied)
+                    await interaction.editReply(result)
+                else
+                    await interaction.reply(result)
+            }
+        }
+    }
+}
+
+export function message(options: {
+    execute(message: Message, guild: Guild, interaction: MessageContextMenuCommandInteraction): Promise<void | string | InteractionReplyOptions | MessagePayload>
+}): Command<'message' | 'context'> & TopCommand {
+    return {
+        context(builder){
+            builder.setType(ApplicationCommandType.Message)
+            return builder
+        },
+        toJSON(name){ return this.context(new ContextMenuCommandBuilder().setName(name)).toJSON() },
+        async message(interaction){
+            const { guild, targetMessage } = interaction
+            if(!guild)
+                throw `User context commands can only be invoked from a server.`
+            const result = await options.execute(targetMessage, guild, interaction)
             if(typeof result !== 'undefined'){
                 if(interaction.replied)
                     await interaction.editReply(result)

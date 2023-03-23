@@ -49,7 +49,7 @@ const arcdpsLogData = z.object({
     }
 })
 
-async function loadReportData(team: Pick<Team, 'id'>, url: URL): Promise<Prisma.LogCreateManyInput> {
+async function loadReportData(team: Pick<Team, 'id'>, submittedAt: Date, url: URL): Promise<Prisma.LogCreateManyInput> {
     const source = url.host === 'dps.report'
         ? new URL(`https://dps.report/getJson?permalink=${url.pathname.slice(1)}`)
         : new URL(`https://gw2wingman.nevermindcreations.de/api/getMetadata/${url.pathname.replace(/^\/log\//, '')}`)
@@ -74,7 +74,7 @@ async function loadReportData(team: Pick<Team, 'id'>, url: URL): Promise<Prisma.
     return {
         url: url.toString(),
         teamId: team.id,
-        submittedAt: new Date(),
+        submittedAt,
         ...data
     }
 }
@@ -82,17 +82,18 @@ async function loadReportData(team: Pick<Team, 'id'>, url: URL): Promise<Prisma.
 export const submitProcedure = procedure
     .input(z.object({
         team: database.team.fetch('team', { id: true }),
+        submittedAt: z.date().optional().default(new Date()),
         logs: z.array(z
             .string()
-            .regex(/^(?:https:\/\/)?(?:dps\.report\/[a-zA-Z0-9_-]+|gw2wingman\.nevermindcreations\.de\/log\/[a-zA-Z0-9_-]+)$/))
+            .regex(/^(?:https:\/\/)?(?:(?:(?:www|a|b)\.)?dps\.report\/[a-zA-Z0-9_-]+|gw2wingman\.nevermindcreations\.de\/log\/[a-zA-Z0-9_-]+)$/))
     }))
     .output(z.object({
         created: z.number().int()
     }))
-    .mutation(async ({ input: { team, logs } }) => {
+    .mutation(async ({ input: { team, submittedAt, logs } }) => {
         const data = await Promise.all(logs
             .map(url => new URL(url.startsWith('https://') ? url : `https://${url}`))
-            .map(url => loadReportData(team, url)))
+            .map(url => loadReportData(team, submittedAt, url)))
         // TODO: log players.
         const batch = await database.log.createMany({ data, skipDuplicates: true })
         return {

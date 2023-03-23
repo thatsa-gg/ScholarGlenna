@@ -9,12 +9,15 @@
         "@glenna/prisma": "workspace:*",
         "@glenna/util": "workspace:*",
         "winston": "^3.8.2",
-        "zod": "^3.20.6"
+        "zod": "^3.20.6",
+        "papaparse": "~5.4.1",
+        "@glenna/api": "workspace:*"
     },
     "devDependencies": {
         "@rushstack/heft": "^0.49.7",
         "@types/node": "^18",
-        "typescript": "^4.9"
+        "typescript": "^4.9",
+        "@types/papaparse": "~5.3.7"
     },
     "scripts": {
         "build": "heft build --clean",
