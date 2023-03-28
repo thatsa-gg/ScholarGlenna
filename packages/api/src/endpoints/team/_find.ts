@@ -13,11 +13,25 @@ const commonProperties = z.object({
 
 export const findProcedure = procedure
     .input(z.union([
-        commonProperties,
         commonProperties.extend({ guild: database.guild.validateSnowflake('guild') }),
-        commonProperties.extend({ division: database.division.validateSnowflake('division') })
+        commonProperties.extend({ division: database.division.validateSnowflake('division') }),
+
+        // this *must* go last, since otherwise the input makes it through here and guild/division validation doesn't happen
+        commonProperties,
     ]))
     .query(async ({ input }) => {
+        console.log({
+            input,
+            teamFind: {
+                name: input.name,
+                focus: input.focus,
+                level: input.level,
+                region: input.region,
+                type: Array.isArray(input.type) ? { in: input.type } : input.type,
+                guild: 'guild' in input ? { snowflake: input.guild } : undefined,
+                division: 'division' in input ? { snowflake: input.division } : undefined
+            }
+        })
         const teams = await database.team.findMany({
             where: {
                 name: input.name,

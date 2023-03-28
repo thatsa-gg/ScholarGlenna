@@ -97,10 +97,12 @@ const logOutput = z.object({
 type Encounter = `${Boss}${LogDifficultyType}`
 export const findProcedure = procedure
     .input(z.union([
-        commonProperties.extend(teamFilter),
+        commonProperties.extend({ team: scalarOrArray(database.team.validateSnowflake('team')) }),
         commonProperties.extend(teamFilter).extend({ guild: scalarOrArray(database.guild.validateSnowflake('guild')) }),
         commonProperties.extend(teamFilter).extend({ division: scalarOrArray(database.division.validateSnowflake('division')) }),
-        commonProperties.extend({ team: scalarOrArray(database.team.validateSnowflake('team')) }),
+
+        // this *must* go last, since otherwise the input makes it through here and guild/division validation doesn't happen
+        commonProperties.extend(teamFilter),
     ]))
     .query(async ({ input }) => {
         const logs = await database.log.findMany({
