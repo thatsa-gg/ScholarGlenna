@@ -115,6 +115,9 @@ export function group(options: {
     return {
         group(builder){
             builder.setDescription(options.description)
+            for(const [ key, value ] of members.entries()){
+                builder.addSubcommand(builder => value.subcommand(builder.setName(key)))
+            }
             return builder
         },
         async chat(interaction){
@@ -163,7 +166,6 @@ export function subcommand<TInput extends z.AnyZodObject>(options: {
             }
         },
         autocomplete: !autocomplete ? undefined : async interaction => {
-            debug(`Received delegated autocomplete interaction: ${interaction.commandName}`)
             const focused = interaction.options.getFocused(true)
             const response = await autocomplete(focused, interaction)
             if(response)

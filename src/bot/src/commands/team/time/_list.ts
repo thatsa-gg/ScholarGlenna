@@ -2,45 +2,47 @@ import { z } from 'zod'
 import { database } from '../../../util/database.js'
 import { subcommand } from '../../_command.js'
 import { djs } from '../../_djs.js'
-import { EmbedBuilder } from '@glenna/discord'
+import { chatInputApplicationCommandMention, EmbedBuilder } from '@glenna/discord'
+import { formatDuration } from '@glenna/util'
+
 
 export const list = subcommand({
-    description: `Fetch a team's members.`,
+    description: `Fetch a team's session times.`,
     input: z.object({
         team: djs.string(b => b.setAutocomplete(true)).describe('The team to fetch times for.'),
         guild: djs.guild().transform(database.guild.transformOrThrow({ id: true })),
     }),
-    async execute({ team: teamName, guild }){
+    async execute({ team: teamName, guild }, interaction){
         const team = await database.team.findUniqueOrThrow({
             where: { guildId_alias: { guildId: guild.id, alias: teamName }},
             select: {
                 type: true,
-                mention: true,
-                times: {
-                    select: {
-                        id: true,
-                        computed: {
-                            select: {
-                                timeCode: true
-                            }
-                        }
-                    }
-                }
+                name: true,
+                nextRunTimes: true,
+                nextDaylightSavingsShift: true,
             }
         })
 
-        const times = team.times.map(({ id, computed: { timeCode }}) => `(${id}) ${timeCode()}`)
+        const runTimes = await team.nextRunTimes()
+        const times = runTimes.map(({ index, timeCode, duration }) => `(${index}) ${timeCode()} for ${formatDuration(duration)}`)
+        const command = interaction.client.application.commands.cache.find(command => command.guild === interaction.guild && command.name === 'team')
 
         return {
             embeds: [
                 new EmbedBuilder({
                     color: 0x40a86d,
-                    title: `Team ${team.mention}`,
+                    title: `Team ${team.name}`,
                     fields: [
                         {
                             name: 'Times',
-                            value: times.length > 0 ? times.map(a => `- ${a}`).join(`\n`) : `*Use \`/team time add\` to add run times to this team.*`
-                        }
+                            value: times.length > 0 ? times.map(a => `- ${a}`).join(`\n`) : `*Use ${command ? chatInputApplicationCommandMention(`team`, `time`, `add`, command.id) : `\`/team time add\``} to add run times to this team.*`
+                        },
+                        ...(team.nextDaylightSavingsShift === null ? [] : [
+                            {
+                                name: 'Next Daylight Savings Change',
+                                value: team.nextDaylightSavingsShift.timeCode()
+                            }
+                        ])
                     ]
                 })
             ]

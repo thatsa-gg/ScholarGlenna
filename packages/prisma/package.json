@@ -14,7 +14,8 @@
     "dependencies": {
         "@glenna/discord": "workspace:*",
         "@prisma/client": "^4.10.1",
-        "zod": "^3.20.6"
+        "zod": "^3.20.6",
+        "@js-temporal/polyfill": "~0.4.3"
     },
     "scripts": {
         "migrate": "prisma migrate deploy",

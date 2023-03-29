@@ -18,12 +18,18 @@ function isUserOrMemberNotFoundError(e: any): e is (DiscordAPIError & { code: 10
 export const readyListener = listener('ready', {
     once: true,
     async execute(client){
-        client.user.setAFK()
+        client.application
+        info(`Starting ${client.application.name}`)
         debug(`Beginning startup.`)
         client.setMaxListeners(Infinity)
 
         info(`Performing consistency check.`)
         const validGuildSnowflakes = client.guilds.cache.map((_, key) => BigInt(key))
+        debug(`Active guilds:`)
+        if(validGuildSnowflakes.length == 0)
+            debug(`\t\t(none)`)
+        else for(const id of validGuildSnowflakes)
+            debug(`\t\t${id}\t${client.guilds.cache.get(id.toString())?.name}`)
         await database.$transaction(async database => {
             debug(`Marking inactive guilds.`)
             await database.guild.updateMany({
@@ -146,11 +152,13 @@ export const readyListener = listener('ready', {
 
         info(`Registering commands.`)
         for(const guild of client.guilds.cache.values()){
-            await registerCommands({
+            debug(`Registering commands on "${guild.name}" (${guild.id})`)
+            const commands = await registerCommands({
                 token: DISCORD_TOKEN,
                 clientId: OAUTH_CLIENT_ID,
                 guildId: guild.id
             })
+            console.log(commands)
         }
 
         client.user.setActivity(`/glenna help`)

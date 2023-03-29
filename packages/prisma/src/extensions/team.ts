@@ -1,3 +1,4 @@
+import { Temporal, toTemporalInstant } from '@js-temporal/polyfill'
 import { Prisma, type Team, type TeamMemberRole, type GuildMember } from '../../generated/client/index.js'
 
 export const teamExtension = Prisma.defineExtension((client) => client.$extends({
@@ -9,6 +10,58 @@ export const teamExtension = Prisma.defineExtension((client) => client.$extends(
                     if(role)
                         return `<@&${role}>`
                     return name
+                }
+            },
+            nextRunTimes: {
+                needs: { id: true, primaryTimeZone: true, daylightSavings: true },
+                compute: team => async () => {
+                    const times = await client.teamTime.findMany({
+                        where: { team: { id: team.id }},
+                        select: {
+                            index: true,
+                            time: true,
+                            duration: true
+                        }
+                    })
+
+                    // if the calculations are done in the primary time zone, then the time-of-day will remain the same during DST transitions
+                    // if they're done in UTC, then the reset offset will remain the same
+                    const timeZone = team.daylightSavings === 'RespectTime' ? team.primaryTimeZone : 'UTC'
+                    const now = Temporal.Now.zonedDateTimeISO(timeZone)
+                    const currentWeek = now.round({ smallestUnit: 'day', roundingMode: 'floor' }).subtract({ days: now.dayOfWeek })
+                    return times.map(time => {
+                        const realTime = toTemporalInstant.apply(time.time).toZonedDateTimeISO(timeZone)
+                        const week = realTime.round({ smallestUnit: 'day', roundingMode: 'floor' }).subtract({ days: realTime.dayOfWeek })
+                        const weekOffset = realTime.since(week)
+                        let nextRun = currentWeek.add(weekOffset)
+                        if(Temporal.ZonedDateTime.compare(nextRun, now) < 0){
+                            nextRun = nextRun.add({ days: 7 })
+                        }
+                        return {
+                            index: time.index,
+                            time: nextRun,
+                            duration: Temporal.Duration.from({ minutes: time.duration }).round({ largestUnit: 'hours' }),
+                            timeCode(style: 't' | 'T' | 'd' | 'D' | 'f' | 'F' | 'r' = 'f'){
+                                return `<t:${nextRun.epochSeconds}:${style}>`
+                            }
+                        }
+                    }).sort((a, b) => Temporal.ZonedDateTime.compare(a.time, b.time))
+                }
+            },
+            nextDaylightSavingsShift: {
+                needs: { primaryTimeZone: true, daylightSavings: true },
+                compute({ primaryTimeZone, daylightSavings }){
+                    if(daylightSavings === 'RespectReset')
+                        return null
+                    const next = Temporal.TimeZone.from(primaryTimeZone).getNextTransition?.(Temporal.Now.instant()) ?? null
+                    if(next === null)
+                        return null
+                    return {
+                        time: next.toZonedDateTimeISO(primaryTimeZone),
+                        timeCode(style: 't' | 'T' | 'd' | 'D' | 'f' | 'F' | 'r' = 'f'){
+                            return `<t:${next.epochSeconds}:${style}>`
+                        }
+                    }
                 }
             }
         },

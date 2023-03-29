@@ -1,4 +1,5 @@
 import {
+    APIApplicationCommand,
     REST,
     Routes,
     type RESTPostAPIApplicationCommandsJSONBody,
@@ -15,8 +16,6 @@ import { error } from '../util/logging.js'
 import { teamMemberAdd } from './_user-context/team-member-add.js'
 import { teamMemberRemove } from './_user-context/team-member-remove.js'
 
-import { importLogs } from './_message-context/import-logs.js'
-
 export const Commands = new Map<string, TopCommand>(Object.entries({
     // Chat Slash Commands
     team,
@@ -28,7 +27,6 @@ export const Commands = new Map<string, TopCommand>(Object.entries({
     'Remove Team Member': teamMemberRemove,
 
     // Message Context Commands
-    'Import Logs': importLogs,
 }))
 
 let client: REST | null = null
@@ -45,9 +43,9 @@ export async function registerCommands(args: {
     token: string
     clientId: string
     guildId: string
-}): Promise<void> {
+}): Promise<APIApplicationCommand[]> {
     if(null === client){
         client = new REST({ version: '10' }).setToken(args.token)
     }
-    await client.put(Routes.applicationGuildCommands(args.clientId, args.guildId), { body: CommandList })
+    return await client.put(Routes.applicationGuildCommands(args.clientId, args.guildId), { body: CommandList }) as APIApplicationCommand[]
 }

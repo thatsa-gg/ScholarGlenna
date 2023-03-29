@@ -76,6 +76,12 @@ export namespace djs {
         ;(handler._def as any)[DJSBuilderSymbol] = (option: SlashCommandNumberOption) => option.setMinValue(min).setMaxValue(max)
         return handler
     }
+
+    export function index(){
+        const handler = z.number().int().min(0)
+        ;(handler._def as any)[DJSBuilderSymbol] = (option: SlashCommandIntegerOption) => option.setMinValue(0).setAutocomplete(true)
+        return handler
+    }
 }
 
 function inspectType(zodType: z.ZodTypeAny){

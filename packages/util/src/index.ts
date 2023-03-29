@@ -154,3 +154,8 @@ export function assertExhaustive(a: never): never {
 export function asRGB(color: number){
     return `#${color.toString(16).padStart(6, '0')}`
 }
+
+export function formatDuration(duration: Temporal.Duration){
+    const dur = duration.round({ largestUnit: 'hours' })
+    return `${dur.hours}:${dur.minutes.toString().padStart(2, '0')}`
+}

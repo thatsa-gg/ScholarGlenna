@@ -364,10 +364,14 @@ model Team {
 model TeamTime {
     id Int @id @default(autoincrement()) @map("team_time_id")
     teamId Int @map("team_id")
+    index Int
     time DateTime @db.Timestamptz(0)
+    duration Int @default(120) // minutes
 
     team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
     computed TeamTimeComputed @relation(fields: [id], references: [id])
+
+    @@unique([teamId, index])
     @@schema("guild")
     @@map("teamtime")
 }

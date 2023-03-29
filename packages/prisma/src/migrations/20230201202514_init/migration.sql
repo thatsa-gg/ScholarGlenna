@@ -245,7 +245,11 @@ create table "guild"."team" (
 create table "guild"."teamtime" (
     "team_time_id" serial primary key not null,
     "team_id" integer not null references "guild"."team"("team_id") on delete cascade,
-    "time" timestamptz(0) not null
+    "index" integer not null,
+    "time" timestamptz(0) not null,
+    "duration" integer not null default 120,
+
+    unique("team_id", "index")
 );
 
 -- CreateView
