@@ -159,3 +159,7 @@ export function formatDuration(duration: Temporal.Duration){
     const dur = duration.round({ largestUnit: 'hours' })
     return `${dur.hours}:${dur.minutes.toString().padStart(2, '0')}`
 }
+
+export function roundWeek(time: Temporal.ZonedDateTime){
+    return time.round({ smallestUnit: 'day', roundingMode: 'floor' }).subtract({ days: time.dayOfWeek })
+}

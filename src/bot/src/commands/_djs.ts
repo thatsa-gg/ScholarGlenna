@@ -129,8 +129,8 @@ function inspectType(zodType: z.ZodTypeAny){
                 : (() => { throw `Illegal ZodEnum type ${typeof obj.values[0]}` })()
             const otherBuilder = builder
             builder = otherBuilder
-                ? (option: SlashCommandStringOption | SlashCommandIntegerOption | SlashCommandNumberOption) => { option.addChoices(...obj.values); return otherBuilder(option) }
-                : (option: SlashCommandStringOption | SlashCommandIntegerOption | SlashCommandNumberOption) => { option.addChoices(...obj.values); return option }
+                ? (option: SlashCommandStringOption | SlashCommandIntegerOption | SlashCommandNumberOption) => { option.addChoices(...obj.values.map((a: any) => ({ name: a.toString(), value: a }))); return otherBuilder(option) }
+                : (option: SlashCommandStringOption | SlashCommandIntegerOption | SlashCommandNumberOption) => { option.addChoices(...obj.values.map((a: any) => ({ name: a.toString(), value: a }))); return option }
         }
         if(type === 'ZodNumber' || type === 'integer'){
             type MinMaxCheck = { kind: 'min' | 'max', value: number, inclusive: boolean }
