@@ -4,7 +4,7 @@ import { redirect } from '@sveltejs/kit'
 import type { LayoutServerLoad } from './$types'
 
 export const prerender = false
-export const load: LayoutServerLoad = async ({ cookies }) => {
+export const load = (async ({ cookies }) => {
     const sessionID = cookies.get('session_id')
     if(!sessionID)
         return { user: null }
@@ -32,4 +32,4 @@ export const load: LayoutServerLoad = async ({ cookies }) => {
         throw redirect(303, '/api/logout')
 
     return { user: profile.user }
-}
+}) satisfies LayoutServerLoad

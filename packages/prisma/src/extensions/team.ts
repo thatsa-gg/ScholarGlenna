@@ -1,6 +1,8 @@
 import { formatDuration, roundWeek } from '@glenna/util'
 import { Temporal, toTemporalInstant } from '@js-temporal/polyfill'
-import { Prisma, type TeamTime, type Team } from '../../generated/client/index.js'
+import { Prisma, type TeamTime, type Team, type TeamType } from '../../generated/client/index.js'
+
+type MaybePromise<T> = T | Promise<T>
 
 function calculationTimeZone(team: Pick<Team, 'primaryTimeZone' | 'daylightSavings'>){
     if(team.daylightSavings === 'RespectReset')
@@ -89,9 +91,11 @@ export const teamExtension = Prisma.defineExtension((client) => client.$extends(
             nextRun: {
                 needs: { index: true, time: true, duration: true, teamId: true },
                 compute: time => {
-                    function compute(): Promise<ReturnType<typeof transformTeamTime>>
-                    function compute(team: Pick<Team, 'primaryTimeZone' | 'daylightSavings'>): ReturnType<typeof transformTeamTime>
-                    function compute(team?: Pick<Team, 'primaryTimeZone' | 'daylightSavings'>): ReturnType<typeof transformTeamTime> | Promise<ReturnType<typeof transformTeamTime>>{
+                    type _team = Pick<Team, 'primaryTimeZone' | 'daylightSavings'>
+                    type _time = ReturnType<typeof transformTeamTime>
+                    function compute(): Promise<_time>
+                    function compute(team: _team): _time
+                    function compute(team?: _team): MaybePromise<_time> {
                         if(!team)
                             return client.team.findUniqueOrThrow({
                                 where: { id: time.teamId },
@@ -109,10 +113,11 @@ export const teamExtension = Prisma.defineExtension((client) => client.$extends(
     },
     model: {
         team: {
-            async autocomplete(guildSnowflake: bigint, searchValue: string){
+            async autocomplete(guildSnowflake: bigint, searchValue: string, type: Prisma.EnumTeamTypeFilter | TeamType = { notIn: [ 'Management', 'Inactive' ] }){
                 const teams = await client.team.findMany({
                     where: {
                         guild: { snowflake: guildSnowflake },
+                        type,
                         OR: [
                             { name: { startsWith: searchValue }},
                             { alias: { startsWith: searchValue }}
@@ -124,23 +129,6 @@ export const teamExtension = Prisma.defineExtension((client) => client.$extends(
                     }
                 })
                 return teams.map(({ name, alias }) => ({ name, value: alias }))
-            }
-        },
-        timeZone: {
-            async autocomplete(searchValue: string){
-                const matches = await client.timeZone.findMany({
-                    where: {
-                        OR: [
-                            { name: { startsWith: searchValue, mode: 'insensitive' }},
-                            { abbreviation: { startsWith: searchValue, mode: 'insensitive' }}
-                        ]
-                    },
-                    select: {
-                        name: true,
-                        display: true
-                    }
-                })
-                return matches.map(({ display, name }) => ({ name: display, value: name }))
             }
         },
         teamTime: {

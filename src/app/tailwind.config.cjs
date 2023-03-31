@@ -1,4 +1,6 @@
 const defaultTheme = require('tailwindcss/defaultTheme')
+const defaultColors = require('tailwindcss/colors')
+const palettes = require('./colors/palettes.json')
 
 const breaks = Object.entries({
     sm: '640px',
@@ -19,6 +21,25 @@ module.exports = {
                 width: 'width'
             }
         },
+        colors: Object.assign({}, defaultColors, ...palettes.map(palette => ({
+            [palette.paletteName]: Object.fromEntries(palette.swatches.map(({ name, color }) => [ name, `#${color}` ]))
+        }))),
+        boxShadow: {
+            'sm': '0 1px 0 rgb(2 2 2 / 0.2), 0 2px 0 rgb(5 5 5 / 0.05), 0 2px 0 rgb(2 2 2 / 0.05)'
+        }
     },
     plugins: [],
 }
+
+/*
+    - sidebar: #1e1f22
+    - navbar: #2b2d31
+    - background: #313338
+    - text:
+        - title: #f2f3f5
+        - subtitle: #bab5c1
+        - channel: #949ba4
+        - disabled: #4e5058
+        - chat: #dbdee1
+    - box-shadow --elevation-low: 0 1px 0 rgba(2,2,2,0.2), 0 1.5px 0 rgba(5,5,7,0.05),0 2px 0 rgba(2,2,2,0.05)
+*/

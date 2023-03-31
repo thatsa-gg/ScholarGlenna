@@ -1,0 +1,55 @@
+[
+    {
+        "paletteName": "primary",
+        "swatches": [
+            {
+                "name": "50",
+                "color": "121214"
+            },
+            {
+                "name": "100",
+                "color": "18191B"
+            },
+            {
+                "name": "200",
+                "color": "1E1F22"
+            },
+            {
+                "name": "300",
+                "color": "26272B"
+            },
+            {
+                "name": "400",
+                "color": "2B2D31"
+            },
+            {
+                "name": "DEFAULT",
+                "color": "2B2D31"
+            },
+            {
+                "name": "500",
+                "color": "313338"
+            },
+            {
+                "name": "600",
+                "color": "3A3C42"
+            },
+            {
+                "name": "700",
+                "color": "4E5058"
+            },
+            {
+                "name": "800",
+                "color": "5D6069"
+            },
+            {
+                "name": "900",
+                "color": "949BA4"
+            },
+            {
+                "name": "950",
+                "color": "BCC5D0"
+            }
+        ]
+    }
+]

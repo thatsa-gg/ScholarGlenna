@@ -214,6 +214,9 @@ model Guild {
     name String
     alias String @unique @db.VarChar(32)
 
+    acronym String @db.VarChar(8)
+    icon String?
+
     // Marks when the bot first became aware it wasn't in a guild anymore.
     lostRemoteReferenceAt DateTime? @db.Timestamptz(3) @map("lost_remote_reference_at")
 

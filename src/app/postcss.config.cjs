@@ -1,6 +1,9 @@
+const { resolve } = require('path')
+
 module.exports = {
-  plugins: {
-    tailwindcss: {},
-    autoprefixer: {},
-  },
+    plugins: {
+        "postcss-nesting": {},
+        tailwindcss: { config: resolve(__dirname, './tailwind.config.cjs') },
+        autoprefixer: {},
+    },
 }

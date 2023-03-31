@@ -7,6 +7,10 @@ export const guildUpdateListener = listener('guildUpdate', {
         const data: Prisma.GuildUpdateInput = {}
         if(oldGuild.name !== newGuild.name)
             data.name = newGuild.name
+        if(oldGuild.nameAcronym !== newGuild.nameAcronym)
+            data.acronym = newGuild.nameAcronym
+        if(oldGuild.icon !== newGuild.icon)
+            data.icon = newGuild.icon
         if(Object.keys(data).length > 0)
             await database.guild.update({ where: { snowflake: BigInt(newGuild.id) }, data })
     }

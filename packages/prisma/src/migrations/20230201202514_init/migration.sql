@@ -190,6 +190,8 @@ create table "guild"."guild" (
     "snowflake" bigint unique not null,
     "name" text not null,
     "alias" varchar(32) unique not null,
+    "acronym" varchar(8) not null,
+    "icon" text,
     "lost_remote_reference_at" timestamptz(3)
 );
 
