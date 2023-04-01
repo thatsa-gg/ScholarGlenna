@@ -51,5 +51,58 @@
                 "color": "BCC5D0"
             }
         ]
+    },
+    {
+        "paletteName": "blueberry",
+        "swatches": [
+            {
+                "name": "50",
+                "color": "171C57"
+            },
+            {
+                "name": "100",
+                "color": "2F39A8"
+            },
+            {
+                "name": "200",
+                "color": "3E4BCF"
+            },
+            {
+                "name": "300",
+                "color": "4B58E8"
+            },
+            {
+                "name": "400",
+                "color": "525FEE"
+            },
+            {
+                "name": "500",
+                "color": "5865F2"
+            },
+            {
+                "name": "DEFAULT",
+                "color": "5865F2"
+            },
+            {
+                "name": "600",
+                "color": "606CF5"
+            },
+            {
+                "name": "700",
+                "color": "6A76F8"
+            },
+            {
+                "name": "800",
+                "color": "7883FA"
+            },
+            {
+                "name": "900",
+                "color": "9099FC"
+            },
+            {
+                "name": "950",
+                "color": "B9BFFE"
+            }
+        ]
     }
 ]

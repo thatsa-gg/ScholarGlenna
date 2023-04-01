@@ -27,8 +27,7 @@ module.exports = {
         boxShadow: {
             'sm': '0 1px 0 rgb(2 2 2 / 0.2), 0 2px 0 rgb(5 5 5 / 0.05), 0 2px 0 rgb(2 2 2 / 0.05)'
         }
-    },
-    plugins: [],
+    }
 }
 
 /*

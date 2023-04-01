@@ -48,15 +48,15 @@ const commonProperties = z.object({
 })
 
 const sortKeyAlias = {
-    date: 'startAt',
-    difficulty: 'difficulty',
-    duration: 'duration',
-    emboldened: 'emboldenedLevel',
-    submitted: 'submittedAt',
+    date: 'startAt' as const,
+    difficulty: 'difficulty' as const,
+    duration: 'duration' as const,
+    emboldened: 'emboldenedLevel' as const,
+    submitted: 'submittedAt' as const,
 }
 const sortKeys = Object.keys(sortKeyAlias) as (keyof typeof sortKeyAlias)[]
 
-const defaultSortOrder = {
+const defaultSortOrder: { [P in keyof typeof sortKeyAlias]: z.infer<typeof sortOrder> } = {
     date: 'desc',
     difficulty: 'desc',
     duration: 'asc',
@@ -127,8 +127,14 @@ export const findProcedure = procedure
                 { duration: 'asc' },
                 { startAt: 'desc' }
             ] : asArray(input.sort).map(entry => {
-                if(typeof entry === 'string')
-                    return { [sortKeyAlias[entry]]: defaultSortOrder[entry] }
+                function isSortKey(candidate: any): candidate is keyof typeof sortKeyAlias {
+                    return typeof candidate === 'string' && candidate in sortKeyAlias
+                }
+                const r = entry as unknown as any // hack to get the type guard working
+                if(isSortKey(r))
+                    return { [sortKeyAlias[r]]: defaultSortOrder[r] }
+                if(!((_c: any): _c is Exclude<typeof entry, string> => true)(entry))
+                    throw `type hack`
                 for(const key of sortKeys)
                     if(key in entry)
                         return { [sortKeyAlias[key]]: (entry as any)[key] as 'asc' | 'desc' }
