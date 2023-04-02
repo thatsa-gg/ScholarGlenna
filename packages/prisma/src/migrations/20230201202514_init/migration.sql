@@ -234,7 +234,7 @@ create table "guild"."team" (
     "level" "guild"."teamlevel" not null default 'progression',
     "region" "guild"."teamregion" not null default 'north_america',
     "capacity" smallint default 10,
-    "primary_time_zone" text not null default 'America/Los_Angeles', -- default to pacific time, where ANet Headquarters is
+    "primary_time_zone" text not null default 'America/Detroit', -- default to EST US with DST
     "daylight_savings" "guild"."teamdaylightsavings" default 'respect_reset',
     "role" bigint,
     "channel" bigint,
@@ -260,7 +260,6 @@ create table "guild"."teammember" (
     "team_id" integer not null references "guild"."team"("team_id") on delete cascade,
     "guild_member_id" integer not null references "guild"."guildmember"("guild_member_id") on delete cascade,
     "role" "guild"."teammemberrole" not null default 'member',
-    "source" bigint,
     unique("team_id", "guild_member_id")
 );
 

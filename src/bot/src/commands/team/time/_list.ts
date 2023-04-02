@@ -2,9 +2,9 @@ import { z } from 'zod'
 import { database } from '../../../util/database.js'
 import { subcommand } from '../../_command.js'
 import { djs } from '../../_djs.js'
-import { chatInputApplicationCommandMention, EmbedBuilder } from '@glenna/discord'
+import { EmbedBuilder } from '@glenna/discord'
 import { formatDuration } from '@glenna/util'
-
+import { slashCommandMention } from '../../_reference.js'
 
 export const list = subcommand({
     description: `Fetch a team's session times.`,
@@ -25,7 +25,6 @@ export const list = subcommand({
 
         const runTimes = await team.nextRunTimes()
         const times = runTimes.map(({ index, timeCode, duration }) => `(${index}) ${timeCode()} for ${formatDuration(duration)}`)
-        const command = interaction.client.application.commands.cache.find(command => command.guild === interaction.guild && command.name === 'team')
 
         return {
             embeds: [
@@ -35,7 +34,7 @@ export const list = subcommand({
                     fields: [
                         {
                             name: 'Times',
-                            value: times.length > 0 ? times.map(a => `- ${a}`).join(`\n`) : `*Use ${command ? chatInputApplicationCommandMention(`team`, `time`, `add`, command.id) : `\`/team time add\``} to add run times to this team.*`
+                            value: times.length > 0 ? times.map(a => `- ${a}`).join(`\n`) : `*Use ${slashCommandMention(interaction, 'team', 'time', 'add')} to add run times to this team.*`
                         },
                         ...(team.nextDaylightSavingsShift === null ? [] : [
                             {

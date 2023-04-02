@@ -1,6 +1,7 @@
 import { listener } from '../EventListener.js'
-import { debug, error, warn } from '../util/logging.js'
+import { error, warn } from '../util/logging.js'
 import { Commands } from '../commands/index.js'
+import { PublicError } from '../PublicError.js'
 
 export const onCommandListener = listener('interactionCreate', {
     async execute(interaction){
@@ -34,16 +35,12 @@ export const onCommandListener = listener('interactionCreate', {
                     await command.chat(interaction)
                 }
             } catch(err){
+                const content = err instanceof PublicError ? err.message : 'There was an error while executing this command!'
                 if(interaction.isRepliable()){
                     if(interaction.replied)
-                        await interaction.editReply({
-                            content: 'There was an error while executing this command!',
-                        })
+                        await interaction.editReply({ content })
                     else
-                        await interaction.reply({
-                            content: 'There was an error while executing this command!',
-                            ephemeral: true
-                        })
+                        await interaction.reply({ content, ephemeral: true })
                 }
                 throw err
             }

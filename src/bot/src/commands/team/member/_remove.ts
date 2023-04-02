@@ -4,9 +4,10 @@ import { subcommand } from '../../_command.js'
 import { djs } from '../../_djs.js'
 import { debug } from '../../../util/logging.js'
 import { EmbedBuilder } from '@glenna/discord'
+import { PublicError } from '../../../PublicError.js'
 
-export const add = subcommand({
-    description: 'Add a member to a team.',
+export const remove = subcommand({
+    description: 'Remove a member from a team.',
     input: z.object({
         team: djs.string(b => b.setAutocomplete(true)).describe('The team to modify.'),
         member: djs.string(b => b.setAutocomplete(true))
@@ -21,9 +22,14 @@ export const add = subcommand({
             select: {
                 id: true,
                 name: true,
+                role: true,
                 mention: true
             }
         })
+
+        if(team.role !== null)
+            throw new PublicError(`Cannot remove members from ${team.mention} because it is using role synchronization.`)
+
         const teamMember = await database.teamMember.findFirstOrThrow({
             where: { id: member },
             select: {
@@ -56,34 +62,8 @@ export const add = subcommand({
     async autocomplete({ name, value }, interaction){
         if(name === 'team')
             return await database.team.autocomplete(BigInt(interaction.guild!.id), value)
-        if(name === 'member'){
-            const alias = interaction.options.getString('team')
-            if(!alias)
-                return []
-            const team = await database.team.findFirst({
-                where: {
-                    guild: { snowflake: BigInt(interaction.guild!.id) },
-                    alias
-                },
-                select: {
-                    members: {
-                        where: {
-                            OR: [
-                                { member: { name: { startsWith: value }}},
-                                { member: { user: { name: { startsWith: value }}}}
-                            ]
-                        },
-                        select: {
-                            id: true,
-                            computed: { select: { displayName: true }}
-                        }
-                    }
-                }
-            })
-            if(!team)
-                return []
-            return team.members.map(member => ({ name: member.computed.displayName, value: member.id }))
-        }
+        if(name === 'member')
+            return await database.teamMember.autocomplete(BigInt(interaction.guild!.id), interaction.options.getString('team'), value)
 
         return
     }

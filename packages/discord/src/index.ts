@@ -2,6 +2,7 @@ import {
     Client,
     IntentsBitField,
     REST,
+    CDN,
 } from 'discord.js'
 import { getConfig } from './config.js'
 
@@ -41,3 +42,5 @@ export namespace Discord {
         }
     }
 }
+
+export const DiscordCDN = new CDN()

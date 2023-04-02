@@ -12,7 +12,8 @@
         "zod": "^3.20.6",
         "papaparse": "~5.4.1",
         "@glenna/api": "workspace:*",
-        "@js-temporal/polyfill": "^0.4.3"
+        "@js-temporal/polyfill": "^0.4.3",
+        "tzdata": "~1.0.38"
     },
     "devDependencies": {
         "@rushstack/heft": "^0.49.7",

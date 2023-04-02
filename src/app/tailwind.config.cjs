@@ -25,7 +25,10 @@ module.exports = {
             [palette.paletteName]: Object.fromEntries(palette.swatches.map(({ name, color }) => [ name, `#${color}` ]))
         }))),
         boxShadow: {
-            'sm': '0 1px 0 rgb(2 2 2 / 0.2), 0 2px 0 rgb(5 5 5 / 0.05), 0 2px 0 rgb(2 2 2 / 0.05)'
+            'b-sm': '0 1px 0 rgb(2 2 2 / 0.2), 0 2px 0 rgb(5 5 5 / 0.05), 0 2px 0 rgb(2 2 2 / 0.05)',
+            'b-md': '0 2px 0 rgb(2 2 2 / 0.2), 0 4px 0 rgb(5 5 5 / 0.05), 0 4px 0 rgb(2 2 2 / 0.05)',
+            'sm': '1px 1px 0 rgb(2 2 2 / 0.2), 2px 2px 0 rgb(5 5 5 / 0.05), 2px 2px 0 rgb(2 2 2 / 0.05)',
+            'md': '2px 2px 0 rgb(2 2 2 / 0.2), 4px 4px 0 rgb(5 5 5 / 0.05), 4px 4px 0 rgb(2 2 2 / 0.05)'
         }
     }
 }

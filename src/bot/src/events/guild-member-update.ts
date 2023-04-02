@@ -10,35 +10,13 @@ export const guildMemberUpdateListener = listener('guildMemberUpdate', {
             return
         }
 
-        const currentUser = await database.user.findUnique({
-            where: { snowflake: BigInt(newMember.user.id) },
-            select: {
-                guildMemberships: {
-                    where: { guild: { snowflake: BigInt(newMember.guild.id) }},
-                    select: {
-                        id: true,
-                        name: true,
-                        icon: true,
-                        lostRemoteReferenceAt: true,
-                    }
-                }
-            }
-        })
-        if(!currentUser){
-            debug(`Skipping update for user not in database.`)
-            return
-        }
-
-        const [ currentMember ] = currentUser.guildMemberships
-        if(!currentMember){
-            debug(`Skipping update for member not in database.`)
-            return
-        }
-
         const removedRoles = oldMember.roles.cache.filter((_, role) => !newMember.roles.cache.has(role))
         const addedRoles = newMember.roles.cache.filter((_, role) => !oldMember.roles.cache.has(role))
+
+        const guild = { snowflake: BigInt(newMember.guild.id) }
         const teamRoles = new Map(await database.team.findMany({
             where: {
+                guild,
                 role: {
                     in: Array.from(new Set([ ...removedRoles.keys(), ...addedRoles.keys() ]), a => BigInt(a))
                 }
@@ -49,6 +27,81 @@ export const guildMemberUpdateListener = listener('guildMemberUpdate', {
             }
         }).then(results => results.map(({ id, role }) => [ role!.toString(), id! ])))
 
+        const removedTeams: number[] = Array.from(removedRoles.filter((_, k) => teamRoles.has(k)).map((_, k) => teamRoles.get(k)!))
+        const addedTeams: Prisma.TeamMemberCreateManyMemberInput[] = Array.from(
+            addedRoles.filter((_, k) => teamRoles.has(k)).map((_, k) => teamRoles.get(k)!),
+            teamId => ({ teamId, role: 'Member' }))
+
+        const snowflake = BigInt(newMember.user.id)
+        let currentUser = await database.user.findUnique({
+            where: { snowflake },
+            select: {
+                id: true,
+                guildMemberships: {
+                    where: { guild },
+                    select: {
+                        id: true,
+                        name: true,
+                        icon: true,
+                        lostRemoteReferenceAt: true,
+                    }
+                }
+            }
+        })
+        if(!currentUser){
+            if(addedTeams.length === 0){
+                debug(`Skipping update for user not in database.`)
+                return
+            }
+
+            debug(`Creating user (added to guild team).`)
+            currentUser = await database.user.create({
+                data: {
+                    snowflake,
+                    name: newMember.user.username,
+                    discriminator: newMember.user.discriminator,
+                    icon: newMember.user.avatar,
+                },
+                select: {
+                    id: true,
+                    guildMemberships: {
+                        where: { guild },
+                        select: {
+                            id: true,
+                            name: true,
+                            icon: true,
+                            lostRemoteReferenceAt: true,
+                        }
+                    }
+                }
+            })
+        }
+
+        let [ currentMember ] = currentUser.guildMemberships
+        if(!currentMember){
+            if(addedTeams.length === 0){
+                debug(`Skipping update for member not in database.`)
+                return
+            }
+
+            debug(`Creating guild member (added to guild team).`)
+            currentMember = await database.guildMember.create({
+                data: {
+                    snowflake,
+                    name: newMember.nickname,
+                    icon: newMember.avatar,
+                    guild: { connect: guild },
+                    user: { connect: { id: currentUser.id }}
+                },
+                select: {
+                    id: true,
+                    name: true,
+                    icon: true,
+                    lostRemoteReferenceAt: true,
+                }
+            })
+        }
+
         const data: Prisma.GuildMemberUpdateInput = {}
         if(currentMember.name !== newMember.nickname)
             data.name = newMember.nickname
@@ -57,15 +110,11 @@ export const guildMemberUpdateListener = listener('guildMemberUpdate', {
         if(currentMember.lostRemoteReferenceAt !== null)
             data.lostRemoteReferenceAt = null
 
-        const removedTeams: number[] = Array.from(removedRoles.filter((_, k) => teamRoles.has(k)).map((_, k) => teamRoles.get(k)!))
         if(removedTeams.length > 0){
             data.teamMemberships ??= {}
             data.teamMemberships.deleteMany = { teamId: { in: removedTeams }}
         }
 
-        const addedTeams: Prisma.TeamMemberCreateManyMemberInput[] = Array.from(
-            addedRoles.filter((_, k) => teamRoles.has(k)).map((_, k) => teamRoles.get(k)!),
-            teamId => ({ teamId, role: 'Member' }))
         if(addedTeams.length > 0){
             data.teamMemberships ??= {}
             data.teamMemberships.createMany = { data: addedTeams }

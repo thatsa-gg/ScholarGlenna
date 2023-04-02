@@ -9,7 +9,8 @@
         "@glenna/cache": "workspace:*",
         "@glenna/discord": "workspace:*",
         "@glenna/prisma": "workspace:*",
-        "dotenv": "^16.0.2"
+        "dotenv": "^16.0.2",
+        "zod": "~3.21.4"
     },
     "devDependencies": {
         "@rushstack/heft": "^0.49.7",

@@ -5,7 +5,7 @@ import { listener } from '../EventListener.js'
 import { DISCORD_TOKEN, OAUTH_CLIENT_ID } from '../config.js'
 import { registerCommands } from '../commands/index.js'
 import type { Prisma } from '@glenna/prisma'
-import { DiscordAPIError } from '@glenna/discord'
+import { DiscordAPIError, Role } from '@glenna/discord'
 
 function isUserOrMemberNotFoundError(e: any): e is (DiscordAPIError & { code: 10013 | 10007 }) {
     if(!(e instanceof DiscordAPIError))
@@ -60,6 +60,7 @@ export const readyListener = listener('ready', {
                 teams: {
                     select: {
                         id: true,
+                        name: true,
                         type: true,
                         role: true,
                         channel: true,
@@ -105,6 +106,7 @@ export const readyListener = listener('ready', {
         for(const [ guild, target ] of client.guilds.cache.map((v, k) => [ v, presentData.get(k) ] as const)){
             if(!target)
                 continue
+            await guild.members.fetch()
 
             const data: Prisma.GuildUpdateInput = {}
             if(guild.name !== target.name)
@@ -113,12 +115,34 @@ export const readyListener = listener('ready', {
                 await database.guild.update({ where: { id: target.id }, data })
             for(const team of target.teams.filter(team => team.role !== null || team.channel !== null)){
                 const data: Prisma.TeamUpdateInput = {}
-                if(team.role !== null && !await guild.roles.fetch(team.role.toString()))
+                let role: Role | null = null
+                if(team.role !== null && !(role = await guild.roles.fetch(team.role.toString())))
                     data.role = null
                 if(team.channel !== null && !await guild.channels.fetch(team.channel.toString()))
                     data.channel = null
                 if(Object.keys(data).length > 0)
                     await database.team.update({ where: { id: team.id }, data })
+
+                // sync role-based rosters
+                if(role){
+                    // add members from role
+                    const ids: number[] = []
+                    for(const member of role.members.values()){
+                        const guildMember = await database.guildMember.findOrCreate(target, member)
+                        const role = team.type === 'Management' && guild.ownerId === member.id ? 'Captain' : 'Member'
+                        const teamMember = await database.teamMember.add(team, guildMember, { role })
+                        debug(`Synced (${member.displayName} -- ${member.id}) to (${team.id}) ${team.name}`)
+                        ids.push(teamMember.id)
+                    }
+
+                    // delete members not synced from role.
+                    await database.teamMember.deleteMany({
+                        where: {
+                            teamId: team.id,
+                            id: { notIn: ids }
+                        }
+                    })
+                }
             }
             for(const member of target.members){
                 try {
@@ -153,12 +177,11 @@ export const readyListener = listener('ready', {
         info(`Registering commands.`)
         for(const guild of client.guilds.cache.values()){
             debug(`Registering commands on "${guild.name}" (${guild.id})`)
-            const commands = await registerCommands({
+            await registerCommands({
                 token: DISCORD_TOKEN,
                 clientId: OAUTH_CLIENT_ID,
                 guildId: guild.id
             })
-            console.log(commands)
         }
 
         client.user.setActivity(`/glenna help`)

@@ -19,11 +19,9 @@ export const load = (async ({ cookies }) => {
             id: true,
             user: {
                 select: {
-                    id: true,
                     name: true,
                     discriminator: true,
-                    snowflake: true,
-                    icon: true
+                    avatar: true
                 }
             }
         }
@@ -31,5 +29,14 @@ export const load = (async ({ cookies }) => {
     if(!profile)
         throw redirect(303, '/api/logout')
 
-    return { user: profile.user }
+    // manual copy done here to avoid "Symbol(nodejs.util.inspect.custom)"
+    // added by Prisma when client extension properties are used.
+    // Vite doesn't know how to serialize those
+    return {
+        user: {
+            name: profile.user.name,
+            discriminator: profile.user.discriminator,
+            avatar: profile.user.avatar
+        }
+    }
 }) satisfies LayoutServerLoad

@@ -119,6 +119,7 @@ function inspectType(zodType: z.ZodTypeAny){
             continue
         }
 
+        type ChoicesBuilder = SlashCommandStringOption | SlashCommandIntegerOption | SlashCommandNumberOption
         // At this point, we should have reached the bottom of the tree
         type = obj.typeName
         if(type === 'ZodNumber' && obj.checks?.[0]?.kind === 'int'){
@@ -129,8 +130,31 @@ function inspectType(zodType: z.ZodTypeAny){
                 : (() => { throw `Illegal ZodEnum type ${typeof obj.values[0]}` })()
             const otherBuilder = builder
             builder = otherBuilder
-                ? (option: SlashCommandStringOption | SlashCommandIntegerOption | SlashCommandNumberOption) => { option.addChoices(...obj.values.map((a: any) => ({ name: a.toString(), value: a }))); return otherBuilder(option) }
-                : (option: SlashCommandStringOption | SlashCommandIntegerOption | SlashCommandNumberOption) => { option.addChoices(...obj.values.map((a: any) => ({ name: a.toString(), value: a }))); return option }
+                ? (option: ChoicesBuilder) => { option.addChoices(...obj.values.map((a: any) => ({ name: a.toString(), value: a }))); return otherBuilder(option) }
+                : (option: ChoicesBuilder) => { option.addChoices(...obj.values.map((a: any) => ({ name: a.toString(), value: a }))); return option }
+        } else if(type === 'ZodNativeEnum'){
+            const entries = Object.entries(obj.values)
+            const legalEntries = entries.filter(([key]) => !/^\d+$/.test(key))
+            const otherBuilder = builder
+            if(typeof legalEntries[0]?.[1] === 'string'){
+                type = 'ZodString'
+                if(legalEntries.length !== entries.length)
+                    throw `String NativeEnum must have only string keys (${legalEntries.length} != ${entries.length}).`
+                if(legalEntries.findIndex(([, value]) => typeof value !== 'string') > -1)
+                    throw `String NativeEnum must have only string values (${JSON.stringify(Object.fromEntries(legalEntries))}).`
+                builder = otherBuilder
+                    ? (option: SlashCommandStringOption) => { option.addChoices(...legalEntries.map(([name, value]) => ({ name, value: value as string }))); return otherBuilder(option) }
+                    : (option: SlashCommandStringOption) => { option.addChoices(...legalEntries.map(([name, value]) => ({ name, value: value as string }))); return option }
+            } else {
+                type = 'integer'
+                if(legalEntries.length !== entries.length && legalEntries.length * 2 !== entries.length)
+                    throw `Number NativeEnum must have either only string keys, or only number values (${legalEntries.length} !~= ${entries.length}).`
+                if(legalEntries.findIndex(([, value]) => !Number.isInteger(value)) > -1)
+                    throw `Number NativeEnum must have only integer values (${JSON.stringify(Object.fromEntries(legalEntries))}).`
+                builder = otherBuilder
+                    ? (option: SlashCommandIntegerOption) => { option.addChoices(...legalEntries.map(([name, value]) => ({ name, value: value as number }))); return otherBuilder(option) }
+                    : (option: SlashCommandIntegerOption) => { option.addChoices(...legalEntries.map(([name, value]) => ({ name, value: value as number }))); return option }
+            }
         }
         if(type === 'ZodNumber' || type === 'integer'){
             type MinMaxCheck = { kind: 'min' | 'max', value: number, inclusive: boolean }

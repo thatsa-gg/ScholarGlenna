@@ -12,4 +12,8 @@
         background-color: theme(colors.primary.100);
         color: theme(colors.gray.100);
     }
+
+    *, *::after, *::before {
+        box-sizing: border-box;
+    }
 }

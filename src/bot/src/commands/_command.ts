@@ -21,12 +21,12 @@ import {
     GuildMember,
 } from '@glenna/discord'
 import { parseCommandOptions } from './_djs.js'
-import { debug } from '../util/logging.js'
 
 export type AutocompleteFn = (interaction: AutocompleteInteraction) => void | Promise<void>
 export type ChatCommandFn = (interaction: ChatInputCommandInteraction) => void | Promise<void>
 export type MessageContextFn = (interaction: MessageContextMenuCommandInteraction) => void | Promise<void>
-export type UserContextFn = (interaciton: UserContextMenuCommandInteraction) => void | Promise<void>
+export type UserContextFn = (interaction: UserContextMenuCommandInteraction) => void | Promise<void>
+export type AuthorizationFn = (member: any) => boolean | Promise<boolean>
 
 export type BuilderFn<T> = (builder: T) => T
 

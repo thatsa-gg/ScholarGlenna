@@ -9,7 +9,7 @@ export const create = subcommand({
     description: 'Create a new raid division.',
     input: z.object({
         name: z.string().describe('Division name.'),
-        primary: z.boolean().default(false).describe('Is this the new primary division for the guild?'),
+        primary: z.boolean().nullable().transform(a => a ?? false).describe('Is this the new primary division for the guild?'),
         source: djs.guild()
     }),
     async execute({ name, primary, source }){

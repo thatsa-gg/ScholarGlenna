@@ -345,7 +345,7 @@ model Team {
     level TeamLevel @default(Progression)
     region TeamRegion @default(NorthAmerica)
     capacity Int? @db.SmallInt @default(10)
-    primaryTimeZone String @default("America/Los_Angeles") @map("primary_time_zone")
+    primaryTimeZone String @default("America/Detroit") @map("primary_time_zone")
     daylightSavings TeamDaylightSavings @default(RespectReset) @map("daylight_savings")
 
     role BigInt?
@@ -382,8 +382,6 @@ model TeamMember {
     teamId Int @map("team_id")
     memberId Int @map("guild_member_id")
     role TeamMemberRole @default(Member)
-    source BigInt? // the originating role; if null, then manually added.
-    // TODO: history
 
     computed TeamMemberComputed @relation(fields: [id], references: [id])
     team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)

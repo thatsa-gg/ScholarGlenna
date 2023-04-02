@@ -157,7 +157,7 @@ export function asRGB(color: number){
 
 export function formatDuration(duration: Temporal.Duration){
     const dur = duration.round({ largestUnit: 'hours' })
-    return `${dur.hours}:${dur.minutes.toString().padStart(2, '0')}`
+    return `${dur.hours}:${dur.minutes.toString().padStart(2, '0')} hours`
 }
 
 export function roundWeek(time: Temporal.ZonedDateTime){
