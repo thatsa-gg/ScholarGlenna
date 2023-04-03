@@ -10,8 +10,12 @@ export const create = subcommand({
     input: z.object({
         name: z.string().describe('Division name.'),
         primary: z.boolean().nullable().transform(a => a ?? false).describe('Is this the new primary division for the guild?'),
-        source: djs.guild()
+        source: djs.guild(),
+        actor: djs.actor(),
     }),
+    async authorize({ source, actor }){
+        return database.isAuthorized(BigInt(source.id), BigInt(actor.id))
+    },
     async execute({ name, primary, source }){
         const snowflake = BigInt(source.id)
         const division = await database.$transaction(async database => {

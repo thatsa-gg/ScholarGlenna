@@ -13,6 +13,7 @@ import { authorizationExtension } from './extensions/authorization.js'
 
 export * from '../generated/client/index.js'
 export type DatabaseClient = ReturnType<typeof Database.create>
+export type { Authorization } from './extensions/authorization.js'
 
 let instance: DatabaseClient | null = null
 export namespace Database {

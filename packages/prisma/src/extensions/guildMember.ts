@@ -37,5 +37,15 @@ export const guildMemberExtension = Prisma.defineExtension((client) => client.$e
                 })
             }
         }
+    },
+    result: {
+        guildMember: {
+            mention: {
+                needs: { snowflake: true },
+                compute({ snowflake }){
+                    return `<@${snowflake}>`
+                }
+            }
+        }
     }
 }))

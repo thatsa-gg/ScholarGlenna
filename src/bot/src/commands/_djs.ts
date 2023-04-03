@@ -1,9 +1,10 @@
-import type {
+import {
     ApplicationCommandOptionAllowedChannelTypes,
     CategoryChannel,
     ChannelType,
     ChatInputCommandInteraction,
     ForumChannel,
+    GuildMember,
     NewsChannel,
     PrivateThreadChannel,
     PublicThreadChannel,
@@ -63,6 +64,10 @@ export namespace djs {
 
     export function user(){
         return custom<User>('user', candidate => candidate instanceof User)
+    }
+
+    export function actor(){
+        return custom<GuildMember>('actor', candidate => candidate instanceof GuildMember)
     }
 
     export function string(builder: (option: SlashCommandStringOption) => SlashCommandStringOption){
@@ -216,6 +221,7 @@ const builders: Record<string, (name: string, description: string | undefined, r
         return option
     }),
     guild: () => () => {},
+    actor: () => () => {},
     role: (name, description, required, accessoryBuilder) => builder => builder.addRoleOption(option => {
         option.setName(name)
         option.setRequired(required)
@@ -256,6 +262,11 @@ const fetchers: Record<string, (name: string, required: boolean) => (interaction
     ZodBoolean: (name, required) => interaction => interaction.options.getBoolean(name, required),
     integer: (name, required) => interaction => interaction.options.getInteger(name, required),
     guild: () => interaction => interaction.guild,
+    actor: () => interaction => {
+        if(interaction.member)
+            return interaction.member
+        throw `Cannot find actor guild member.`
+    },
     role: (name, required) => interaction => interaction.options.getRole(name, required),
     channel: (name, required) => interaction => interaction.options.getChannel(name, required),
     user: (name, required) => interaction => interaction.options.getUser(name, required),

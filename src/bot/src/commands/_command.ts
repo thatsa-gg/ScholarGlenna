@@ -21,6 +21,7 @@ import {
     GuildMember,
 } from '@glenna/discord'
 import { parseCommandOptions } from './_djs.js'
+import { PublicError } from '../PublicError.js'
 
 export type AutocompleteFn = (interaction: AutocompleteInteraction) => void | Promise<void>
 export type ChatCommandFn = (interaction: ChatInputCommandInteraction) => void | Promise<void>
@@ -143,11 +144,13 @@ export function group(options: {
 export function subcommand<TInput extends z.AnyZodObject>(options: {
     description: string
     input?: TInput,
+    authorize?: (options: z.infer<TInput>, interaction: ChatInputCommandInteraction) => boolean | Promise<boolean>
     execute(options: z.infer<TInput>, interaction: ChatInputCommandInteraction): Promise<void | string | InteractionReplyOptions | MessagePayload>
     autocomplete?: (focused: AutocompleteFocusedOption, interaction: AutocompleteInteraction) => Promise<void | ApplicationCommandOptionChoiceData<string | number>[]>
 }): Command<'chat' | 'subcommand'> {
     const inputs = parseCommandOptions(options.input)
     const autocomplete = options.autocomplete
+    const authorize = options.authorize
     return {
         subcommand(builder){
             builder.setDescription(options.description)
@@ -157,6 +160,8 @@ export function subcommand<TInput extends z.AnyZodObject>(options: {
         },
         async chat(interaction){
             const input = await options.input?.parseAsync(Object.fromEntries(inputs.map(({ name, fetcher }) => [ name, fetcher(interaction) ]))) ?? {}
+            if(authorize && !await authorize(input, interaction))
+                throw new PublicError("You are not authorized to run this command.")
             const result = await options.execute(input, interaction)
             if(typeof result !== 'undefined'){
                 if(interaction.replied)
@@ -175,6 +180,7 @@ export function subcommand<TInput extends z.AnyZodObject>(options: {
 }
 
 export function user(options: {
+    authorize?: (actor: GuildMember, guild: Guild, target: GuildMember, interaction: UserContextMenuCommandInteraction) => boolean | Promise<boolean>
     execute(member: GuildMember, guild: Guild, interaction: UserContextMenuCommandInteraction): Promise<void | string | InteractionReplyOptions | MessagePayload>
 }): Command<'user' | 'context'> & TopCommand {
     return {
@@ -184,7 +190,7 @@ export function user(options: {
         },
         toJSON(name){ return this.context(new ContextMenuCommandBuilder().setName(name)).toJSON() },
         async user(interaction){
-            const { guild, targetMember } = interaction
+            const { guild, targetMember, member: actorMember } = interaction
             if(!guild)
                 throw `User context commands can only be invoked from a server.`
             if(!targetMember)
@@ -192,6 +198,15 @@ export function user(options: {
             const member = targetMember instanceof GuildMember
                 ? targetMember
                 : await guild.members.fetch(targetMember.user.id)
+            if(options.authorize){
+                if(!actorMember)
+                    throw `Interaction guild member was null!`
+                const actor = actorMember instanceof GuildMember
+                    ? actorMember
+                    : await guild.members.fetch(actorMember.user.id)
+                if(!await options.authorize(actor, guild, member, interaction))
+                    throw new PublicError("You are not authorized to run this command.")
+            }
             const result = await options.execute(member, guild, interaction)
             if(typeof result !== 'undefined'){
                 if(interaction.replied)
@@ -204,6 +219,7 @@ export function user(options: {
 }
 
 export function message(options: {
+    authorize?: (actor: GuildMember, guild: Guild, message: Message, interaction: MessageContextMenuCommandInteraction) => boolean | Promise<boolean>
     execute(message: Message, guild: Guild, interaction: MessageContextMenuCommandInteraction): Promise<void | string | InteractionReplyOptions | MessagePayload>
 }): Command<'message' | 'context'> & TopCommand {
     return {
@@ -213,9 +229,18 @@ export function message(options: {
         },
         toJSON(name){ return this.context(new ContextMenuCommandBuilder().setName(name)).toJSON() },
         async message(interaction){
-            const { guild, targetMessage } = interaction
+            const { guild, targetMessage, member } = interaction
             if(!guild)
                 throw `User context commands can only be invoked from a server.`
+            if(options.authorize){
+                if(!member)
+                    throw `Interaction guild member was null!`
+                const actor = member instanceof GuildMember
+                    ? member
+                    : await guild.members.fetch(member.user.id)
+                if(!await options.authorize(actor, guild, targetMessage, interaction))
+                    throw new PublicError("You are not authorized to run this command.")
+            }
             const result = await options.execute(targetMessage, guild, interaction)
             if(typeof result !== 'undefined'){
                 if(interaction.replied)

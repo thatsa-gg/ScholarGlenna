@@ -1,5 +1,4 @@
 import { Prisma, type Team, type TeamMemberRole, type GuildMember } from '../../generated/client/index.js'
-import type { Role } from '@glenna/discord'
 
 function displayName({ nickname, username, discriminator }: { nickname: string | null, username: string, discriminator: string }){
     return nickname ?? `${username}#${discriminator}`
@@ -38,13 +37,29 @@ export const teamMemberExtension = Prisma.defineExtension((client) => client.$ex
                     }
                 })
             },
-            async autocomplete(guildId: bigint, teamAlias: string | null, search: string){
+            async autocomplete(guildId: bigint, teamAlias: string | null, search: string, actor: bigint){
                 if(!teamAlias)
                     return []
+                const manager = await client.teamMember.findFirst({
+                    where: {
+                        team: {
+                            type: 'Management',
+                            guild: { snowflake: guildId }
+                        },
+                        member: {
+                            guild: { snowflake: guildId },
+                            snowflake: actor
+                        },
+                    },
+                    select: { role: true }
+                })
                 const team = await client.team.findFirst({
                     where: {
                         guild: { snowflake: guildId },
-                        alias: teamAlias
+                        alias: teamAlias,
+                        members: manager ? undefined : {
+                            some: { member: { snowflake: actor }}
+                        }
                     },
                     select: {
                         members: {
@@ -54,6 +69,7 @@ export const teamMemberExtension = Prisma.defineExtension((client) => client.$ex
                                     { member: { user: { name: { startsWith: search }}}}
                                 ]
                             },
+                            take: 25,
                             select: {
                                 id: true,
                                 computed: {

@@ -10,7 +10,13 @@ export const info = subcommand({
     input: z.object({
         team: djs.string(b => b.setAutocomplete(true)).describe('The team to fetch info for.'),
         guild: djs.guild().transform(database.guild.transformOrThrow({ id: true })),
+        actor: djs.actor(),
     }),
+    async authorize({ guild, actor, team }){
+        return database.isAuthorized(guild, BigInt(actor.id), {
+            team: { alias: team }
+        })
+    },
     async execute({ team: teamAlias, guild }){
         const team = await database.team.findUniqueOrThrow({
             where: { guildId_alias: { guildId: guild.id, alias: teamAlias }},
@@ -71,7 +77,7 @@ export const info = subcommand({
     },
     async autocomplete({ name, value }, interaction){
         if(name === 'team')
-            return await database.team.autocomplete(BigInt(interaction.guild!.id), value)
+            return await database.team.autocomplete(BigInt(interaction.guild!.id), value, { member: BigInt(interaction.user.id), orManager: true })
 
         return
     }

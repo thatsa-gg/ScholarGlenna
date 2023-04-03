@@ -113,16 +113,39 @@ export const teamExtension = Prisma.defineExtension((client) => client.$extends(
     },
     model: {
         team: {
-            async autocomplete(guildSnowflake: bigint, searchValue: string, type: Prisma.EnumTeamTypeFilter | TeamType = { notIn: [ 'Management', 'Inactive' ] }){
+            async autocomplete(guildSnowflake: bigint, searchValue: string, {
+                type = { notIn: [ 'Management', 'Inactive' ] },
+                member,
+                orManager,
+            }: {
+                type?: Prisma.EnumTeamTypeFilter | TeamType
+                member?: bigint
+                orManager?: boolean
+            } = {}){
+                const forceAll = orManager ? await client.teamMember.findFirst({
+                    where: {
+                        member: { snowflake: member },
+                        team: {
+                            type: 'Management',
+                            guild: { snowflake: guildSnowflake }
+                        },
+                    },
+                    select: {
+                        role: true
+                    }
+                }) : null
                 const teams = await client.team.findMany({
                     where: {
                         guild: { snowflake: guildSnowflake },
-                        type,
+                        // Management members can see all teams if forcing
+                        type: !forceAll ? type : undefined,
+                        members: member && !forceAll ? { some: { member: { snowflake: member }}} : undefined,
                         OR: [
                             { name: { startsWith: searchValue }},
                             { alias: { startsWith: searchValue }}
                         ]
                     },
+                    take: 25,
                     select: {
                         name: true,
                         alias: true
@@ -132,14 +155,34 @@ export const teamExtension = Prisma.defineExtension((client) => client.$extends(
             }
         },
         teamTime: {
-            async autocomplete(guildId: bigint, teamAlias: string | null){
+            async autocomplete(guildId: bigint, teamAlias: string | null, {
+                member,
+                orManager,
+            }: {
+                member?: bigint
+                orManager?: boolean
+            } = {}){
                 if(!teamAlias)
                     return
+                const forceAll = orManager ? await client.teamMember.findFirst({
+                    where: {
+                        member: { snowflake: member },
+                        team: {
+                            type: 'Management',
+                            guild: { snowflake: guildId }
+                        },
+                    },
+                    select: {
+                        role: true
+                    }
+                }) : null
                 const team = await client.team.findFirst({
                     where: {
                         alias: teamAlias,
-                        guild: { snowflake: guildId }
+                        guild: { snowflake: guildId },
+                        members: member && !forceAll ? { some: { member: { snowflake: member }}} : undefined
                     },
+                    take: 25,
                     select: {
                         primaryTimeZone: true,
                         daylightSavings: true,

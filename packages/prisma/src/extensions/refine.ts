@@ -1,6 +1,6 @@
 import { Prisma } from '../../generated/client/index.js'
 import { z } from 'zod'
-import type { Guild } from '@glenna/discord'
+import type { Guild, GuildMember } from '@glenna/discord'
 
 const bigintString = (name: string) =>
     z.union([
@@ -65,6 +65,20 @@ export const refineExtension = Prisma.defineExtension((client) => client.$extend
                         <T>(a: T): a is Exclude<T, bigint> => typeof a !== 'bigint',
                         snowflake => ({ message: `No team with snowflake "${snowflake}" found.` })
                     )
+            }
+        },
+        guildMember: {
+            transformOrThrow<T extends Prisma.GuildMemberSelect>(select: T){
+                return async (member: GuildMember) => {
+                    const guild = await client.guild.findUniqueOrThrow({
+                        where: { snowflake: BigInt(member.guild.id) },
+                        select: { id: true }
+                    })
+                    return await client.guildMember.findUnique({
+                        where: { snowflake_guildId: { snowflake: BigInt(member.id), guildId: guild.id }},
+                        select
+                    })
+                }
             }
         }
     }

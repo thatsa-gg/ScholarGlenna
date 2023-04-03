@@ -22,8 +22,14 @@ export const create = subcommand({
                 where: { primary: true },
                 select: { id: true }
             }
-        }))
+        })),
+        actor: djs.actor(),
     }),
+    async authorize({ guild, actor }){
+        return database.isAuthorized(guild, BigInt(actor.id), {
+            team: { type: 'Management' }
+        })
+    },
     async execute(options, interaction) {
         debug(options)
         const { name, channel, role, source, guild, guild: { divisions: [division] } } = options

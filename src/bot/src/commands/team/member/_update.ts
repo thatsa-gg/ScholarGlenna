@@ -5,14 +5,17 @@ import { djs } from '../../_djs.js'
 import { debug } from '../../../util/logging.js'
 import { EmbedBuilder } from '@glenna/discord'
 import { PublicError } from '../../../PublicError.js'
+import { TeamMemberRole } from '@glenna/prisma'
 
-export const remove = subcommand({
-    description: 'Remove a member from a team.',
+export const update = subcommand({
+    description: 'Update a member on a team.',
     input: z.object({
         team: djs.string(b => b.setAutocomplete(true)).describe('The team to modify.'),
         member: djs.index().describe('The member to remove.'),
+        role: z.nativeEnum(TeamMemberRole).nullable().describe("The member's new role on the team."),
         guild: djs.guild().transform(database.guild.transformOrThrow({ id: true })),
         actor: djs.actor(),
+        source: djs.guild(),
     }),
     async authorize({ guild, actor, team: alias }){
         const team = await database.team.findUnique({
@@ -25,21 +28,17 @@ export const remove = subcommand({
             team: { type: 'Management' }
         })
     },
-    async execute({ team: teamName, member, guild }){
+    async execute({ team: alias, member, source, guild, role }){
         const team = await database.team.findUniqueOrThrow({
-            where: { guildId_alias: { guildId: guild.id, alias: teamName }},
+            where: { guildId_alias: { guildId: guild.id, alias: alias }},
             select: {
                 id: true,
+                type: true,
                 name: true,
-                role: true,
-                mention: true
+                mention: true,
             }
         })
-
-        if(team.role !== null)
-            throw new PublicError(`Cannot remove members from ${team.mention} because it is using role synchronization.`)
-
-        const teamMember = await database.teamMember.findFirstOrThrow({
+        const teamMember = await database.teamMember.findUniqueOrThrow({
             where: { id: member },
             select: {
                 id: true,
@@ -50,19 +49,43 @@ export const remove = subcommand({
         })
         if(teamMember.team.id !== team.id)
             throw new PublicError(`Member is not part of team.`)
-        await database.teamMember.delete({ where: { id: teamMember.id }})
-        debug(`Removed ${teamMember.computed.displayName} from team ${team.name} (${team.id}).`)
+
+        // owner of the server *must* be a captain on management teams
+        if(role && team.type === 'Management' && source.ownerId === teamMember.member.snowflake.toString())
+            role = 'Captain'
+
+        const newMember = await database.teamMember.update({
+            where: {
+                teamId_memberId: {
+                    teamId: team.id,
+                    memberId: member
+                }
+            },
+            data: {
+                role: role ?? undefined,
+            },
+            select: {
+                role: true,
+                member: {
+                    select: {
+                        mention: true
+                    }
+                }
+            }
+        })
+        debug(`Updated ${teamMember.computed.displayName} on team ${team.name}: ${JSON.stringify({ role })}`)
 
         return {
             embeds: [
                 new EmbedBuilder({
                     color: 0x40a86d,
-                    title: `Team ${team.name} Member Removed`,
+                    title: `Team ${team.name} Member Updated`,
                     fields: [
                         {
-                            name: 'Removed Member',
-                            value: `<@${teamMember.member.snowflake}>`
-                        }
+                            name: 'Updated Member',
+                            value: newMember.member.mention,
+                        },
+                        ... !role ? [] : [{ name: 'Role', value: role }]
                     ]
                 })
             ]

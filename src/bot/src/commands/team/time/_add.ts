@@ -10,11 +10,15 @@ export const add = subcommand({
     description: `Add a team time (UTC).`,
     input: z.object({
         guild: djs.guild().transform(database.guild.transformOrThrow({ id: true })),
+        actor: djs.actor(),
         team: djs.string(b => b.setAutocomplete(true)).describe('The team to add times for.'),
         day: z.nativeEnum(Days).describe('Day-of-week (in UTC).'),
         reset: djs.number(-24, 24).describe('Offset relative to daily reset (0:00 UTC).'),
         duration: djs.number(15, 1440).nullable().transform(a => a ?? 120).describe('The duration in minutes.')
     }),
+    async authorize({ guild, actor }){
+        return database.isAuthorized(guild, BigInt(actor.id))
+    },
     async execute({ guild, team: teamName, duration, day, reset }){
         const team = await database.team.findUniqueOrThrow({
             where: { guildId_alias: { guildId: guild.id, alias: teamName }},
@@ -52,7 +56,7 @@ export const add = subcommand({
     },
     async autocomplete({ name, value }, interaction) {
         if(name === 'team')
-            return await database.team.autocomplete(BigInt(interaction.guild!.id), value)
+            return await database.team.autocomplete(BigInt(interaction.guild!.id), value, { member: BigInt(interaction.user.id), orManager: true })
 
         return
     },

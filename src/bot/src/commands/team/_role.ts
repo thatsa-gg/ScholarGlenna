@@ -15,7 +15,19 @@ export const role = subcommand({
         remove: z.enum([ 'Keep Roster', 'Clear Roster' ]).nullable().describe('Should the role be removed? What should happen to the roster?'),
         source: djs.guild(),
         guild: djs.guild().transform(database.guild.transformOrThrow({ id: true })),
+        actor: djs.actor(),
     }),
+    async authorize({ guild, actor, team: alias }){
+        const team = await database.team.findUnique({
+            where: { guildId_alias: { guildId: guild.id, alias }},
+            select: { type: true }
+        })
+        return database.isAuthorized(guild, BigInt(actor.id), {
+            // only management team captains can modify the role for management teams
+            role: team?.type === 'Management' ? 'Captain' : undefined,
+            team: { type: 'Management' }
+        })
+    },
     async execute({ team: teamAlias, role, remove, guild, source }, interaction){
         const team = await database.team.findUniqueOrThrow({
             where: { guildId_alias: { guildId: guild.id, alias: teamAlias }},
@@ -104,7 +116,7 @@ export const role = subcommand({
     },
     async autocomplete({ name, value }, interaction){
         if(name === 'team')
-            return await database.team.autocomplete(BigInt(interaction.guild!.id), value)
+            return await database.team.autocomplete(BigInt(interaction.guild!.id), value, { member: BigInt(interaction.user.id), orManager: true })
 
         return
     }
