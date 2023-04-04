@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@100;200;300;400;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -9,8 +11,9 @@
     }
 
     html {
-        background-color: theme(colors.primary.100);
-        color: theme(colors.gray.100);
+        @apply bg-primary-100 text-gray-100;
+        @apply font-primary font-normal;
+        font-size: 16px;
     }
 
     *, *::after, *::before {

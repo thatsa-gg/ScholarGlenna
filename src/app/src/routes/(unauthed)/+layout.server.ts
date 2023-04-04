@@ -5,7 +5,7 @@ export const prerender = false
 export const load = (async ({ parent }) => {
     const { user } = await parent()
     if(user)
-        throw redirect(302, '/-/dashboard')
+        throw redirect(302, '/')
 
     return {}
 }) satisfies LayoutServerLoad

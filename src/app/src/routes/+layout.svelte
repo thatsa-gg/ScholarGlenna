@@ -11,9 +11,10 @@
 <style lang="postcss">
     :global(body) {
         display: grid;
+        /* TODO: figure out a proper width for tools so when it's missing user doesn't get shifted */
         grid-template:
             "branding header tools user" 3rem
-            "nav content content content" auto / 20rem auto min-content fit-content(20rem);
+            "nav content content content" auto / 20rem auto 1fr min-content;
         @apply bg-primary-500;
     }
 </style>
@@ -25,7 +26,7 @@
     search
     <!-- TODO: search -->
 </nav>
-<div class="bg-primary-400 [grid-area:user] shadow-sm content-center p-1 flex justify-end">
+<div class="bg-primary-400 [grid-area:user] shadow-sm content-center p-1">
     <UserMenu user={data.user} />
 </div>
 

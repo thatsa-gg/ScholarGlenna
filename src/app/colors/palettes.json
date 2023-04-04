@@ -104,5 +104,58 @@
                 "color": "B9BFFE"
             }
         ]
+    },
+    {
+        "paletteName": "strawberry",
+        "swatches": [
+            {
+                "name": "50",
+                "color": "33050C"
+            },
+            {
+                "name": "100",
+                "color": "6D1420"
+            },
+            {
+                "name": "200",
+                "color": "99202F"
+            },
+            {
+                "name": "300",
+                "color": "A92532"
+            },
+            {
+                "name": "400",
+                "color": "AE2732"
+            },
+            {
+                "name": "500",
+                "color": "B62A34"
+            },
+            {
+                "name": "600",
+                "color": "C53038"
+            },
+            {
+                "name": "700",
+                "color": "DA373C"
+            },
+            {
+                "name": "DEFAULT",
+                "color": "DA373C"
+            },
+            {
+                "name": "800",
+                "color": "F23F42"
+            },
+            {
+                "name": "900",
+                "color": "FB4D4D"
+            },
+            {
+                "name": "950",
+                "color": "FF6C6C"
+            }
+        ]
     }
 ]

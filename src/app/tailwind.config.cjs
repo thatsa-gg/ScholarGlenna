@@ -19,6 +19,9 @@ module.exports = {
             width: Object.fromEntries(breaks),
             transitionProperty: {
                 width: 'width'
+            },
+            fontFamily: {
+                primary: [ 'Noto Sans', 'Helvetica Neue', 'Helvetica', 'Arial', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif' ]
             }
         },
         colors: Object.assign({}, defaultColors, ...palettes.map(palette => ({
@@ -28,7 +31,8 @@ module.exports = {
             'b-sm': '0 1px 0 rgb(2 2 2 / 0.2), 0 2px 0 rgb(5 5 5 / 0.05), 0 2px 0 rgb(2 2 2 / 0.05)',
             'b-md': '0 2px 0 rgb(2 2 2 / 0.2), 0 4px 0 rgb(5 5 5 / 0.05), 0 4px 0 rgb(2 2 2 / 0.05)',
             'sm': '1px 1px 0 rgb(2 2 2 / 0.2), 2px 2px 0 rgb(5 5 5 / 0.05), 2px 2px 0 rgb(2 2 2 / 0.05)',
-            'md': '2px 2px 0 rgb(2 2 2 / 0.2), 4px 4px 0 rgb(5 5 5 / 0.05), 4px 4px 0 rgb(2 2 2 / 0.05)'
+            'md': '2px 2px 0 rgb(2 2 2 / 0.2), 4px 4px 0 rgb(5 5 5 / 0.05), 4px 4px 0 rgb(2 2 2 / 0.05)',
+            'lg': '2px 2px 0 rgb(2 2 2 / 0.2), 8px 8px 0 rgb(5 5 5 / 0.05), 6px 6px 0 rgb(2 2 2 / 0.05)',
         }
     }
 }
