@@ -1,5 +1,8 @@
 import { sveltekit } from '@sveltejs/kit/vite'
-export default {
+import { defineConfig } from 'vite'
+import { fileURLToPath } from 'url'
+
+export default defineConfig({
     plugins: [sveltekit()],
     ssr: {
         external: [
@@ -17,6 +20,11 @@ export default {
     server: {
         watch: {
             usePolling: true
+        },
+        fs: {
+            allow: [
+                fileURLToPath(new URL('../../', import.meta.url)) // /workspace in the dev container
+            ]
         }
     }
-}
+})
