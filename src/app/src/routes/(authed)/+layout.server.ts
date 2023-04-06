@@ -3,8 +3,8 @@ import type { LayoutServerLoad } from './$types'
 
 export const prerender = false
 export const load: LayoutServerLoad = async ({ parent }) => {
-    const { user } = await parent()
-    if(!user)
+    const data = await parent()
+    if(!data.user)
         throw redirect(302, '/api/login')
-    return { user }
+    return data
 }

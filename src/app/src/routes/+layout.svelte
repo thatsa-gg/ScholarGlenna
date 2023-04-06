@@ -1,8 +1,19 @@
 <script lang="ts">
     import '../app.css'
+
+    import type { LayoutServerData } from './$types'
+    import Branding from '$lib/components/header/Branding.svelte'
+    import LoggedInHeader from '$lib/components/header/LoggedInHeader.svelte'
+    import LoggedOutHeader from '$lib/components/header/LoggedOutHeader.svelte'
+    export let data: LayoutServerData;
 </script>
 
-<h1>thatsa.gg<!-- TODO: real logo --></h1>
+<Branding />
+{#if data.user}
+    <LoggedInHeader user={data.user} />
+{:else}
+    <LoggedOutHeader />
+{/if}
 
 <slot/>
 
@@ -14,10 +25,5 @@
             "branding header tools user" 3rem
             "nav content content content" auto / 20rem auto 1fr min-content;
         @apply bg-primary-500;
-    }
-
-    h1 {
-        grid-area: branding;
-        @apply bg-primary-400 shadow-sm;
     }
 </style>
