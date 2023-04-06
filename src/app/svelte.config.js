@@ -18,6 +18,17 @@ const config = {
         files: {
             lib: "src/lib",
         },
+
+        typescript: {
+            config(config){
+                delete config.compilerOptions.importsNotUsedAsValues
+                delete config.compilerOptions.isolatedModules
+                delete config.compilerOptions.preserveValueImports
+                delete config.compilerOptions.ignoreDeprecations
+                config.compilerOptions.verbatimModuleSyntax = true
+                return config
+            }
+        }
     },
 }
 

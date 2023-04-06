@@ -19,27 +19,14 @@
     * will recalculate all version selections.
     */
     "preferredVersions": {
-        "@rushstack/heft": "0.49.7",
-        "@types/node": "18.14.2",
-        "typescript": "4.9.5",
+        "@rushstack/heft": "0.50.0",
+        "@types/node": "18.15.11",
+        "typescript": "5.0.3",
         "dotenv": "16.0.3",
-        "@trpc/serer": "10.12.0",
-        "@trpc/client": "10.12.0",
-        "zod": "3.20.6",
-        "prisma": "4.10.1",
+        "@trpc/serer": "10.19.0",
+        "@trpc/client": "10.19.0",
+        "zod": "3.21.4",
+        "prisma": "4.12.0",
         "@js-temporal/polyfill": "^0.4.3"
-    },
-
-    /**
-    * The "rush check" command can be used to enforce that every project in the repo must specify
-    * the same SemVer range for a given dependency.  However, sometimes exceptions are needed.
-    * The allowedAlternativeVersions table allows you to list other SemVer ranges that will be
-    * accepted by "rush check" for a given dependency.
-    *
-    * IMPORTANT: THIS TABLE IS FOR *ADDITIONAL* VERSION RANGES THAT ARE ALTERNATIVES TO THE
-    * USUAL VERSION (WHICH IS INFERRED BY LOOKING AT ALL PROJECTS IN THE REPO).
-    * This design avoids unnecessary churn in this file.
-    */
-    "allowedAlternativeVersions": {
     }
 }

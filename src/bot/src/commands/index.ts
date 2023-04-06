@@ -1,7 +1,7 @@
 import {
-    APIApplicationCommand,
     REST,
     Routes,
+    type APIApplicationCommand,
     type RESTPostAPIApplicationCommandsJSONBody,
 } from '@glenna/discord'
 import type {
