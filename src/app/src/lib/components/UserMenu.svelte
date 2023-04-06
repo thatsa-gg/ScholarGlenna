@@ -5,7 +5,8 @@
     import { clickOutside } from "$lib/client/clickOutside"
     export let user: { avatar: string; name: string; discriminator: string }
 
-    let menu: boolean = false;
+    let avatar: HTMLImageElement | undefined = undefined
+    let menu: boolean = false
 </script>
 
 <div
@@ -14,14 +15,12 @@
     on:clickOutside={() => (menu = false)}
 >
     <button type="button" on:click={() => (menu = !menu)}>
-        <img src={user.avatar} alt={user.name} />
+        <img src={user.avatar} alt={user.name} width={avatar?.height} bind:this={avatar} />
         <span class="username">{user.name}</span>
         <span class="discriminator">#{user.discriminator}</span>
     </button>
 
     <nav class:visible={menu}>
-        <div><a href="https://google.com" target="_blank">google</a></div>
-        <div>link</div>
         <a href="/api/logout" class="logout"><span>Log Out</span><Fa icon={faRightFromBracket} scale='1.25x' /></a>
         <!-- TODO: useful menu links -->
         <!-- TODO: mobile behavior -->

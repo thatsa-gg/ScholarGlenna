@@ -10,7 +10,7 @@
         "module": "ESNext",
         "target": "ESNext",
         "moduleResolution": "node",
-        "importsNotUsedAsValues": "error",
+        "verbatimModuleSyntax": true,
         "newLine": "lf",
         "noFallthroughCasesInSwitch": true,
         "noImplicitAny": true,

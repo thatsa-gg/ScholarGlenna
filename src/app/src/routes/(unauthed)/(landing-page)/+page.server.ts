@@ -1,8 +1,10 @@
+import { redirect } from '@sveltejs/kit'
 import type { PageServerLoad } from './$types'
 
 export const load = (async ({ parent }) => {
     const { user } = await parent()
-    return {
-        user
-    }
+
+    if(user)
+        throw redirect(302, '/-/dashboard')
+    return {}
 }) satisfies PageServerLoad

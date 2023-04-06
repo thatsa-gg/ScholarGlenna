@@ -17,5 +17,5 @@ export const GET: RequestHandler = async ({ cookies, url }) => {
         cookies.delete('nav_after_login')
         throw redirect(302, target)
     }
-    throw redirect(302, '/')
+    throw redirect(302, '/-/dashboard')
 }

@@ -1,12 +1,10 @@
 <script lang="ts">
     import '../app.css'
-
-    import type { LayoutServerData } from './$types'
-    export let data: LayoutServerData
-
-    import LoginButton from '$lib/components/LoginButton.svelte'
-    import UserMenu from '$lib/components/UserMenu.svelte'
 </script>
+
+<h1>thatsa.gg<!-- TODO: real logo --></h1>
+
+<slot/>
 
 <style lang="postcss">
     :global(body) {
@@ -17,23 +15,9 @@
             "nav content content content" auto / 20rem auto 1fr min-content;
         @apply bg-primary-500;
     }
+
+    h1 {
+        grid-area: branding;
+        @apply bg-primary-400 shadow-sm;
+    }
 </style>
-
-<h1 class="bg-primary-400 [grid-area:branding] shadow-sm">thatsa.gg<!-- TODO: real logo --></h1>
-
-{#if data.user}
-<nav class="bg-primary-400 [grid-row:header] [grid-column:header-start/tools-end] shadow-sm">
-    search
-    <!-- TODO: search -->
-</nav>
-<div class="bg-primary-400 [grid-area:user] shadow-sm content-center p-1">
-    <UserMenu user={data.user} />
-</div>
-
-{:else}
-<div class="bg-primary-400 [grid-row:header] [grid-column:header-start/user-end] shadow-sm flex justify-end">
-    <LoginButton />
-</div>
-{/if}
-
-<slot/>
