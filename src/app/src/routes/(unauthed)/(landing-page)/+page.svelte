@@ -24,9 +24,8 @@
     }
 
     main {
-        grid-row: content;
-        grid-column: nav/content;
-        @apply place-self-center p-6 bg-primary-400 rounded-md shadow-md w-md;
+        grid-area: content;
+        @apply mt-12 p-6 bg-primary-400 rounded-md shadow-md w-md justify-self-center h-min;
         @apply md:w-sm;
         @apply sm:w-full;
         @apply transition-width ease-linear;

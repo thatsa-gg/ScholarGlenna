@@ -166,6 +166,18 @@ create type "guild"."teamdaylightsavings" as enum (
     'respect_reset'
 );
 
+-- CreateEnum
+create type "guild"."accesslevel" as enum (
+    'guildcaptain',
+    'guildrepresentative',
+    'guildmanager',
+    'teamcaptain',
+    'teamrepresentative',
+    'teammember',
+    'anyguild',
+    'anypublic'
+);
+
 -- CreateTable
 create table "guild"."user" (
     "user_id" serial primary key not null,
@@ -209,6 +221,18 @@ create table "guild"."guildmember" (
 );
 
 -- CreateTable
+create table "guild"."guildpermission" (
+    "guild_permission_id" serial primary key not null,
+    "guild_id" integer not null references "guild"."guild"("guild_id") on delete cascade,
+
+    "update" "guild"."accesslevel" not null default 'guildcaptain' check ("read" <> 'none'),
+    "read" "guild"."accesslevel" not null default 'anyguild' check ("read" <> 'none'),
+
+    "create_team" "guild"."accesslevel" not null default 'guildmanager',
+    "create_division" "guild"."accesslevel" not null default 'guildmanager'
+);
+
+-- CreateTable
 create table "guild"."division" (
     "division_id" serial primary key not null,
     "guild_id" integer not null references "guild"."guild"("guild_id") on delete cascade,
@@ -220,6 +244,16 @@ create table "guild"."division" (
 -- CreateIndex
 create unique index only_one_primary_division_per_guild on "guild"."division"("guild_id")
     where "primary";
+
+-- CreateTable
+create table "guild"."divisionpermission" (
+    "division_permission_id" serial primary key not null,
+    "division_id" integer not null references "guild"."division"("division_id"),
+
+    "update" "guild"."accesslevel" not null default 'guildmanager',
+    "delete" "guild"."accesslevel" not null default 'guildmanager',
+    "read" "guild"."accesslevel" not null default 'anyguild' check ("read" <> 'none')
+);
 
 -- CreateTable
 create table "guild"."team" (
@@ -261,6 +295,29 @@ create table "guild"."teammember" (
     "guild_member_id" integer not null references "guild"."guildmember"("guild_member_id") on delete cascade,
     "role" "guild"."teammemberrole" not null default 'member',
     unique("team_id", "guild_member_id")
+);
+
+-- CreateTable
+create table "guild"."teampermission" (
+    "team_permission_id" serial primary key not null,
+    "team_id" integer unique not null references "guild"."team"("team_id") on delete cascade,
+
+    "update" "guild"."accesslevel" not null default 'guildmanager',
+    "delete" "guild"."accesslevel" not null default 'guildmanager',
+    "read" "guild"."accesslevel" not null default 'anyguild' check ("read" <> 'none'),
+
+    "update_division" "guild"."accesslevel" not null default 'guildmanager',
+    "update_role" "guild"."accesslevel" not null default 'guildmanager' check ("read" <> 'none'),
+
+    "create_member" "guild"."accesslevel" not null default 'guildmanager' check ("read" <> 'none'),
+    "update_member" "guild"."accesslevel" not null default 'guildmanager' check ("read" <> 'none'),
+    "delete_member" "guild"."accesslevel" not null default 'guildmanager' check ("read" <> 'none'),
+    "read_member" "guild"."accesslevel" not null default 'anyguild' check ("read" <> 'none'),
+
+    "create_time" "guild"."accesslevel" not null default 'guildmanager',
+    "update_time" "guild"."accesslevel" not null default 'guildmanager',
+    "delete_time" "guild"."accesslevel" not null default 'guildmanager',
+    "read_time" "guild"."accesslevel" not null default 'anyguild'
 );
 
 -- CreateView

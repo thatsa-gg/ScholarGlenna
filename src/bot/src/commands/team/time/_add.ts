@@ -16,6 +16,9 @@ export const add = subcommand({
         reset: djs.number(-24, 24).describe('Offset relative to daily reset (0:00 UTC).'),
         duration: djs.number(15, 1440).nullable().transform(a => a ?? 120).describe('The duration in minutes.')
     }),
+    authorization: {
+        team: 'createTime', key: 'team'
+    },
     async authorize({ guild, actor }){
         return database.isAuthorized(guild, BigInt(actor.id))
     },

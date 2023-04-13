@@ -16,7 +16,8 @@ import {
     SlashCommandSubcommandBuilder,
     StageChannel,
     TextChannel,
-    VoiceChannel
+    VoiceChannel,
+    type AutocompleteFocusedOption
 } from '@glenna/discord'
 import {
     Role,
@@ -25,6 +26,8 @@ import {
     BaseChannel
 } from '@glenna/discord'
 import { z } from 'zod'
+import { database } from '../util/database'
+import type { Authorization } from './_command'
 
 type RealChannelType<T extends ApplicationCommandOptionAllowedChannelTypes> =
     T extends ChannelType.GuildText ? TextChannel
@@ -39,6 +42,7 @@ type RealChannelType<T extends ApplicationCommandOptionAllowedChannelTypes> =
     : never
 const DJSTypeSymbol = Symbol('djs-type')
 const DJSBuilderSymbol = Symbol('djs-builder')
+const DJSAutocompleteSymbol = Symbol('djs-autocomplete')
 function custom<T>(type: string, ...params: Parameters<typeof z.custom<T>>){
     const handler = z.custom<T>(...params)
     ;(handler._def as any)[DJSTypeSymbol] = type
@@ -70,6 +74,21 @@ export namespace djs {
         return custom<GuildMember>('actor', candidate => candidate instanceof GuildMember)
     }
 
+    export function team(){
+        const handler = djs.string(b => b.setAutocomplete(true));
+        (handler._def as any)[DJSAutocompleteSymbol] = (property: string) => async (
+            { name, value }: AutocompleteFocusedOption,
+            interaction: ChatInputCommandInteraction,
+            authorization: Authorization<string>
+        ) => {
+            if(name !== property)
+                return
+            return await database.team.autocomplete2(BigInt(interaction.guild!.id), BigInt(interaction.user.id), value,
+                'team' in authorization ? authorization.team : 'read')
+        }
+        return handler
+    }
+
     export function string(builder: (option: SlashCommandStringOption) => SlashCommandStringOption){
         const handler = z.string()
         ;(handler._def as any)[DJSBuilderSymbol] = builder
@@ -94,12 +113,16 @@ function inspectType(zodType: z.ZodTypeAny){
     let type: string
     let description: string | undefined = undefined
     let builder: any
+    let autocomplete: any
     while(obj){
         if('description' in obj){
             description ??= obj.description
         }
         if(DJSBuilderSymbol in obj){
             builder ??= obj[DJSBuilderSymbol]
+        }
+        if(DJSAutocompleteSymbol in obj){
+            autocomplete ??= obj[DJSAutocompleteSymbol]
         }
 
         // custom can inject the type symbol on a ZodEffects object
@@ -184,7 +207,7 @@ function inspectType(zodType: z.ZodTypeAny){
         }
         break
     }
-    return [ type!, builder, description ] as const
+    return [ type!, builder, description, autocomplete ] as const
 }
 
 const builders: Record<string, (name: string, description: string | undefined, required: boolean, accessoryBuilder: any) => (builder: SlashCommandBuilder | SlashCommandSubcommandBuilder) => unknown> = {
@@ -278,7 +301,7 @@ export function parseCommandOptions(object: z.AnyZodObject | undefined){
         return []
     return Object.entries<z.ZodTypeAny>(object.shape).map(([ name, value ]) => {
         const required = !value.isNullable() && !value.isOptional()
-        const [ type, accessoryBuilder, description ] = inspectType(value)
+        const [ type, accessoryBuilder, description, autocomplete ] = inspectType(value)
         const builder = builders[type]
         const fetcher = fetchers[type]
         if(!builder)
@@ -288,7 +311,8 @@ export function parseCommandOptions(object: z.AnyZodObject | undefined){
         return {
             name,
             builder: builder(name, description, required, accessoryBuilder),
-            fetcher: fetcher(name, required)
+            fetcher: fetcher(name, required),
+            autocomplete: null
         }
     })
 }

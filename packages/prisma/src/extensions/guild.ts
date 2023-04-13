@@ -8,23 +8,24 @@ export const guildExtension = Prisma.defineExtension(client => client.$extends({
                 const owner = await guild.fetchOwner()
                 const guildId = BigInt(guild.id)
                 const ownerId = BigInt(owner.id)
-                const guildAlias = guild.vanityURLCode && await client.guild.findUnique({ where: { alias: guild.vanityURLCode }})
-                    ? guild.vanityURLCode
-                    : guildId.toString(36)
                 client.$transaction(async client => {
-                    await client.$executeRaw`set constraints all deferred;`
-                    const guildData = await client.guild.create({
+                    const guildAlias = guild.vanityURLCode && await client.guild.findUnique({ where: { alias: guild.vanityURLCode }})
+                        ? guild.vanityURLCode
+                        : guildId.toString(36)
+                    await client.guild.create({
                         data: {
                             name: guild.name,
                             snowflake: guildId,
                             alias: guildAlias,
                             acronym: guild.nameAcronym,
                             icon: guild.icon,
+                            permission: { create: {} },
                             divisions: {
                                 create: {
                                     name: guild.name,
                                     snowflake: guildId,
-                                    primary: true
+                                    primary: true,
+                                    permission: { create: {} }
                                 }
                             },
                             teams: {
@@ -34,7 +35,24 @@ export const guildExtension = Prisma.defineExtension(client => client.$extends({
                                     name: 'Management Team',
                                     type: 'Management',
                                     capacity: null,
-                                    divisionId: 0 // placeholder, updated below
+                                    division: { connect: { snowflake: guildId }},
+                                    permission: {
+                                        create: {
+                                            update: 'GuildCaptain',
+                                            delete: 'None',
+                                            updateDivision: 'None',
+
+                                            updateRole: 'GuildCaptain',
+                                            createMember: 'GuildCaptain',
+                                            updateMember: 'GuildCaptain',
+                                            deleteMember: 'GuildCaptain',
+
+                                            createTime: 'None',
+                                            updateTime: 'None',
+                                            deleteTime: 'None',
+                                            readTime: 'None',
+                                        }
+                                    }
                                 }
                             },
                             members: {
@@ -52,6 +70,12 @@ export const guildExtension = Prisma.defineExtension(client => client.$extends({
                                                 icon: owner.user.avatar
                                             }
                                         }
+                                    },
+                                    teamMemberships: {
+                                        create: {
+                                            team: { connect: { snowflake: guildId }},
+                                            role: 'Captain'
+                                        }
                                     }
                                 }
                             }
@@ -61,23 +85,6 @@ export const guildExtension = Prisma.defineExtension(client => client.$extends({
                             divisions: { select: { id: true }},
                             teams: { select: { id: true }},
                             members: { select: { id: true }}
-                        }
-                    })
-
-                    // repair links
-                    await client.team.update({
-                        where: guildData.teams[0]!,
-                        data: {
-                            division: { connect: guildData.divisions[0]! }
-                        }
-                    })
-
-                    // add owner as captain of management team
-                    await client.teamMember.create({
-                        data: {
-                            role: 'Captain',
-                            team: { connect: guildData.teams[0]! },
-                            member: { connect: guildData.members[0]! }
                         }
                     })
                 })

@@ -22,12 +22,19 @@ import {
 } from '@glenna/discord'
 import { parseCommandOptions } from './_djs.js'
 import { PublicError } from '../PublicError.js'
+import type { DivisionPermission, GuildPermission, TeamPermission } from '@glenna/prisma'
 
 export type AutocompleteFn = (interaction: AutocompleteInteraction) => void | Promise<void>
 export type ChatCommandFn = (interaction: ChatInputCommandInteraction) => void | Promise<void>
 export type MessageContextFn = (interaction: MessageContextMenuCommandInteraction) => void | Promise<void>
 export type UserContextFn = (interaction: UserContextMenuCommandInteraction) => void | Promise<void>
 export type AuthorizationFn = (member: any) => boolean | Promise<boolean>
+
+type MaybeArray<T> = T | [ T, ...T[] ]
+type TeamAuthorization<Keys> = { team: MaybeArray<Exclude<keyof TeamPermission, 'id' | 'teamId'>>, key: Keys }
+type DivisionAuthorization<Keys> = { division: MaybeArray<Exclude<keyof DivisionPermission, 'id' | 'divisionId'>> }
+type GuildAuthorization<Keys> = { division: MaybeArray<Exclude<keyof GuildPermission, 'id' | 'guildId'>> }
+export type Authorization<Keys> = TeamAuthorization<Keys> | DivisionAuthorization<Keys> | GuildAuthorization<Keys>
 
 export type BuilderFn<T> = (builder: T) => T
 
@@ -94,16 +101,6 @@ export function delegate(options: {
     }
 }
 
-type BulkCommandOptions =
-    | Command<'context' | 'user'>
-    | Command<'context' | 'message'>
-
-export function bulk(options: BulkCommandOptions[]): _Command {
-    return {
-
-    }
-}
-
 export function group(options: {
     description: string
     members: {
@@ -144,6 +141,7 @@ export function group(options: {
 export function subcommand<TInput extends z.AnyZodObject>(options: {
     description: string
     input?: TInput,
+    authorization?: Authorization<keyof z.infer<TInput>>,
     authorize?: (options: z.infer<TInput>, interaction: ChatInputCommandInteraction) => boolean | Promise<boolean>
     execute(options: z.infer<TInput>, interaction: ChatInputCommandInteraction): Promise<void | string | InteractionReplyOptions | MessagePayload>
     autocomplete?: (focused: AutocompleteFocusedOption, interaction: AutocompleteInteraction) => Promise<void | ApplicationCommandOptionChoiceData<string | number>[]>

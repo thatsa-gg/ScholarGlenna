@@ -4,5 +4,6 @@
     h1 {
         grid-area: branding;
         @apply bg-primary-400 shadow-sm;
+        @apply z-header sticky top-0;
     }
 </style>

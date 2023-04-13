@@ -1,8 +1,9 @@
 import { formatDuration, roundWeek } from '@glenna/util'
 import { Temporal, toTemporalInstant } from '@js-temporal/polyfill'
-import { Prisma, type TeamTime, type Team, type TeamType } from '../../generated/client/index.js'
+import { Prisma, type TeamTime, type Team, type TeamType, type TeamPermission } from '../../generated/client/index.js'
 
 type MaybePromise<T> = T | Promise<T>
+type MaybeArray<T> = T | [ T, ...T[] ]
 
 function calculationTimeZone(team: Pick<Team, 'primaryTimeZone' | 'daylightSavings'>){
     if(team.daylightSavings === 'RespectReset')
@@ -152,6 +153,33 @@ export const teamExtension = Prisma.defineExtension((client) => client.$extends(
                     }
                 })
                 return teams.map(({ name, alias }) => ({ name, value: alias }))
+            },
+            async autocomplete2(
+                guildSnowflake: bigint, userSnowflake: bigint,
+                searchValue: string,
+                permission: MaybeArray<Exclude<keyof TeamPermission, 'id' | 'teamId'>>
+            ){
+                const permissions = Array.isArray(permission) ? permission : [ permission ]
+                const teams = await client.team.findMany({
+                    where: {
+                        guild: { snowflake: guildSnowflake },
+                        OR: [
+                            { name: { startsWith: searchValue }},
+                            { alias: { startsWith: searchValue }}
+                        ],
+                        memberPermission: {
+                            some: Object.assign(
+                                { guildMember: { snowflake: userSnowflake }},
+                                ...permissions.map(key => ({ [key]: true }))
+                            )
+                        }
+                    },
+                    take: 25,
+                    select: {
+                        name: true,
+                        snowflake: true,
+                    }
+                })
             }
         },
         teamTime: {

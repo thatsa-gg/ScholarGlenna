@@ -19,6 +19,7 @@ export const load = (async ({ cookies }) => {
             id: true,
             user: {
                 select: {
+                    id: true,
                     name: true,
                     discriminator: true,
                     avatar: true
@@ -34,6 +35,7 @@ export const load = (async ({ cookies }) => {
     // Vite doesn't know how to serialize those
     return {
         user: {
+            id: profile.user.id,
             name: profile.user.name,
             discriminator: profile.user.discriminator,
             avatar: profile.user.avatar

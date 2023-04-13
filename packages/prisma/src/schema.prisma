@@ -220,6 +220,7 @@ model Guild {
     // Marks when the bot first became aware it wasn't in a guild anymore.
     lostRemoteReferenceAt DateTime? @db.Timestamptz(3) @map("lost_remote_reference_at")
 
+    permission GuildPermission?
     teams Team[]
     members GuildMember[]
     divisions Division[]
@@ -241,6 +242,9 @@ model GuildMember {
     user User @relation(fields: [userId], references: [id], onDelete: Cascade)
     guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
     teamMemberships TeamMember[]
+
+    teamPermissions GuildMemberTeamPermission[]
+
     @@unique([userId, guildId])
     @@unique([snowflake, guildId])
     @@schema("guild")
@@ -262,6 +266,7 @@ model Division {
 
     guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
     teams Team[]
+    permission DivisionPermission?
     @@schema("guild")
     @@map("division")
 }
@@ -358,6 +363,9 @@ model Team {
     logs Log[]
     times TeamTime[]
 
+    permission TeamPermission?
+    memberPermission GuildMemberTeamPermission[]
+
     @@unique([guildId, alias])
     @@schema("guild")
     @@map("team")
@@ -405,6 +413,106 @@ view TeamMemberComputed {
     member TeamMember?
     @@schema("guild")
     @@map("teammembercomputed")
+}
+
+// ========================================================================== //
+//                               PERMISSIONS                                  //
+// ========================================================================== //
+enum AccessLevel {
+    GuildCaptain @map("guildcaptain")
+    GuildRepresentative @map("guildrepresentative")
+    GuildManager @map("guildmanager")
+    TeamCaptain @map("teamcaptain")
+    TeamRepresentative @map("teamrepresentative")
+    TeamMember @map("teammember")
+    AnyGuild @map("anyguild")
+    AnyPublic @map("anypublic")
+    None @map("none")
+
+    @@schema("guild")
+    @@map("accesslevel")
+}
+
+model GuildPermission {
+    id Int @default(autoincrement()) @unique @map("guild_permission_id")
+    guildId Int @unique @map("guild_id")
+    guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+    update AccessLevel @default(GuildCaptain)
+    read   AccessLevel @default(AnyGuild)
+
+    createTeam AccessLevel @default(GuildManager) @map("create_team")
+    createDivision AccessLevel @default(GuildManager) @map("create_division")
+    @@schema("guild")
+    @@map("guildpermission")
+}
+
+model DivisionPermission {
+    id Int @default(autoincrement()) @unique @map("division_permission_id")
+    divisionId Int @unique @map("division_id")
+    division Division @relation(fields: [divisionId], references: [id], onDelete: Cascade)
+
+    update AccessLevel @default(GuildManager)
+    delete AccessLevel @default(GuildManager)
+    read AccessLevel @default(AnyGuild)
+
+    @@schema("guild")
+    @@map("divisionpermission")
+}
+
+model TeamPermission {
+    id Int @default(autoincrement()) @unique @map("team_permission_id")
+    teamId Int @unique @map("team_id")
+    team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+    update AccessLevel @default(GuildManager)
+    delete AccessLevel @default(GuildManager)
+    read   AccessLevel @default(AnyGuild)
+
+    updateDivision AccessLevel @default(GuildManager) @map("update_division")
+    updateRole AccessLevel @default(GuildManager) @map("update_role")
+
+    createMember AccessLevel @default(GuildManager) @map("create_member")
+    updateMember AccessLevel @default(GuildManager) @map("update_member")
+    deleteMember AccessLevel @default(GuildManager) @map("delete_member")
+    readMember AccessLevel @default(AnyGuild) @map("read_member")
+
+    createTime AccessLevel @default(GuildManager) @map("create_time")
+    updateTime AccessLevel @default(GuildManager) @map("update_time")
+    deleteTime AccessLevel @default(GuildManager) @map("delete_time")
+    readTime AccessLevel @default(AnyGuild) @map("read_time")
+    @@schema("guild")
+    @@map("teampermission")
+}
+
+view GuildMemberTeamPermission {
+    guildMemberId Int @map("guild_member_id")
+    teamId Int @map("team_id")
+
+    @@unique([ guildMemberId, teamId ])
+    guildMember GuildMember @relation(fields: [guildMemberId], references: [id])
+    team Team @relation(fields: [teamId], references: [id])
+
+
+    update Boolean
+    delete Boolean
+    read   Boolean
+
+    updateDivision Boolean @map("update_division")
+    updateRole Boolean @map("update_role")
+
+    createMember Boolean @map("create_member")
+    updateMember Boolean @map("update_member")
+    deleteMember Boolean @map("delete_member")
+    readMember Boolean @map("read_member")
+
+    createTime Boolean @map("create_time")
+    updateTime Boolean @map("update_time")
+    deleteTime Boolean @map("delete_time")
+    readTime Boolean @map("read_time")
+
+    @@schema("guild")
+    @@map("guildmemberteampermission")
 }
 
 // ========================================================================== //

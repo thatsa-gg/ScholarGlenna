@@ -20,7 +20,7 @@
     },
     "scripts": {
         "migrate": "prisma migrate deploy",
-        "migrate-reset": "prisma migrate reset",
+        "migrate-reset": "prisma migrate reset --skip-generate",
         "migrate-status": "prisma migrate status",
         "generate": "prisma generate",
         "build": "heft build --clean",

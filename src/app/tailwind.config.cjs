@@ -22,6 +22,10 @@ module.exports = {
             },
             fontFamily: {
                 primary: [ 'Noto Sans', 'Helvetica Neue', 'Helvetica', 'Arial', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif' ]
+            },
+            zIndex: {
+                max: 1000,
+                header: 200
             }
         },
         colors: Object.assign({}, defaultColors, ...palettes.map(palette => ({
