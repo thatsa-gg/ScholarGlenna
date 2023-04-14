@@ -8,7 +8,7 @@ generator client {
 datasource db {
     provider = "postgresql"
     url      = env("DATABASE_URL")
-    schemas  = [ "log", "guild", "app", "public" ]
+    schemas  = [ "log", "guild", "app", "role", "public" ]
 }
 
 enum CharacterClass {
@@ -188,6 +188,8 @@ model User {
     guildMemberships GuildMember[]
     accounts Account[]
     profile Profile?
+    roles RoleMember[]
+    permissions Permission[]
     @@schema("guild")
     @@map("user")
 }
@@ -224,6 +226,8 @@ model Guild {
     teams Team[]
     members GuildMember[]
     divisions Division[]
+
+    roles Role[]
     @@schema("guild")
     @@map("guild")
 }
@@ -242,8 +246,8 @@ model GuildMember {
     user User @relation(fields: [userId], references: [id], onDelete: Cascade)
     guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
     teamMemberships TeamMember[]
-
-    teamPermissions GuildMemberTeamPermission[]
+    roles RoleMember[]
+    permissions Permission[]
 
     @@unique([userId, guildId])
     @@unique([snowflake, guildId])
@@ -364,7 +368,7 @@ model Team {
     times TeamTime[]
 
     permission TeamPermission?
-    memberPermission GuildMemberTeamPermission[]
+    roles Role[]
 
     @@unique([guildId, alias])
     @@schema("guild")
@@ -418,19 +422,106 @@ view TeamMemberComputed {
 // ========================================================================== //
 //                               PERMISSIONS                                  //
 // ========================================================================== //
-enum AccessLevel {
-    GuildCaptain @map("guildcaptain")
-    GuildRepresentative @map("guildrepresentative")
-    GuildManager @map("guildmanager")
-    TeamCaptain @map("teamcaptain")
-    TeamRepresentative @map("teamrepresentative")
-    TeamMember @map("teammember")
-    AnyGuild @map("anyguild")
-    AnyPublic @map("anypublic")
-    None @map("none")
+enum RoleType {
+    Public @map("public")
+    AnyGuildMember @map("any_guild_member")
+    AnyTeamMember @map("any_team_member")
+    AnyTeamRepresentative @map("any_team_representative")
+    AnyTeamCaptain @map("any_team_captain")
+    TeamMember @map("team_member")
+    TeamRepresentative @map("team_representative")
+    TeamCaptain @map("team_captain")
 
-    @@schema("guild")
-    @@map("accesslevel")
+    @@schema("role")
+    @@map("roletype")
+}
+
+model Role {
+    id Int @id @default(autoincrement()) @map("role_id")
+    snowflake BigInt @unique @default(dbgenerated("new_snowflake()"))
+    guildId Int? @map("guild_id")
+    teamId Int? @map("team_id")
+    type RoleType
+
+    parent RoleChild[] @relation("parent")
+    children RoleChild[] @relation("child")
+
+    guild Guild? @relation(fields: [guildId], references: [id], onDelete: Cascade)
+    team Team? @relation(fields: [teamId], references: [id], onDelete: Cascade)
+    members RoleMember[]
+    permissions Permission[]
+
+    // back-references for all permissions
+    guildUpdate GuildPermission[] @relation("guild_update")
+    guildRead GuildPermission[] @relation("guild_read")
+    guildCreateTeam GuildPermission[] @relation("guild_create_team")
+    guildCreateDivision GuildPermission[] @relation("guild_create_division")
+
+    divisionUpdate DivisionPermission[] @relation("division_update")
+    divisionDelete DivisionPermission[] @relation("division_delete")
+    divisionRead DivisionPermission[] @relation("division_read")
+
+    teamUpdate TeamPermission[] @relation("team_update")
+    teamDelete TeamPermission[] @relation("team_delete")
+    teamRead TeamPermission[] @relation("team_read")
+    teamUpdateDivision TeamPermission[] @relation("team_update_division")
+    teamUpdateRole TeamPermission[] @relation("team_update_role")
+    teamCreateMember TeamPermission[] @relation("team_create_member")
+    teamUpdateMember TeamPermission[] @relation("team_update_member")
+    teamDeleteMember TeamPermission[] @relation("team_delete_member")
+    teamReadMember TeamPermission[] @relation("team_read_member")
+    teamCreateTime TeamPermission[] @relation("team_create_time")
+    teamUpdateTime TeamPermission[] @relation("team_update_time")
+    teamDeleteTime TeamPermission[] @relation("team_delete_time")
+    teamReadTime TeamPermission[] @relation("team_read_time")
+
+    @@schema("role")
+    @@map("role")
+}
+
+model RoleChild {
+    id Int @id @default(autoincrement()) @map("role_child_id")
+    parentId Int @map("parent_id")
+    childId Int @map("child_id")
+
+    parent Role @relation("child", fields: [parentId], references: [id], onDelete: Restrict) // must delete children first
+    child Role @relation("parent", fields: [childId], references: [id], onDelete: Cascade)
+
+    @@unique([parentId, childId])
+    @@schema("role")
+    @@map("rolechild")
+}
+
+model RoleMember {
+    id Int @id @default(autoincrement()) @map("role_member_id")
+    userId Int @map("user_id")
+    roleId Int @map("role_id")
+    guildMemberId Int? @map("guild_member_id")
+
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+    role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+    guildMember GuildMember? @relation(fields: [guildMemberId], references: [id], onDelete: Cascade)
+
+    @@unique([ userId, roleId ])
+    @@unique([ guildMemberId, roleId ])
+    @@schema("role")
+    @@map("rolemember")
+}
+
+view Permission {
+    id Int @map("role_member_id")
+    userId Int @map("user_id")
+    roleId Int @map("role_id")
+    guildMemberId Int? @map("guild_member_id")
+
+    user User @relation(fields: [userId], references: [id])
+    role Role @relation(fields: [roleId], references: [id])
+    guildMember GuildMember? @relation(fields: [guildMemberId], references: [id])
+
+    @@unique([userId, roleId])
+    @@unique([guildMemberId, roleId])
+    @@schema("role")
+    @@map("permissions")
 }
 
 model GuildPermission {
@@ -438,12 +529,17 @@ model GuildPermission {
     guildId Int @unique @map("guild_id")
     guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
 
-    update AccessLevel @default(GuildCaptain)
-    read   AccessLevel @default(AnyGuild)
+    updateId Int @map("update")
+    readId   Int @map("read")
+    createTeamId Int @map("create_team")
+    createDivisionId Int @map("create_division")
 
-    createTeam AccessLevel @default(GuildManager) @map("create_team")
-    createDivision AccessLevel @default(GuildManager) @map("create_division")
-    @@schema("guild")
+    update Role @relation("guild_update", fields: [updateId], references: [id], onDelete: Restrict)
+    read   Role @relation("guild_read", fields: [readId], references: [id], onDelete: Restrict)
+    createTeam Role @relation("guild_create_team", fields: [createTeamId], references: [id], onDelete: Restrict)
+    createDivision Role @relation("guild_create_division", fields: [createDivisionId], references: [id], onDelete: Restrict)
+
+    @@schema("role")
     @@map("guildpermission")
 }
 
@@ -452,11 +548,15 @@ model DivisionPermission {
     divisionId Int @unique @map("division_id")
     division Division @relation(fields: [divisionId], references: [id], onDelete: Cascade)
 
-    update AccessLevel @default(GuildManager)
-    delete AccessLevel @default(GuildManager)
-    read AccessLevel @default(AnyGuild)
+    updateId Int @map("update")
+    deleteId Int? @map("delete")
+    readId   Int @map("read")
 
-    @@schema("guild")
+    update Role @relation("division_update", fields: [updateId], references: [id], onDelete: Restrict)
+    delete Role? @relation("division_delete", fields: [deleteId], references: [id], onDelete: Restrict)
+    read   Role @relation("division_read", fields: [readId], references: [id], onDelete: Restrict)
+
+    @@schema("role")
     @@map("divisionpermission")
 }
 
@@ -465,55 +565,43 @@ model TeamPermission {
     teamId Int @unique @map("team_id")
     team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
-    update AccessLevel @default(GuildManager)
-    delete AccessLevel @default(GuildManager)
-    read   AccessLevel @default(AnyGuild)
+    updateId Int @map("update")
+    deleteId Int? @map("delete")
+    readId   Int @map("read")
 
-    updateDivision AccessLevel @default(GuildManager) @map("update_division")
-    updateRole AccessLevel @default(GuildManager) @map("update_role")
+    updateDivisionId Int? @map("update_division")
+    updateRoleId     Int @map("update_role")
 
-    createMember AccessLevel @default(GuildManager) @map("create_member")
-    updateMember AccessLevel @default(GuildManager) @map("update_member")
-    deleteMember AccessLevel @default(GuildManager) @map("delete_member")
-    readMember AccessLevel @default(AnyGuild) @map("read_member")
+    createMemberId Int @map("create_member")
+    updateMemberId Int @map("update_member")
+    deleteMemberId Int @map("delete_member")
+    readMemberId   Int @map("read_member")
 
-    createTime AccessLevel @default(GuildManager) @map("create_time")
-    updateTime AccessLevel @default(GuildManager) @map("update_time")
-    deleteTime AccessLevel @default(GuildManager) @map("delete_time")
-    readTime AccessLevel @default(AnyGuild) @map("read_time")
-    @@schema("guild")
+    createTimeId Int? @map("create_time")
+    updateTimeId Int? @map("update_time")
+    deleteTimeId Int? @map("delete_time")
+    readTimeId   Int? @map("read_time")
+
+    update Role @relation("team_update", fields: [updateId], references: [id], onDelete: Restrict)
+    delete Role? @relation("team_delete", fields: [deleteId], references: [id], onDelete: Restrict)
+    read   Role @relation("team_read", fields: [readId], references: [id], onDelete: Restrict)
+
+    updateDivision Role? @relation("team_update_division", fields: [updateDivisionId], references: [id], onDelete: Restrict)
+    updateRole     Role @relation("team_update_role", fields: [updateRoleId], references: [id], onDelete: Restrict)
+
+    createMember Role @relation("team_create_member", fields: [createMemberId], references: [id], onDelete: Restrict)
+    updateMember Role @relation("team_update_member", fields: [updateMemberId], references: [id], onDelete: Restrict)
+    deleteMember Role @relation("team_delete_member", fields: [deleteMemberId], references: [id], onDelete: Restrict)
+    readMember   Role @relation("team_read_member", fields: [readMemberId], references: [id], onDelete: Restrict)
+
+    createTime Role? @relation("team_create_time", fields: [createTimeId], references: [id], onDelete: Restrict)
+    updateTime Role? @relation("team_update_time", fields: [updateTimeId], references: [id], onDelete: Restrict)
+    deleteTime Role? @relation("team_delete_time", fields: [deleteTimeId], references: [id], onDelete: Restrict)
+    readTime   Role? @relation("team_read_time", fields: [readTimeId], references: [id], onDelete: Restrict)
+    @@schema("role")
     @@map("teampermission")
 }
 
-view GuildMemberTeamPermission {
-    guildMemberId Int @map("guild_member_id")
-    teamId Int @map("team_id")
-
-    @@unique([ guildMemberId, teamId ])
-    guildMember GuildMember @relation(fields: [guildMemberId], references: [id])
-    team Team @relation(fields: [teamId], references: [id])
-
-
-    update Boolean
-    delete Boolean
-    read   Boolean
-
-    updateDivision Boolean @map("update_division")
-    updateRole Boolean @map("update_role")
-
-    createMember Boolean @map("create_member")
-    updateMember Boolean @map("update_member")
-    deleteMember Boolean @map("delete_member")
-    readMember Boolean @map("read_member")
-
-    createTime Boolean @map("create_time")
-    updateTime Boolean @map("update_time")
-    deleteTime Boolean @map("delete_time")
-    readTime Boolean @map("read_time")
-
-    @@schema("guild")
-    @@map("guildmemberteampermission")
-}
 
 // ========================================================================== //
 //                                   APP                                      //

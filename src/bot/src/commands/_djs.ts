@@ -26,7 +26,7 @@ import {
     BaseChannel
 } from '@glenna/discord'
 import { z } from 'zod'
-import { database } from '../util/database'
+//import { database } from '../util/database.js'
 import type { Authorization } from './_command'
 
 type RealChannelType<T extends ApplicationCommandOptionAllowedChannelTypes> =
@@ -83,8 +83,8 @@ export namespace djs {
         ) => {
             if(name !== property)
                 return
-            return await database.team.autocomplete2(BigInt(interaction.guild!.id), BigInt(interaction.user.id), value,
-                'team' in authorization ? authorization.team : 'read')
+            /*return await database.team.autocomplete2(BigInt(interaction.guild!.id), BigInt(interaction.user.id), value,
+                'team' in authorization ? authorization.team : 'read')*/
         }
         return handler
     }

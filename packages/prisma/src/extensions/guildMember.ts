@@ -6,6 +6,7 @@ export const guildMemberExtension = Prisma.defineExtension((client) => client.$e
         guildMember: {
             findOrCreate(guild: Pick<Guild, 'id'>, member: GuildMember){
                 const snowflake = BigInt(member.user.id)
+                // TODO: roles, or investigate using triggers for role management
                 return client.guildMember.upsert({
                     where: {
                         snowflake_guildId: {
