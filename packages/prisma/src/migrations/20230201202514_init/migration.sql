@@ -338,6 +338,12 @@ create index on "role"."role"("team_id") include ("role_id");
 create unique index only_one_public_role on "role"."role"("type") where "type" = 'public';
 insert into "role"."role"("type") values ('public') on conflict do nothing;
 
+create materialized view "role"."publicrole" as
+select
+    "role_id",
+    "snowflake"
+from "role"."role" where "type" = 'public'::"role"."roletype";
+
 -- CreateTable
 create table "role"."rolechild" (
     "role_child_id" serial primary key not null,
@@ -351,11 +357,127 @@ create table "role"."rolemember" (
     "role_member_id" serial primary key not null,
     "user_id" int not null references "guild"."user"("user_id") on delete cascade,
     "role_id" int not null references "role"."role"("role_id") on delete cascade,
-    "guild_member_id" int references "guild"."guildmember"("guild_member_id") on delete cascade,
 
-    unique("user_id", "role_id"),
-    unique("guild_member_id", "role_id")
+    unique("user_id", "role_id")
 );
+create function "add_user_to_public_role"()
+returns trigger language plpgsql as $$
+begin
+    insert into "role"."rolemember" ("user_id", "role_id") values (
+        NEW."user_id",
+        (select "role_id" from "role"."publicrole" limit 1)
+    );
+    return null;
+end $$;
+create trigger "add_user_to_public_role"
+    after insert on "guild"."user"
+    for each row execute function "add_user_to_public_role"();
+
+-- CreateTable (Inherited)
+create table "role"."guildrolemember" (
+    "guild_member_id" int not null references "guild"."guildmember"("guild_member_id") on delete cascade
+) inherits ("role"."rolemember");
+create function "add_guild_member_to_member_role"()
+returns trigger language plpgsql as $$
+begin
+    insert into "role"."guildrolemember" ("user_id", "guild_member_id", "role_id") values (
+        NEW."user_id",
+        NEW."guild_member_id",
+        (select "any_member_role" from "role"."guildpermission" where "role"."guildpermission"."guild_id" = NEW."guild_id")
+    );
+    return null;
+end $$;
+create trigger "add_guild_member_to_member_role"
+    after insert on "guild"."guildmember"
+    for each row
+    execute function "add_guild_member_to_member_role"();
+
+-- CreateTable (Inherited)
+create table "role"."teamrolemember" (
+    "team_member_id" int not null references "guild"."teammember"("team_member_id") on delete cascade
+) inherits ("role"."guildrolemember");
+create function "add_team_member_to_member_roles"()
+returns trigger language plpgsql as $$
+begin
+    with
+        new_member as (select NEW."team_member_id", NEW."guild_member_id", NEW."team_id", NEW."role"),
+        relation_data as (
+            select
+                "guild"."guildmember"."user_id",
+                "guild"."guildmember"."guild_member_id",
+                new_member."team_member_id",
+                new_member."role",
+                "role"."teampermission"."member_role",
+                "role"."teampermission"."representative_role",
+                "role"."teampermission"."captain_role"
+            from new_member
+                inner join "guild"."guildmember" using("guild_member_id")
+                inner join "role"."teampermission" using("team_id")
+        )
+    insert into "role"."teamrolemember" ("user_id", "guild_member_id", "team_member_id", "role_id")
+    (select
+        "user_id",
+        "guild_member_id",
+        "team_member_id",
+        "member_role" as "role_id"
+    from relation_data
+    union distinct
+    select
+        "user_id",
+        "guild_member_id",
+        "team_member_id",
+        case
+            when relation_data."role" = 'representative'::"guild"."teammemberrole" then relation_data."representative_role"
+            when relation_data."role" = 'captain'::"guild"."teammemberrole" then relation_data."captain_role"
+            else relation_data."member_role"
+        end as "role_id"
+    from relation_data);
+    return null;
+end $$;
+create trigger "add_team_member_to_member_roles"
+    after insert on "guild"."teammember"
+    for each row execute function "add_team_member_to_member_roles"();
+
+create function "update_team_member_roles"()
+returns trigger language plpgsql as $$
+begin
+    with
+        new_member as (select NEW."team_member_id", NEW."guild_member_id", NEW."team_id", NEW."role"),
+        relation_data as (
+            select
+                "guild"."guildmember"."user_id",
+                "guild"."guildmember"."guild_member_id",
+                new_member."team_member_id",
+                new_member."role",
+                "role"."teampermission"."representative_role",
+                "role"."teampermission"."captain_role"
+            from new_member
+                inner join "guild"."guildmember" using("guild_member_id")
+                inner join "role"."teampermission" using("team_id")
+        ),
+        remove_old as (
+            delete from "role"."teamrolemember" as m using relation_data where (
+                (relation_data."role" <> 'captain'::"guild"."teammemberrole" and m."role_id" = relation_data."captain_role") or -- delete captain role when not a captain
+                (relation_data."role" <> 'representative'::"guild"."teammemberrole" and m."role_id" = relation_data."representative_role") -- delete rep role when not a rep
+            ) and relation_data."team_member_id" = m."team_member_id"
+        )
+    insert into "role"."teamrolemember" ("user_id", "guild_member_id", "team_member_id", "role_id")
+    select
+        "user_id",
+        "guild_member_id",
+        "team_member_id",
+        case
+            when relation_data."role" = 'captain'::"guild"."teammemberrole" then relation_data."captain_role"
+            else relation_data."representative_role"
+        end as "role_id"
+    from relation_data
+    where relation_data."role" <> 'member'::"guild"."teammemberrole";
+    return null;
+end $$;
+create trigger "update_team_member_roles"
+    after update on "guild"."teammember"
+    for each row when (OLD."role" is distinct from NEW."role")
+    execute function "update_team_member_roles"();
 
 -- CreateView
 create materialized view "role"."rolepairing" as
@@ -374,7 +496,7 @@ select
     "roles"."role_id",
     "roles"."m_id"
 from "roles";
-create index concurrently "rolepairing_role_id" on "role"."rolepairing" ("role_id") include ("m_id");
+create index "rolepairing_role_id" on "role"."rolepairing" ("role_id") include ("m_id");
 
 create function "refresh_rolepairing"()
 returns trigger language plpgsql as $$
@@ -383,27 +505,50 @@ begin
     return null;
 end $$;
 
-create trigger "refresh_rolepairing" after insert or update or delete or truncate on "role"."rolechild" execute procedure "refresh_rolepairing"();
+create trigger "refresh_rolepairing"
+    after insert or update or delete or truncate on "role"."rolechild"
+    for each statement execute function "refresh_rolepairing"();
 
 -- CreateView
 create view "role"."permissions" as
 select
     "role"."rolemember"."role_member_id",
     "role"."rolemember"."user_id",
-    "role"."rolepairing"."m_id" as "role_id",
-    "role"."rolemember"."guild_member_id"
+    "role"."rolepairing"."m_id" as "role_id"
 from "role"."rolepairing" inner join "role"."rolemember" using("role_id");
+
+create view "role"."guildmemberpermissions" as
+select
+    "role"."guildrolemember"."role_member_id",
+    "role"."guildrolemember"."user_id",
+    "role"."guildrolemember"."guild_member_id",
+    "role"."rolepairing"."m_id" as "role_id"
+from "role"."rolepairing" inner join "role"."guildrolemember" using("role_id");
+
+create view "role"."teammemberpermissions" as
+select
+    "role"."teamrolemember"."role_member_id",
+    "role"."teamrolemember"."user_id",
+    "role"."teamrolemember"."guild_member_id",
+    "role"."teamrolemember"."team_member_id",
+    "role"."rolepairing"."m_id" as "role_id"
+from "role"."rolepairing" inner join "role"."teamrolemember" using("role_id");
 
 -- CreateTable
 create table "role"."guildpermission" (
     "guild_permission_id" serial primary key not null,
     "guild_id" integer not null references "guild"."guild"("guild_id") on delete cascade,
 
-    "update" int not null references "role"."role"("role_id"),
-    "read" int not null references "role"."role"("role_id"),
+    "any_member_role" int unique not null references "role"."role"("role_id") on delete restrict,
+    "any_team_member_role" int unique not null references "role"."role"("role_id") on delete restrict,
+    "any_team_representative_role" int unique not null references "role"."role"("role_id") on delete restrict,
+    "any_team_captain_role" int unique not null references "role"."role"("role_id") on delete restrict,
 
-    "create_team" int not null references "role"."role"("role_id"),
-    "create_division" int not null references "role"."role"("role_id")
+    "update" int not null references "role"."role"("role_id") on delete restrict,
+    "read" int not null references "role"."role"("role_id") on delete restrict,
+
+    "create_team" int not null references "role"."role"("role_id") on delete restrict,
+    "create_division" int not null references "role"."role"("role_id") on delete restrict
 );
 
 -- CreateTable
@@ -411,9 +556,9 @@ create table "role"."divisionpermission" (
     "division_permission_id" serial primary key not null,
     "division_id" integer not null references "guild"."division"("division_id"),
 
-    "update" int not null references "role"."role"("role_id"),
-    "delete" int references "role"."role"("role_id"),
-    "read" int not null references "role"."role"("role_id")
+    "update" int not null references "role"."role"("role_id") on delete restrict,
+    "delete" int references "role"."role"("role_id") on delete restrict,
+    "read" int not null references "role"."role"("role_id") on delete restrict
 );
 
 -- CreateTable
@@ -421,20 +566,24 @@ create table "role"."teampermission" (
     "team_permission_id" serial primary key not null,
     "team_id" integer unique not null references "guild"."team"("team_id") on delete cascade,
 
-    "update" int not null references "role"."role"("role_id"),
-    "delete" int references "role"."role"("role_id"),
-    "read" int not null references "role"."role"("role_id"),
+    "member_role" int unique not null references "role"."role"("role_id") on delete restrict,
+    "representative_role" int unique not null references "role"."role"("role_id") on delete restrict,
+    "captain_role" int unique not null references "role"."role"("role_id") on delete restrict,
 
-    "update_division" int references "role"."role"("role_id"),
-    "update_role" int not null references "role"."role"("role_id"),
+    "update" int not null references "role"."role"("role_id") on delete restrict,
+    "delete" int references "role"."role"("role_id") on delete restrict,
+    "read" int not null references "role"."role"("role_id") on delete restrict,
 
-    "create_member" int not null references "role"."role"("role_id"),
-    "update_member" int not null references "role"."role"("role_id"),
-    "delete_member" int not null references "role"."role"("role_id"),
-    "read_member" int not null references "role"."role"("role_id"),
+    "update_division" int references "role"."role"("role_id") on delete restrict,
+    "update_role" int not null references "role"."role"("role_id") on delete restrict,
 
-    "create_time" int references "role"."role"("role_id"),
-    "update_time" int references "role"."role"("role_id"),
-    "delete_time" int references "role"."role"("role_id"),
-    "read_time" int references "role"."role"("role_id")
+    "create_member" int not null references "role"."role"("role_id") on delete restrict,
+    "update_member" int not null references "role"."role"("role_id") on delete restrict,
+    "delete_member" int not null references "role"."role"("role_id") on delete restrict,
+    "read_member" int not null references "role"."role"("role_id") on delete restrict,
+
+    "create_time" int references "role"."role"("role_id") on delete restrict,
+    "update_time" int references "role"."role"("role_id") on delete restrict,
+    "delete_time" int references "role"."role"("role_id") on delete restrict,
+    "read_time" int references "role"."role"("role_id") on delete restrict
 );

@@ -4,10 +4,12 @@ import type { GuildMember } from '@glenna/discord'
 export const guildMemberExtension = Prisma.defineExtension((client) => client.$extends({
     model: {
         guildMember: {
-            findOrCreate(guild: Pick<Guild, 'id'>, member: GuildMember){
+            async findOrCreate(guild: Pick<Guild, 'id'>, member: GuildMember){
                 const snowflake = BigInt(member.user.id)
+                const publicRole = await client.role.findFirstOrThrow({ where: { type: 'Public' }, select: { id: true }})
+                const guildRoles = await client.guildPermission.findUniqueOrThrow({ where: { guildId: guild.id }, select: { anyMemberRoleId: true }})
                 // TODO: roles, or investigate using triggers for role management
-                return client.guildMember.upsert({
+                return await client.guildMember.upsert({
                     where: {
                         snowflake_guildId: {
                             guildId: guild.id,
@@ -27,8 +29,15 @@ export const guildMemberExtension = Prisma.defineExtension((client) => client.$e
                                     snowflake,
                                     name: member.user.username,
                                     icon: member.user.avatar,
-                                    discriminator: member.user.discriminator
+                                    discriminator: member.user.discriminator,
+                                    roles: { connect: publicRole }
                                 }
+                            }
+                        },
+                        roles: {
+                            create: {
+                                role: { connect: { id: guildRoles.anyMemberRoleId } },
+                                user: { connect: { snowflake }}
                             }
                         }
                     },

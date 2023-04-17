@@ -189,7 +189,11 @@ model User {
     accounts Account[]
     profile Profile?
     roles RoleMember[]
+    guildMemberRoles GuildRoleMember[]
+    teamMemberRoles TeamRoleMember[]
     permissions Permission[]
+    guildMemberPermissions GuildMemberPermission[]
+    teamMemberPermissions TeamMemberPermission[]
     @@schema("guild")
     @@map("user")
 }
@@ -246,8 +250,10 @@ model GuildMember {
     user User @relation(fields: [userId], references: [id], onDelete: Cascade)
     guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
     teamMemberships TeamMember[]
-    roles RoleMember[]
-    permissions Permission[]
+    roles GuildRoleMember[]
+    teamMemberRoles TeamRoleMember[]
+    permissions GuildMemberPermission[]
+    teamMemberPermissions TeamMemberPermission[]
 
     @@unique([userId, guildId])
     @@unique([snowflake, guildId])
@@ -399,6 +405,8 @@ model TeamMember {
     team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
     member GuildMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
     logParticipation LogPlayer[]
+    roles TeamRoleMember[]
+
     @@unique([teamId, memberId])
     @@schema("guild")
     @@map("teammember")
@@ -449,7 +457,21 @@ model Role {
     guild Guild? @relation(fields: [guildId], references: [id], onDelete: Cascade)
     team Team? @relation(fields: [teamId], references: [id], onDelete: Cascade)
     members RoleMember[]
+    guildMembers GuildRoleMember[]
+    teamMembers TeamRoleMember[]
     permissions Permission[]
+    guildMemberPermissions GuildMemberPermission[]
+    teamMemberPermissions TeamMemberPermission[]
+
+    // back-references for object-associated roles
+    guildMemberRole GuildPermission? @relation("any_member_role")
+    anyTeamMemberRole GuildPermission? @relation("any_team_member_role")
+    anyTeamRepresentativeRole GuildPermission? @relation("any_team_representative_role")
+    anyTeamCaptainRole GuildPermission? @relation("any_team_captain_role")
+
+    teamMemberRole TeamPermission? @relation("team_member_role")
+    teamRepresentativeRole TeamPermission? @relation("team_representative_role")
+    teamCaptainRole TeamPermission? @relation("team_captain_role")
 
     // back-references for all permissions
     guildUpdate GuildPermission[] @relation("guild_update")
@@ -496,19 +518,79 @@ model RoleMember {
     id Int @id @default(autoincrement()) @map("role_member_id")
     userId Int @map("user_id")
     roleId Int @map("role_id")
-    guildMemberId Int? @map("guild_member_id")
 
     user User @relation(fields: [userId], references: [id], onDelete: Cascade)
     role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
-    guildMember GuildMember? @relation(fields: [guildMemberId], references: [id], onDelete: Cascade)
 
     @@unique([ userId, roleId ])
-    @@unique([ guildMemberId, roleId ])
     @@schema("role")
     @@map("rolemember")
 }
 
+model GuildRoleMember {
+    // inherits RoleMember
+    id Int @id @default(autoincrement()) @map("role_member_id")
+    userId Int @map("user_id")
+    roleId Int @map("role_id")
+    guildMemberId Int @map("guild_member_id")
+
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+    role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+    guildMember GuildMember @relation(fields: [guildMemberId], references: [id], onDelete: Cascade)
+
+    @@unique([ userId, roleId ])
+    @@schema("role")
+    @@map("guildrolemember")
+}
+
+model TeamRoleMember {
+    // inherits GuildRoleMember
+    id Int @id @default(autoincrement()) @map("role_member_id")
+    userId Int @map("user_id")
+    roleId Int @map("role_id")
+    guildMemberId Int @map("guild_member_id")
+    teamMemberId Int @map("team_member_id")
+
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+    role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+    guildMember GuildMember @relation(fields: [guildMemberId], references: [id], onDelete: Cascade)
+    teamMember TeamMember @relation(fields: [teamMemberId], references: [id], onDelete: Cascade)
+
+    @@unique([ userId, roleId ])
+    @@schema("role")
+    @@map("teamrolemember")
+}
+
 view Permission {
+    id Int @map("role_member_id")
+    userId Int @map("user_id")
+    roleId Int @map("role_id")
+
+    user User @relation(fields: [userId], references: [id])
+    role Role @relation(fields: [roleId], references: [id])
+
+    @@unique([userId, roleId])
+    @@schema("role")
+    @@map("permissions")
+}
+
+view GuildMemberPermission {
+    id Int @map("role_member_id")
+    userId Int @map("user_id")
+    roleId Int @map("role_id")
+    guildMemberId Int @map("guild_member_id")
+
+    user User @relation(fields: [userId], references: [id])
+    role Role @relation(fields: [roleId], references: [id])
+    guildMember GuildMember @relation(fields: [guildMemberId], references: [id])
+
+    @@unique([userId, roleId])
+    @@unique([guildMemberId, roleId])
+    @@schema("role")
+    @@map("guildmemberpermissions")
+}
+
+view TeamMemberPermission {
     id Int @map("role_member_id")
     userId Int @map("user_id")
     roleId Int @map("role_id")
@@ -521,13 +603,23 @@ view Permission {
     @@unique([userId, roleId])
     @@unique([guildMemberId, roleId])
     @@schema("role")
-    @@map("permissions")
+    @@map("teammemberpermissions")
 }
 
 model GuildPermission {
     id Int @default(autoincrement()) @unique @map("guild_permission_id")
     guildId Int @unique @map("guild_id")
     guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+    anyMemberRoleId Int @unique @map("any_member_role")
+    anyTeamMemberRoleId Int @unique @map("any_team_member_role")
+    anyTeamRepresentativeRoleId Int @unique @map("any_team_representative_role")
+    anyTeamCaptainRoleId Int @unique @map("any_team_captain_role")
+
+    members Role @relation("any_member_role", fields: [anyMemberRoleId], references: [id], onDelete: Restrict)
+    teamMembers Role @relation("any_team_member_role", fields: [anyTeamMemberRoleId], references: [id], onDelete: Restrict)
+    teamRepresentatives Role @relation("any_team_representative_role", fields: [anyTeamRepresentativeRoleId], references: [id], onDelete: Restrict)
+    teamCaptains Role @relation("any_team_captain_role", fields: [anyTeamCaptainRoleId], references: [id], onDelete: Restrict)
 
     updateId Int @map("update")
     readId   Int @map("read")
@@ -564,6 +656,14 @@ model TeamPermission {
     id Int @default(autoincrement()) @unique @map("team_permission_id")
     teamId Int @unique @map("team_id")
     team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+    memberRoleId Int @unique @map("member_role")
+    representativeRoleId Int @unique @map("representative_role")
+    captainRoleId Int @unique @map("captain_role")
+
+    members Role @relation("team_member_role", fields: [memberRoleId], references: [id], onDelete: Restrict)
+    representatives Role @relation("team_representative_role", fields: [representativeRoleId], references: [id], onDelete: Restrict)
+    captains Role @relation("team_captain_role", fields: [captainRoleId], references: [id], onDelete: Restrict)
 
     updateId Int @map("update")
     deleteId Int? @map("delete")
