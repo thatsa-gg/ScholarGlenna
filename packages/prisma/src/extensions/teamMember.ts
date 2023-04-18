@@ -1,3 +1,4 @@
+import type { AutocompleteInteraction } from '@glenna/discord'
 import { Prisma, type Team, type TeamMemberRole, type GuildMember } from '../../generated/client/index.js'
 
 function displayName({ nickname, username, discriminator }: { nickname: string | null, username: string, discriminator: string }){
@@ -8,6 +9,7 @@ export const teamMemberExtension = Prisma.defineExtension((client) => client.$ex
     model: {
         teamMember: {
             safeDelete(team: Pick<Team, 'id' | 'type'>, filter: Prisma.TeamMemberWhereInput = {}){
+                // TODO: does this need to be looked at?
                 if(team.type === 'Management')
                     return client.teamMember.deleteMany({
                         where: {
@@ -37,36 +39,24 @@ export const teamMemberExtension = Prisma.defineExtension((client) => client.$ex
                     }
                 })
             },
-            async autocomplete(guildId: bigint, teamAlias: string | null, search: string, actor: bigint){
-                if(!teamAlias)
-                    return []
-                const manager = await client.teamMember.findFirst({
+            async autocompleteId(interaction: AutocompleteInteraction, teamSnowflake: bigint | null, searchValue: string){
+                if(!teamSnowflake)
+                    return
+                const snowflake = BigInt(interaction.user.id)
+                const team = await client.team.findUnique({
                     where: {
-                        team: {
-                            type: 'Management',
-                            guild: { snowflake: guildId }
-                        },
-                        member: {
-                            guild: { snowflake: guildId },
-                            snowflake: actor
-                        },
-                    },
-                    select: { role: true }
-                })
-                const team = await client.team.findFirst({
-                    where: {
-                        guild: { snowflake: guildId },
-                        alias: teamAlias,
-                        members: manager ? undefined : {
-                            some: { member: { snowflake: actor }}
+                        snowflake: teamSnowflake,
+                        guild: { snowflake: BigInt(interaction.guild!.id) },
+                        permission: {
+                            readMember: { members: { some: { user: { snowflake }}}}
                         }
                     },
                     select: {
                         members: {
                             where: {
                                 OR: [
-                                    { member: { name: { startsWith: search }}},
-                                    { member: { user: { name: { startsWith: search }}}}
+                                    { member: { name: { startsWith: searchValue }}},
+                                    { member: { user: { name: { startsWith: searchValue }}}}
                                 ]
                             },
                             take: 25,

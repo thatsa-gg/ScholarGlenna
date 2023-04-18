@@ -1,6 +1,6 @@
-import { Prisma, RoleType, type Role } from '../../generated/client/index.js'
+import { Prisma } from '../../generated/client/index.js'
+import { z } from 'zod'
 import type { Guild } from '@glenna/discord'
-import { bigint, z } from 'zod'
 
 export const guildExtension = Prisma.defineExtension(client => client.$extends({
     model: {
@@ -65,8 +65,9 @@ export const guildExtension = Prisma.defineExtension(client => client.$extends({
                                     createDivision: { connect: { snowflake: roles.managementMember }},
                                 }
                             },
-                            teams: {
+                            managerTeam: {
                                 create: {
+                                    guild: { connect: { snowflake: guildId }},
                                     alias: 'management-team',
                                     name: 'Management Team',
                                     type: 'Management',
@@ -106,7 +107,7 @@ export const guildExtension = Prisma.defineExtension(client => client.$extends({
                                             createTime: {},
                                             updateTime: {},
                                             deleteTime: {},
-                                            readTime: {}
+                                            readTime: {},
                                         }
                                     }
                                 }

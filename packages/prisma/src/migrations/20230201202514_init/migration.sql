@@ -193,6 +193,7 @@ create table "guild"."guild" (
     "alias" varchar(32) unique not null,
     "acronym" varchar(8) not null,
     "icon" text,
+    "manager_team" int unique references "guild"."team"("team_id") on delete set null,
     "lost_remote_reference_at" timestamptz(3)
 );
 

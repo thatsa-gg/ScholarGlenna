@@ -11,6 +11,7 @@ import { teamExtension } from './extensions/team.js'
 import { teamMemberExtension } from './extensions/teamMember.js'
 import { profileExtension } from './extensions/profile.js'
 import { authorizationExtension } from './extensions/authorization.js'
+import { clientExtension } from './extensions/client.js'
 
 export * from '../generated/client/index.js'
 export type DatabaseClient = ReturnType<typeof Database.create>
@@ -20,6 +21,7 @@ let instance: DatabaseClient | null = null
 export namespace Database {
     export function create(){
         const client = new PrismaClient()
+            .$extends(clientExtension)
             .$extends(refineExtension)
             .$extends(userExtension)
             .$extends(guildExtension)

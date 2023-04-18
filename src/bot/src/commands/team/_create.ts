@@ -21,20 +21,50 @@ export const create = subcommand({
             divisions: {
                 where: { primary: true },
                 select: { id: true }
+            },
+            permission: {
+                select: {
+                    anyMemberRoleId: true,
+                    anyTeamMemberRoleId: true,
+                    anyTeamRepresentativeRoleId: true,
+                    anyTeamCaptainRoleId: true
+                }
+            },
+            managerTeam: {
+                select: {
+                    id: true,
+                    permission: {
+                        select: {
+                            memberRoleId: true,
+                            representativeRoleId: true,
+                            captainRoleId: true
+                        }
+                    }
+                }
             }
         })),
-        actor: djs.actor(),
     }),
-    async authorize({ guild, actor }){
-        return database.isAuthorized(guild, BigInt(actor.id), {
-            team: { type: 'Management' }
-        })
+    authorization: {
+        guild: [ 'createTeam' ]
     },
-    async execute(options, interaction) {
-        debug(options)
-        const { name, channel, role, source, guild, guild: { divisions: [division] } } = options
+    async execute({
+        name, channel, role, source, guild,
+        guild: {
+            divisions: [division],
+            permission: guildPermissions,
+            managerTeam
+        }
+    }, interaction) {
         if(!division)
             throw new PublicError(`Fatal error: guild ${guild.id} is missing a primary division!`)
+        if(!guildPermissions)
+            throw new PublicError(`Fatal error: guild ${guild.id} is missing permissions!`)
+        if(!managerTeam)
+            throw new PublicError(`Fatal error: guild ${guild.id} is missing a manager team!`)
+        const managerPermissions = managerTeam.permission
+        if(!managerPermissions)
+            throw new PublicError(`Fatal error: manager team ${managerTeam.id} for guild ${guild.id} is missing permissions!`)
+        const snowflakes = await database.snowflakes("member", "representative", "captain")
         const team = await database.team.create({
             data: {
                 name,
@@ -42,7 +72,40 @@ export const create = subcommand({
                 channel: channel ? BigInt(channel.id) : null,
                 alias: slugify(name),
                 guild: { connect: { id: guild.id }},
-                division: { connect: division }
+                division: { connect: division },
+                roles: {
+                    createMany: {
+                        data: [
+                            { type: 'TeamMember', guildId: guild.id, snowflake: snowflakes.member },
+                            { type: 'TeamRepresentative', guildId: guild.id, snowflake: snowflakes.representative },
+                            { type: 'TeamCaptain', guildId: guild.id, snowflake: snowflakes.captain }
+                        ]
+                    }
+                },
+                permission: {
+                    create: {
+                        members: { connect: { snowflake: snowflakes.member }},
+                        representatives: { connect: { snowflake: snowflakes.representative }},
+                        captains: { connect: { snowflake: snowflakes.captain }},
+
+                        read: { connect: { id: guildPermissions.anyMemberRoleId }},
+                        update: { connect: { id: managerPermissions.memberRoleId }},
+                        delete: { connect: { id: managerPermissions.memberRoleId }},
+
+                        updateDivision: { connect: { id: managerPermissions.memberRoleId }},
+                        updateRole: { connect: { id: managerPermissions.memberRoleId }},
+
+                        createMember: { connect: { id: managerPermissions.memberRoleId }},
+                        updateMember: { connect: { id: managerPermissions.memberRoleId }},
+                        deleteMember: { connect: { id: managerPermissions.memberRoleId }},
+                        readMember: { connect: { id: guildPermissions.anyMemberRoleId }},
+
+                        createTime: { connect: { id: managerPermissions.memberRoleId }},
+                        updateTime: { connect: { id: managerPermissions.memberRoleId }},
+                        deleteTime: { connect: { id: managerPermissions.memberRoleId }},
+                        readTime: { connect: { id: guildPermissions.anyMemberRoleId }},
+                    }
+                }
             },
             select: {
                 id: true,
@@ -50,10 +113,29 @@ export const create = subcommand({
                 type: true,
                 snowflake: true,
                 role: true,
-                mention: true
+                mention: true,
+                permission: {
+                    select: {
+                        memberRoleId: true,
+                        representativeRoleId: true,
+                        captainRoleId: true
+                    }
+                }
             }
         })
         debug(`Create team "${team.name}" (${team.id}) in guild "${source.name}" (${guild.id})`)
+
+        // establish parent/child relationships for the new roles
+        await database.roleChild.createMany({
+            data: [
+                { parentId: guildPermissions.anyTeamMemberRoleId, childId: team.permission!.memberRoleId },
+                { parentId: guildPermissions.anyTeamRepresentativeRoleId, childId: team.permission!.representativeRoleId },
+                { parentId: guildPermissions.anyTeamCaptainRoleId, childId: team.permission!.captainRoleId },
+                { parentId: team.permission!.memberRoleId, childId: team.permission!.representativeRoleId },
+                { parentId: team.permission!.representativeRoleId, childId: team.permission!.captainRoleId },
+                { parentId: team.permission!.captainRoleId, childId: managerPermissions.memberRoleId }, // all managers have at least captain access on a team
+            ]
+        })
 
         const members: { id: string, role: TeamMemberRole }[] = []
         if(role){
@@ -62,9 +144,7 @@ export const create = subcommand({
             if(!realizedRole)
                 throw `Could not fetch role with members!`
             for(const member of realizedRole.members.values()){
-                const role = team.type === 'Management'
-                    && source.ownerId === member.user.id
-                    ? 'Captain' : 'Member'
+                const role = team.type === 'Management' && source.ownerId === member.user.id ? 'Captain' : 'Member'
                 members.push({ id: member.id, role })
                 debug(`Adding "${member.displayName}" to "${team.name}".`)
                 const guildMember = await database.guildMember.findOrCreate(guild, member)

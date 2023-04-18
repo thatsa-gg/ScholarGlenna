@@ -223,6 +223,8 @@ model Guild {
     acronym String @db.VarChar(8)
     icon String?
 
+    managerTeamId Int? @unique @map("manager_team")
+
     // Marks when the bot first became aware it wasn't in a guild anymore.
     lostRemoteReferenceAt DateTime? @db.Timestamptz(3) @map("lost_remote_reference_at")
 
@@ -230,6 +232,8 @@ model Guild {
     teams Team[]
     members GuildMember[]
     divisions Division[]
+    managerTeam Team? @relation("guild_manager_team", fields: [managerTeamId], references: [id], onDelete: SetNull)
+
 
     roles Role[]
     @@schema("guild")
@@ -375,6 +379,7 @@ model Team {
 
     permission TeamPermission?
     roles Role[]
+    managerTeamFor Guild? @relation("guild_manager_team")
 
     @@unique([guildId, alias])
     @@schema("guild")

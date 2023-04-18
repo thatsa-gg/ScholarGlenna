@@ -1,8 +1,5 @@
-import {
-    Prisma,
-    type Profile
-} from '../../generated/client/index.js'
-import type { APIGuild, APIUser } from '@glenna/discord'
+import { Prisma } from '../../generated/client/index.js'
+import type { APIUser } from '@glenna/discord'
 
 export const profileExtension = Prisma.defineExtension(client => client.$extends({
     model: {
