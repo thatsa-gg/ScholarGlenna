@@ -1,6 +1,7 @@
 import {
     PrismaClient,
-    type Boss
+    type Boss,
+    type Prisma,
 } from '../generated/client/index.js'
 import { refineExtension } from './extensions/refine.js'
 import { userExtension } from './extensions/user.js'
@@ -13,7 +14,7 @@ import { authorizationExtension } from './extensions/authorization.js'
 
 export * from '../generated/client/index.js'
 export type DatabaseClient = ReturnType<typeof Database.create>
-export type { Authorization } from './extensions/authorization.js'
+export type { Authorization, TeamPermissions, DivisionPermissions, GuildPermissions } from './extensions/authorization.js'
 
 let instance: DatabaseClient | null = null
 export namespace Database {
@@ -113,8 +114,6 @@ export function isTriggerId(candidate: number): candidate is TriggerId {
     return BossTriggerIdMap.has(candidate)
 }
 
-//export function triggerIDToBoss(id: TriggerId): Boss;
-//export function triggerIDToBoss(id: number): Boss | null;
 export function triggerIDToBoss(id: TriggerId): Boss {
     const boss = BossTriggerIdMap.get(id)
     if(!boss)

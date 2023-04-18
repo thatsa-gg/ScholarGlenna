@@ -20,21 +20,15 @@ import {
     ContextMenuCommandBuilder,
     GuildMember,
 } from '@glenna/discord'
-import { parseCommandOptions } from './_djs.js'
+import { parseCommandOptions, type AutocompleteBuilderFn } from './_djs.js'
 import { PublicError } from '../PublicError.js'
-import type { DivisionPermission, GuildPermission, TeamPermission } from '@glenna/prisma'
+import { type Authorization, authorize as Authorize } from './_authorization.js'
 
 export type AutocompleteFn = (interaction: AutocompleteInteraction) => void | Promise<void>
 export type ChatCommandFn = (interaction: ChatInputCommandInteraction) => void | Promise<void>
 export type MessageContextFn = (interaction: MessageContextMenuCommandInteraction) => void | Promise<void>
 export type UserContextFn = (interaction: UserContextMenuCommandInteraction) => void | Promise<void>
 export type AuthorizationFn = (member: any) => boolean | Promise<boolean>
-
-type MaybeArray<T> = T | [ T, ...T[] ]
-type TeamAuthorization<Keys> = { team: MaybeArray<Exclude<keyof TeamPermission, 'id' | 'teamId'>>, key: Keys }
-type DivisionAuthorization<Keys> = { division: MaybeArray<Exclude<keyof DivisionPermission, 'id' | 'divisionId'>> }
-type GuildAuthorization<Keys> = { division: MaybeArray<Exclude<keyof GuildPermission, 'id' | 'guildId'>> }
-export type Authorization<Keys> = TeamAuthorization<Keys> | DivisionAuthorization<Keys> | GuildAuthorization<Keys>
 
 export type BuilderFn<T> = (builder: T) => T
 
@@ -141,14 +135,20 @@ export function group(options: {
 export function subcommand<TInput extends z.AnyZodObject>(options: {
     description: string
     input?: TInput,
-    authorization?: Authorization<keyof z.infer<TInput>>,
+    authorization?: Authorization<Extract<keyof z.infer<TInput>, string>>,
     authorize?: (options: z.infer<TInput>, interaction: ChatInputCommandInteraction) => boolean | Promise<boolean>
     execute(options: z.infer<TInput>, interaction: ChatInputCommandInteraction): Promise<void | string | InteractionReplyOptions | MessagePayload>
     autocomplete?: (focused: AutocompleteFocusedOption, interaction: AutocompleteInteraction) => Promise<void | ApplicationCommandOptionChoiceData<string | number>[]>
 }): Command<'chat' | 'subcommand'> {
     const inputs = parseCommandOptions(options.input)
-    const autocomplete = options.autocomplete
-    const authorize = options.authorize
+    const {
+        autocomplete,
+        authorize,
+        authorization
+    } = options
+
+    const autocompletes = inputs.map(a => a.autocomplete).filter((a): a is ReturnType<AutocompleteBuilderFn> => !!a)
+
     return {
         subcommand(builder){
             builder.setDescription(options.description)
@@ -160,6 +160,8 @@ export function subcommand<TInput extends z.AnyZodObject>(options: {
             const input = await options.input?.parseAsync(Object.fromEntries(inputs.map(({ name, fetcher }) => [ name, fetcher(interaction) ]))) ?? {}
             if(authorize && !await authorize(input, interaction))
                 throw new PublicError("You are not authorized to run this command.")
+            if(authorization && !await Authorize(interaction, authorization, input))
+                throw new PublicError("You are not authorized to run this command.")
             const result = await options.execute(input, interaction)
             if(typeof result !== 'undefined'){
                 if(interaction.replied)
@@ -168,12 +170,19 @@ export function subcommand<TInput extends z.AnyZodObject>(options: {
                     await interaction.reply(result)
             }
         },
-        autocomplete: !autocomplete ? undefined : async interaction => {
+        autocomplete: autocomplete ? (async interaction => {
             const focused = interaction.options.getFocused(true)
             const response = await autocomplete(focused, interaction)
             if(response)
                 await interaction.respond(response)
-        }
+        }) : autocompletes ? (async interaction => {
+            const focused = interaction.options.getFocused(true)
+            for(const autocomplete of autocompletes){
+                const response = await autocomplete(focused, interaction, authorization)
+                if(response)
+                    return await interaction.respond(response)
+            }
+        }) : undefined
     }
 }
 

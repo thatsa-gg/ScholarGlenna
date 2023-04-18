@@ -17,7 +17,8 @@ import {
     StageChannel,
     TextChannel,
     VoiceChannel,
-    type AutocompleteFocusedOption
+    type AutocompleteFocusedOption,
+    type AutocompleteInteraction,
 } from '@glenna/discord'
 import {
     Role,
@@ -27,7 +28,8 @@ import {
 } from '@glenna/discord'
 import { z } from 'zod'
 //import { database } from '../util/database.js'
-import type { Authorization } from './_command'
+import { isTeamAuthorization, type Authorization, asArray } from './_authorization.js'
+import { database } from '../util/database.js'
 
 type RealChannelType<T extends ApplicationCommandOptionAllowedChannelTypes> =
     T extends ChannelType.GuildText ? TextChannel
@@ -43,68 +45,83 @@ type RealChannelType<T extends ApplicationCommandOptionAllowedChannelTypes> =
 const DJSTypeSymbol = Symbol('djs-type')
 const DJSBuilderSymbol = Symbol('djs-builder')
 const DJSAutocompleteSymbol = Symbol('djs-autocomplete')
+
+export type AutocompleteBuilderFn = (propertyName: string) => (
+    option: AutocompleteFocusedOption,
+    interaction: AutocompleteInteraction,
+    authorization?: Authorization<string>
+) => Promise<{ name: string, value: string | number }[] | void>
+function extend<T extends z.ZodTypeAny>(object: T, options: {
+    type?: string
+    builder?: ((b: any) => any) | null
+    autocomplete?: AutocompleteBuilderFn
+}){
+    const target = object._def as {
+        [DJSTypeSymbol]?: string
+        [DJSBuilderSymbol]?: Function
+        [DJSAutocompleteSymbol]?: Function
+    }
+    if('type' in options)
+        target[DJSTypeSymbol] = options.type
+    if('builder' in options && null !== options.builder)
+        target[DJSBuilderSymbol] = options.builder
+    if('autocomplete' in options)
+        target[DJSAutocompleteSymbol] = options.autocomplete
+    return object
+}
 function custom<T>(type: string, ...params: Parameters<typeof z.custom<T>>){
-    const handler = z.custom<T>(...params)
-    ;(handler._def as any)[DJSTypeSymbol] = type
-    return handler
+    return extend(z.custom<T>(...params), {
+        type
+    })
 }
 
 export namespace djs {
     export function channel<T extends ApplicationCommandOptionAllowedChannelTypes>(channelTypes?: T[]){
-        const handler = custom<RealChannelType<T>>('channel', candidate =>
-            candidate instanceof BaseChannel
-            && ((channelTypes as ChannelType[] | undefined)?.includes(candidate.type) ?? true))
-        ;(handler._def as any)[DJSBuilderSymbol] = (builder: SlashCommandChannelOption) => channelTypes ? builder.addChannelTypes(...channelTypes) : builder
-        return handler
+        const guard = (c: any): c is RealChannelType<T> => c instanceof BaseChannel && ((channelTypes as ChannelType[] | undefined)?.includes(c.type) ?? true)
+        return extend(z.custom(guard), {
+            type: 'channel',
+            builder: channelTypes
+                ? (builder: SlashCommandChannelOption) => builder.addChannelTypes(...channelTypes)
+                : null
+        })
     }
 
-    export function role(){
-        return custom<Role>('role', candidate => candidate instanceof Role)
-    }
-
-    export function guild(){
-        return custom<Guild>('guild', candidate => candidate instanceof Guild)
-    }
-
-    export function user(){
-        return custom<User>('user', candidate => candidate instanceof User)
-    }
-
-    export function actor(){
-        return custom<GuildMember>('actor', candidate => candidate instanceof GuildMember)
-    }
+    export const role = () => custom<Role>('role', c => c instanceof Role)
+    export const guild = () => custom<Guild>('guild', c => c instanceof Guild)
+    export const user = () => custom<User>('user', c => c instanceof User)
+    export const actor = () => custom<GuildMember>('actor', c => c instanceof GuildMember)
+    export const string = () => extend(z.string(), {
+        builder(builder: SlashCommandStringOption){
+            return builder.setAutocomplete(true)
+        }
+    })
+    export const number = (min: number, max: number) => extend(z.number().min(min).max(max), {
+        builder(builder: SlashCommandNumberOption){
+            return builder.setMinValue(min).setMaxValue(max)
+        }
+    })
+    export const index = () => extend(z.number().int().min(0), {
+        builder(builder: SlashCommandIntegerOption){
+            return builder.setMinValue(0).setAutocomplete(true)
+        }
+    })
 
     export function team(){
-        const handler = djs.string(b => b.setAutocomplete(true));
-        (handler._def as any)[DJSAutocompleteSymbol] = (property: string) => async (
-            { name, value }: AutocompleteFocusedOption,
-            interaction: ChatInputCommandInteraction,
-            authorization: Authorization<string>
-        ) => {
-            if(name !== property)
-                return
-            /*return await database.team.autocomplete2(BigInt(interaction.guild!.id), BigInt(interaction.user.id), value,
-                'team' in authorization ? authorization.team : 'read')*/
-        }
-        return handler
+        return extend(djs.string().regex(/^\d+$/).transform(a => BigInt(a)), {
+            autocomplete(property){
+                return async ({ name, value }, interaction, authorization) => {
+                    if(name !== property)
+                        return
+                    return await database.team.autocompleteSnowflake(interaction, value, isTeamAuthorization(authorization)
+                        ? asArray(authorization.team)
+                        : [ 'read' ])
+                }
+            }
+        })
     }
 
-    export function string(builder: (option: SlashCommandStringOption) => SlashCommandStringOption){
-        const handler = z.string()
-        ;(handler._def as any)[DJSBuilderSymbol] = builder
-        return handler
-    }
-
-    export function number(min: number, max: number){
-        const handler = z.number().min(min).max(max)
-        ;(handler._def as any)[DJSBuilderSymbol] = (option: SlashCommandNumberOption) => option.setMinValue(min).setMaxValue(max)
-        return handler
-    }
-
-    export function index(){
-        const handler = z.number().int().min(0)
-        ;(handler._def as any)[DJSBuilderSymbol] = (option: SlashCommandIntegerOption) => option.setMinValue(0).setAutocomplete(true)
-        return handler
+    export function autocomplete<T extends z.ZodTypeAny>(object: T, options: { autocomplete: AutocompleteBuilderFn }){
+        return extend(object, options)
     }
 }
 
@@ -113,7 +130,7 @@ function inspectType(zodType: z.ZodTypeAny){
     let type: string
     let description: string | undefined = undefined
     let builder: any
-    let autocomplete: any
+    let autocomplete: AutocompleteBuilderFn | undefined = undefined
     while(obj){
         if('description' in obj){
             description ??= obj.description
@@ -122,7 +139,7 @@ function inspectType(zodType: z.ZodTypeAny){
             builder ??= obj[DJSBuilderSymbol]
         }
         if(DJSAutocompleteSymbol in obj){
-            autocomplete ??= obj[DJSAutocompleteSymbol]
+            autocomplete ??= obj[DJSAutocompleteSymbol] as AutocompleteBuilderFn
         }
 
         // custom can inject the type symbol on a ZodEffects object
@@ -312,7 +329,7 @@ export function parseCommandOptions(object: z.AnyZodObject | undefined){
             name,
             builder: builder(name, description, required, accessoryBuilder),
             fetcher: fetcher(name, required),
-            autocomplete: null
+            autocomplete: autocomplete?.(name)
         }
     })
 }

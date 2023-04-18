@@ -3,9 +3,6 @@ import {
     type Guild,
     type GuildMember,
     type User,
-    type TeamPermission,
-    type DivisionPermission,
-    type GuildPermission,
 } from '../../generated/client/index.js'
 
 export type Authorization = {
@@ -16,6 +13,21 @@ export type Authorization = {
     }
 } | { filter: Prisma.TeamMemberListRelationFilter }
 
+export type TeamPermissions = Exclude<keyof Prisma.TeamPermissionSelect, keyof Prisma.TeamPermissionSelectScalar | 'members' | 'representatives' | 'captains' | 'team'>
+export type DivisionPermissions = Exclude<keyof Prisma.DivisionPermissionSelect, keyof Prisma.DivisionPermissionSelectScalar | 'division'>
+export type GuildPermissions = Exclude<keyof Prisma.GuildPermissionSelect, keyof Prisma.GuildPermissionSelectScalar | 'members' | 'teamMembers' | 'teamRepresentatives' | 'teamCaptains' | 'guild'>
+
+type UserId = bigint | string | { snowflake: bigint | string } | { id: string }
+function userId(id: UserId): bigint {
+    switch(typeof id){
+        case 'bigint': return id
+        case 'string': return BigInt(id)
+        default:
+            if('id' in id)
+                return BigInt(id.id)
+            return BigInt(id.snowflake)
+    }
+}
 export const authorizationExtension = Prisma.defineExtension(client => client.$extends({
     client: {
         async isAuthorized(
@@ -67,9 +79,16 @@ export const authorizationExtension = Prisma.defineExtension(client => client.$e
             isAuthorized: {
                 needs: { id: true },
                 compute({ id: teamId }){
-                    return async function check(permission: keyof Omit<TeamPermission, 'id' | 'teamId'>, user: bigint | Pick<GuildMember, 'snowflake'> | Pick<User, 'snowflake'>): Promise<boolean> {
-                        const snowflake = typeof user === 'bigint' ? user : user.snowflake
-                        return 0 < await client.teamPermission.count({ where: { teamId, [permission]: { permissions: { some: { user: { snowflake }}}}}})
+                    return async function check(permission: TeamPermissions[], user: UserId): Promise<boolean> {
+                        const snowflake = userId(user)
+                        return 0 < await client.teamPermission.count({
+                            where: {
+                                teamId,
+                                AND: Object.assign({}, ...permission.map(p => ({
+                                    [p]: { some: { user: { snowflake }}}
+                                })))
+                            }
+                        })
                     }
                 }
             }
@@ -78,9 +97,16 @@ export const authorizationExtension = Prisma.defineExtension(client => client.$e
             isAuthorized: {
                 needs: { id: true },
                 compute({ id: divisionId }){
-                    return async function check(permission: keyof Omit<DivisionPermission, 'id' | 'divisionId'>, user: bigint | Pick<GuildMember, 'snowflake'> | Pick<User, 'snowflake'>): Promise<boolean> {
-                        const snowflake = typeof user === 'bigint' ? user : user.snowflake
-                        return 0 < await client.divisionPermission.count({ where: { divisionId, [permission]: { permissions: { some: { user: { snowflake }}}}}})
+                    return async function check(permission: DivisionPermissions[], user: UserId): Promise<boolean> {
+                        const snowflake = userId(user)
+                        return 0 < await client.divisionPermission.count({
+                            where: {
+                                divisionId,
+                                AND: Object.assign({}, ...permission.map(p => ({
+                                    [p]: { some: { user: { snowflake }}}
+                                })))
+                            }
+                        })
                     }
                 }
             }
@@ -89,9 +115,16 @@ export const authorizationExtension = Prisma.defineExtension(client => client.$e
             isAuthorized: {
                 needs: { id: true },
                 compute({ id: guildId }){
-                    return async function check(permission: keyof Omit<GuildPermission, 'id' | 'guildId'>, user: bigint | Pick<GuildMember, 'snowflake'> | Pick<User, 'snowflake'>): Promise<boolean> {
-                        const snowflake = typeof user === 'bigint' ? user : user.snowflake
-                        return 0 < await client.guildPermission.count({ where: { guildId, [permission]: { permissions: { some: { user: { snowflake }}}}}})
+                    return async function check(permission: GuildPermissions[], user: UserId): Promise<boolean> {
+                        const snowflake = userId(user)
+                        return 0 < await client.guildPermission.count({
+                            where: {
+                                guildId,
+                                AND: Object.assign({}, ...permission.map(p => ({
+                                    [p]: { some: { user: { snowflake }}}
+                                })))
+                            }
+                        })
                     }
                 }
             }

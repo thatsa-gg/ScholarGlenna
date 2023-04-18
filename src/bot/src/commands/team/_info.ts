@@ -8,18 +8,17 @@ import { formatDuration } from '@glenna/util'
 export const info = subcommand({
     description: 'Fetch team information.',
     input: z.object({
-        team: djs.string(b => b.setAutocomplete(true)).describe('The team to fetch info for.'),
+        team: djs.team().describe('The team to fetch info for.'),
         guild: djs.guild().transform(database.guild.transformOrThrow({ id: true })),
         actor: djs.actor(),
     }),
-    async authorize({ guild, actor, team }){
-        return database.isAuthorized(guild, BigInt(actor.id), {
-            team: { alias: team }
-        })
+    authorization: {
+        key: 'team',
+        team: [ 'read', 'readMember', 'readTime' ]
     },
-    async execute({ team: teamAlias, guild }){
+    async execute({ team: snowflake, guild }){
         const team = await database.team.findUniqueOrThrow({
-            where: { guildId_alias: { guildId: guild.id, alias: teamAlias }},
+            where: { snowflake, guild },
             select: {
                 name: true,
                 mention: true,
@@ -74,11 +73,5 @@ export const info = subcommand({
                 })
             ]
         }
-    },
-    async autocomplete({ name, value }, interaction){
-        if(name === 'team')
-            return await database.team.autocomplete(BigInt(interaction.guild!.id), value, { member: BigInt(interaction.user.id), orManager: true })
-
-        return
     }
 })
