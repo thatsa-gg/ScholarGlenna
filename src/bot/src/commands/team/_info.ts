@@ -1,17 +1,15 @@
 import { subcommand } from '../_command.js'
 import { djs } from '../_djs.js'
-import { z } from 'zod'
 import { database } from '../../util/database.js'
-import { EmbedBuilder } from '@glenna/discord'
 import { formatDuration } from '@glenna/util'
 
 export const info = subcommand({
     description: 'Fetch team information.',
-    input: z.object({
+    input: {
         team: djs.team().describe('The team to fetch info for.'),
         guild: djs.guild().transform(database.guild.transformOrThrow({ id: true })),
         actor: djs.actor(),
-    }),
+    },
     authorization: {
         key: 'team',
         team: [ 'read', 'readMember', 'readTime' ]
@@ -47,7 +45,7 @@ export const info = subcommand({
 
         return {
             embeds: [
-                new EmbedBuilder({
+                {
                     color: 0x40a86d,
                     title: `Team ${team.name}`,
                     description: `Properties for team ${team.mention}.`,
@@ -70,7 +68,7 @@ export const info = subcommand({
                                 .join("\n")
                         }
                     ]
-                })
+                }
             ]
         }
     }

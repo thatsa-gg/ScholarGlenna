@@ -121,12 +121,12 @@ export const teamExtension = Prisma.defineExtension((client) => client.$extends(
                     where: {
                         guild: { snowflake: BigInt(interaction.guild!.id) },
                         OR: [
-                            { name: { startsWith: searchValue }},
-                            { alias: { startsWith: searchValue }}
+                            { name: { startsWith: searchValue, mode: 'insensitive' }},
+                            { alias: { startsWith: searchValue, mode: 'insensitive' }}
                         ],
                         permission: {
                             AND: Object.assign({}, ...permissions.map(p => ({
-                                [p]: { members: { some: { user: { snowflake }}}}
+                                [p]: { permissions: { some: { user: { snowflake }}}}
                             })))
                         }
                     },
@@ -140,7 +140,7 @@ export const teamExtension = Prisma.defineExtension((client) => client.$extends(
             }
         },
         teamTime: {
-            async autocompleteId(interaction: AutocompleteInteraction, teamSnowflake: bigint | null, searchValue: string){
+            async autocompleteId(interaction: AutocompleteInteraction, teamSnowflake: bigint | null, searchValue: string, permissions: TeamPermissions[]){
                 if(!teamSnowflake)
                     return
                 const snowflake = BigInt(interaction.user.id)
@@ -149,7 +149,9 @@ export const teamExtension = Prisma.defineExtension((client) => client.$extends(
                         snowflake: teamSnowflake,
                         guild: { snowflake: BigInt(interaction.guild!.id) },
                         permission: {
-                            readTime: { members: { some: { user: { snowflake }}}}
+                            AND: Object.assign({}, ...permissions.map(p => ({
+                                [p]: { permissions: { some: { user: { snowflake }}}}
+                            })))
                         }
                     },
                     select: {

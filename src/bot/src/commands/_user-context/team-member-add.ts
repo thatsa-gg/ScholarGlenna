@@ -1,4 +1,4 @@
-import { ComponentType, EmbedBuilder } from '@glenna/discord'
+import { ComponentType } from '@glenna/discord'
 import { database } from '../../util/database.js'
 import { actions, select } from '../_actions.js'
 import { user } from '../_command.js'
@@ -10,6 +10,7 @@ export const teamMemberAdd = user({
             where: { snowflake: BigInt(source.id) },
             select: { id: true }
         })
+        // TODO: authorization
         const validTeams = await database.team.findMany({
             where: {
                 guild,
@@ -59,7 +60,7 @@ export const teamMemberAdd = user({
 
         return {
             embeds: [
-                new EmbedBuilder({
+                {
                     color: 0x40a86d,
                     title: `Team ${team.name}`,
                     fields: [
@@ -68,7 +69,7 @@ export const teamMemberAdd = user({
                             value: `<@${member.user.id}>`
                         }
                     ]
-                })
+                }
             ],
             content: '',
             components: []

@@ -1,22 +1,23 @@
-import { z } from 'zod'
 import { database } from '../../../util/database.js'
 import { subcommand } from '../../_command.js'
 import { djs } from '../../_djs.js'
+import { AutocompleteTime } from './__common.js'
 
 export const remove = subcommand({
     description: `Remove a team time (UTC).`,
-    input: z.object({
+    input: {
         guild: djs.guild().transform(database.guild.transformOrThrow({ id: true })),
         actor: djs.actor(),
-        team: djs.string(b => b.setAutocomplete(true)).describe('The team to update times for.'),
-        time: djs.index().describe('The time to update.')
-    }),
-    async authorize({ guild, actor }){
-        return database.isAuthorized(guild, BigInt(actor.id))
+        team: djs.team().describe('The team to remove times from.'),
+        time: djs.autocomplete(djs.number(), { autocomplete: AutocompleteTime }).describe('The time to remove.')
     },
-    async execute({ guild, team: teamName, time: timeIndex }){
+    authorization: {
+        key: 'team',
+        team: [ 'readTime', 'deleteTime' ]
+    },
+    async execute({ guild, team: snowflake, time: timeIndex }){
         const team = await database.team.findUniqueOrThrow({
-            where: { guildId_alias: { guildId: guild.id, alias: teamName }},
+            where: { snowflake, guild },
             select: {
                 id: true,
                 primaryTimeZone: true,
@@ -43,13 +44,5 @@ export const remove = subcommand({
         })
 
         return `Time ${timeIndex} removed from team ${team.mention}.`
-    },
-    async autocomplete({ name, value }, interaction) {
-        if(name === 'team')
-            return await database.team.autocomplete(BigInt(interaction.guild!.id), value, { member: BigInt(interaction.user.id), orManager: true })
-        else if(name === 'time')
-            return await database.teamTime.autocomplete(BigInt(interaction.guild!.id), interaction.options.getString('team'), { member: BigInt(interaction.user.id), orManager: true })
-
-        return
-    },
+    }
 })

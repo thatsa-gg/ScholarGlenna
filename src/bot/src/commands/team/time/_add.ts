@@ -1,4 +1,3 @@
-import { z } from 'zod'
 import { database } from '../../../util/database.js'
 import { subcommand } from '../../_command.js'
 import { djs } from '../../_djs.js'
@@ -8,23 +7,19 @@ import { Days } from './__common.js'
 
 export const add = subcommand({
     description: `Add a team time (UTC).`,
-    input: z.object({
+    input: {
         guild: djs.guild().transform(database.guild.transformOrThrow({ id: true })),
-        actor: djs.actor(),
-        team: djs.string(b => b.setAutocomplete(true)).describe('The team to add times for.'),
-        day: z.nativeEnum(Days).describe('Day-of-week (in UTC).'),
+        team: djs.team().describe('The team to add times for.'),
+        day: djs.nativeEnum(Days).describe('Day-of-week (in UTC).'),
         reset: djs.number(-24, 24).describe('Offset relative to daily reset (0:00 UTC).'),
         duration: djs.number(15, 1440).nullable().transform(a => a ?? 120).describe('The duration in minutes.')
-    }),
-    /*authorization: {
-        team: 'createTime', key: 'team'
-    },*/
-    async authorize({ guild, actor }){
-        return database.isAuthorized(guild, BigInt(actor.id))
     },
-    async execute({ guild, team: teamName, duration, day, reset }){
+    authorization: {
+        key: 'team', team: 'createTime'
+    },
+    async execute({ guild, team: snowflake, duration, day, reset }){
         const team = await database.team.findUniqueOrThrow({
-            where: { guildId_alias: { guildId: guild.id, alias: teamName }},
+            where: { snowflake, guild },
             select: {
                 id: true,
                 primaryTimeZone: true,
@@ -56,11 +51,5 @@ export const add = subcommand({
             }
         })
         return `Time ${time.index} added to team ${team.mention}! New time: ${time.nextRun(team)}`
-    },
-    async autocomplete({ name, value }, interaction) {
-        if(name === 'team')
-            return await database.team.autocomplete(BigInt(interaction.guild!.id), value, { member: BigInt(interaction.user.id), orManager: true })
-
-        return
-    },
+    }
 })

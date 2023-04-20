@@ -1,5 +1,6 @@
 import type { AutocompleteInteraction } from '@glenna/discord'
 import { Prisma, type Team, type TeamMemberRole, type GuildMember } from '../../generated/client/index.js'
+import type { TeamPermissions } from './authorization.js'
 
 function displayName({ nickname, username, discriminator }: { nickname: string | null, username: string, discriminator: string }){
     return nickname ?? `${username}#${discriminator}`
@@ -39,7 +40,7 @@ export const teamMemberExtension = Prisma.defineExtension((client) => client.$ex
                     }
                 })
             },
-            async autocompleteId(interaction: AutocompleteInteraction, teamSnowflake: bigint | null, searchValue: string){
+            async autocompleteSnowflake(interaction: AutocompleteInteraction, teamSnowflake: bigint | null, searchValue: string, permissions: TeamPermissions[]){
                 if(!teamSnowflake)
                     return
                 const snowflake = BigInt(interaction.user.id)
@@ -48,20 +49,31 @@ export const teamMemberExtension = Prisma.defineExtension((client) => client.$ex
                         snowflake: teamSnowflake,
                         guild: { snowflake: BigInt(interaction.guild!.id) },
                         permission: {
-                            readMember: { members: { some: { user: { snowflake }}}}
+                            AND: Object.assign({}, ...permissions.map(p => ({
+                                [p]: { permissions: { some: { user: { snowflake }}}}
+                            }))),
                         }
                     },
                     select: {
                         members: {
                             where: {
-                                OR: [
-                                    { member: { name: { startsWith: searchValue }}},
-                                    { member: { user: { name: { startsWith: searchValue }}}}
-                                ]
+                                member: {
+                                    OR: [
+                                        { name: { contains: searchValue, mode: 'insensitive' }},
+                                        {
+                                            user: {
+                                                OR: [
+                                                    { name: { contains: searchValue, mode: 'insensitive' }},
+                                                    { discriminator: { contains: searchValue, mode: 'insensitive' }}
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                }
                             },
                             take: 25,
                             select: {
-                                id: true,
+                                snowflake: true,
                                 computed: {
                                     select: {
                                         nickname: true,
@@ -77,7 +89,7 @@ export const teamMemberExtension = Prisma.defineExtension((client) => client.$ex
                     return []
                 return team.members.map(member => ({
                     name: displayName(member.computed),
-                    value: member.id
+                    value: member.snowflake.toString()
                 }))
             }
         }

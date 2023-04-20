@@ -1,4 +1,4 @@
-import type { z } from 'zod'
+import { z } from 'zod'
 import type {
     ApplicationCommandOptionChoiceData,
     AutocompleteFocusedOption,
@@ -20,7 +20,7 @@ import {
     ContextMenuCommandBuilder,
     GuildMember,
 } from '@glenna/discord'
-import { parseCommandOptions, type AutocompleteBuilderFn } from './_djs.js'
+import { parseCommandOptions, type AutocompleteFn as DJSAutocompleteFn } from './_djs.js'
 import { PublicError } from '../PublicError.js'
 import { type Authorization, authorize as Authorize } from './_authorization.js'
 
@@ -132,23 +132,26 @@ export function group(options: {
     }
 }
 
-export function subcommand<TInput extends z.AnyZodObject>(options: {
+function input<T extends z.ZodRawShape>(properties: T){
+    return z.object(properties)
+}
+type Infer<T extends z.ZodRawShape> = z.infer<ReturnType<typeof input<T>>>
+
+export function subcommand<TInput extends z.ZodRawShape>(options: {
     description: string
     input?: TInput,
-    authorization?: Authorization<Extract<keyof z.infer<TInput>, string>>,
-    authorize?: (options: z.infer<TInput>, interaction: ChatInputCommandInteraction) => boolean | Promise<boolean>
-    execute(options: z.infer<TInput>, interaction: ChatInputCommandInteraction): Promise<void | string | InteractionReplyOptions | MessagePayload>
+    authorization?: Authorization<Extract<keyof Infer<TInput>, string>>,
+    execute(options: Infer<TInput>, interaction: ChatInputCommandInteraction): Promise<void | string | InteractionReplyOptions | MessagePayload>
     autocomplete?: (focused: AutocompleteFocusedOption, interaction: AutocompleteInteraction) => Promise<void | ApplicationCommandOptionChoiceData<string | number>[]>
 }): Command<'chat' | 'subcommand'> {
-    const inputs = parseCommandOptions(options.input)
+    const validator = options.input ? input(options.input) satisfies z.AnyZodObject : undefined
+    const inputs = parseCommandOptions(validator)
     const {
         autocomplete,
-        authorize,
         authorization
     } = options
 
-    const autocompletes = inputs.map(a => a.autocomplete).filter((a): a is ReturnType<AutocompleteBuilderFn> => !!a)
-
+    const autocompletes = inputs.map(a => [ a.name, a.autocomplete ]).filter((a): a is [ string, DJSAutocompleteFn ] => !!a[1])
     return {
         subcommand(builder){
             builder.setDescription(options.description)
@@ -157,9 +160,7 @@ export function subcommand<TInput extends z.AnyZodObject>(options: {
             return builder
         },
         async chat(interaction){
-            const input = await options.input?.parseAsync(Object.fromEntries(inputs.map(({ name, fetcher }) => [ name, fetcher(interaction) ]))) ?? {}
-            if(authorize && !await authorize(input, interaction))
-                throw new PublicError("You are not authorized to run this command.")
+            const input = await validator?.parseAsync(Object.fromEntries(inputs.map(({ name, fetcher }) => [ name, fetcher(interaction) ]))) ?? {} as Infer<TInput>
             if(authorization && !await Authorize(interaction, authorization, input))
                 throw new PublicError("You are not authorized to run this command.")
             const result = await options.execute(input, interaction)
@@ -177,7 +178,9 @@ export function subcommand<TInput extends z.AnyZodObject>(options: {
                 await interaction.respond(response)
         }) : autocompletes ? (async interaction => {
             const focused = interaction.options.getFocused(true)
-            for(const autocomplete of autocompletes){
+            for(const [ name, autocomplete ] of autocompletes){
+                if(name !== focused.name)
+                    continue
                 const response = await autocomplete(focused, interaction, authorization)
                 if(response)
                     return await interaction.respond(response)

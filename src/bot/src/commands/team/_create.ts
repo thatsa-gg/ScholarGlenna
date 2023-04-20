@@ -1,18 +1,16 @@
 import { subcommand } from '../_command.js'
 import { djs } from '../_djs.js'
-import { z } from 'zod'
 import { database } from '../../util/database.js'
 import { slugify } from '@glenna/util'
 import { debug } from '../../util/logging.js'
-import { EmbedBuilder } from '@glenna/discord'
 import { slashCommandMention, teamMember } from '../_reference.js'
 import type { TeamMemberRole } from '@glenna/prisma'
 import { PublicError } from '../../PublicError.js'
 
 export const create = subcommand({
     description: 'Create a new raid team.',
-    input: z.object({
-        name: z.string().describe('Team name.'),
+    input: {
+        name: djs.string().describe('Team name.'),
         channel: djs.channel().nullable().describe('Team channel.'),
         role: djs.role().nullable().describe('Team role for member syncing and pinging.'),
         source: djs.guild(),
@@ -27,23 +25,14 @@ export const create = subcommand({
                     anyMemberRoleId: true,
                     anyTeamMemberRoleId: true,
                     anyTeamRepresentativeRoleId: true,
-                    anyTeamCaptainRoleId: true
-                }
-            },
-            managerTeam: {
-                select: {
-                    id: true,
-                    permission: {
-                        select: {
-                            memberRoleId: true,
-                            representativeRoleId: true,
-                            captainRoleId: true
-                        }
-                    }
+                    anyTeamCaptainRoleId: true,
+                    managementMemberRoleId: true,
+                    managementRepresentativeRoleId: true,
+                    managementCaptainRoleId: true,
                 }
             }
         })),
-    }),
+    },
     authorization: {
         guild: [ 'createTeam' ]
     },
@@ -51,19 +40,13 @@ export const create = subcommand({
         name, channel, role, source, guild,
         guild: {
             divisions: [division],
-            permission: guildPermissions,
-            managerTeam
+            permission: guildPermissions
         }
     }, interaction) {
         if(!division)
             throw new PublicError(`Fatal error: guild ${guild.id} is missing a primary division!`)
         if(!guildPermissions)
             throw new PublicError(`Fatal error: guild ${guild.id} is missing permissions!`)
-        if(!managerTeam)
-            throw new PublicError(`Fatal error: guild ${guild.id} is missing a manager team!`)
-        const managerPermissions = managerTeam.permission
-        if(!managerPermissions)
-            throw new PublicError(`Fatal error: manager team ${managerTeam.id} for guild ${guild.id} is missing permissions!`)
         const snowflakes = await database.snowflakes("member", "representative", "captain")
         const team = await database.team.create({
             data: {
@@ -89,20 +72,20 @@ export const create = subcommand({
                         captains: { connect: { snowflake: snowflakes.captain }},
 
                         read: { connect: { id: guildPermissions.anyMemberRoleId }},
-                        update: { connect: { id: managerPermissions.memberRoleId }},
-                        delete: { connect: { id: managerPermissions.memberRoleId }},
+                        update: { connect: { id: guildPermissions.managementMemberRoleId }},
+                        delete: { connect: { id: guildPermissions.managementMemberRoleId }},
 
-                        updateDivision: { connect: { id: managerPermissions.memberRoleId }},
-                        updateRole: { connect: { id: managerPermissions.memberRoleId }},
+                        updateDivision: { connect: { id: guildPermissions.managementMemberRoleId }},
+                        updateRole: { connect: { id: guildPermissions.managementMemberRoleId }},
 
-                        createMember: { connect: { id: managerPermissions.memberRoleId }},
-                        updateMember: { connect: { id: managerPermissions.memberRoleId }},
-                        deleteMember: { connect: { id: managerPermissions.memberRoleId }},
+                        createMember: { connect: { id: guildPermissions.managementMemberRoleId }},
+                        updateMember: { connect: { id: guildPermissions.managementMemberRoleId }},
+                        deleteMember: { connect: { id: guildPermissions.managementMemberRoleId }},
                         readMember: { connect: { id: guildPermissions.anyMemberRoleId }},
 
-                        createTime: { connect: { id: managerPermissions.memberRoleId }},
-                        updateTime: { connect: { id: managerPermissions.memberRoleId }},
-                        deleteTime: { connect: { id: managerPermissions.memberRoleId }},
+                        createTime: { connect: { id: guildPermissions.managementMemberRoleId }},
+                        updateTime: { connect: { id: guildPermissions.managementMemberRoleId }},
+                        deleteTime: { connect: { id: guildPermissions.managementMemberRoleId }},
                         readTime: { connect: { id: guildPermissions.anyMemberRoleId }},
                     }
                 }
@@ -133,7 +116,7 @@ export const create = subcommand({
                 { parentId: guildPermissions.anyTeamCaptainRoleId, childId: team.permission!.captainRoleId },
                 { parentId: team.permission!.memberRoleId, childId: team.permission!.representativeRoleId },
                 { parentId: team.permission!.representativeRoleId, childId: team.permission!.captainRoleId },
-                { parentId: team.permission!.captainRoleId, childId: managerPermissions.memberRoleId }, // all managers have at least captain access on a team
+                { parentId: team.permission!.captainRoleId, childId: guildPermissions.managementMemberRoleId }, // all managers have at least captain access on a team
             ]
         })
 
@@ -154,7 +137,7 @@ export const create = subcommand({
 
         return {
             embeds: [
-                new EmbedBuilder({
+                {
                     color: 0x40a86d,
                     title: `Team ${team.name} Created`,
                     description: `${team.mention} has been registered.`,
@@ -168,7 +151,7 @@ export const create = subcommand({
                                     : `*Use ${slashCommandMention(interaction, 'team', 'member', 'add')} to add members to this team.*`
                         }
                     ]
-                })
+                }
             ]
         }
     }

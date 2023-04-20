@@ -193,7 +193,6 @@ create table "guild"."guild" (
     "alias" varchar(32) unique not null,
     "acronym" varchar(8) not null,
     "icon" text,
-    "manager_team" int unique references "guild"."team"("team_id") on delete set null,
     "lost_remote_reference_at" timestamptz(3)
 );
 
@@ -259,6 +258,7 @@ create table "guild"."teamtime" (
 -- CreateTable
 create table "guild"."teammember" (
     "team_member_id" serial primary key not null,
+    "snowflake" bigint unique not null default new_snowflake(),
     "team_id" integer not null references "guild"."team"("team_id") on delete cascade,
     "guild_member_id" integer not null references "guild"."guildmember"("guild_member_id") on delete cascade,
     "role" "guild"."teammemberrole" not null default 'member',
@@ -318,6 +318,9 @@ create type "role"."roletype" as enum (
     'any_team_member',
     'any_team_representative',
     'any_team_captain',
+    'management_member',
+    'management_representative',
+    'management_captain',
     'team_member',
     'team_representative',
     'team_captain'
@@ -331,8 +334,7 @@ create table "role"."role" (
     "team_id" int references "guild"."team"("team_id") on delete cascade,
     "type" "role"."roletype" not null,
 
-    unique("guild_id", "type"),
-    unique("team_id", "type")
+    unique("guild_id", "team_id", "type")
 );
 create index on "role"."role"("guild_id") include ("role_id");
 create index on "role"."role"("team_id") include ("role_id");
@@ -544,6 +546,9 @@ create table "role"."guildpermission" (
     "any_team_member_role" int unique not null references "role"."role"("role_id") on delete restrict,
     "any_team_representative_role" int unique not null references "role"."role"("role_id") on delete restrict,
     "any_team_captain_role" int unique not null references "role"."role"("role_id") on delete restrict,
+    "management_member_role" int unique not null references "role"."role"("role_id") on delete restrict,
+    "management_representative_role" int unique not null references "role"."role"("role_id") on delete restrict,
+    "management_captain_role" int unique not null references "role"."role"("role_id") on delete restrict,
 
     "update" int not null references "role"."role"("role_id") on delete restrict,
     "read" int not null references "role"."role"("role_id") on delete restrict,

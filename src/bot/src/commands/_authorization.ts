@@ -1,18 +1,13 @@
 import type { ChatInputCommandInteraction } from '@glenna/discord'
 import type { DivisionPermissions, GuildPermissions, TeamPermissions } from '@glenna/prisma'
 import { database } from '../util/database.js'
+import { asArray, type MaybeArray } from '@glenna/util'
 
-type MaybeArray<T> = T | [ T, ...T[] ]
 export type TeamAuthorization<Keys extends string> = { key: Keys, team: MaybeArray<TeamPermissions> }
 export type DivisionAuthorization<Keys extends string> = { key: Keys, division: MaybeArray<DivisionPermissions> }
 export type GuildAuthorization = { guild: MaybeArray<GuildPermissions> }
 export type Authorization<Keys extends string> = TeamAuthorization<Keys> | DivisionAuthorization<Keys> | GuildAuthorization
 
-export function asArray<T>(object: MaybeArray<T>): [T, ...T[]] {
-    if(Array.isArray(object))
-        return object
-    return [ object ]
-}
 export function isTeamAuthorization<K extends string>(c: Authorization<K> | undefined): c is TeamAuthorization<K> {
     return !!c && 'team' in c
 }

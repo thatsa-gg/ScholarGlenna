@@ -1,5 +1,5 @@
 import { Prisma } from '../../generated/client/index.js'
-import { z } from 'zod'
+import { snowflakes } from './client.js'
 import type { Guild } from '@glenna/discord'
 
 export const guildExtension = Prisma.defineExtension(client => client.$extends({
@@ -13,25 +13,14 @@ export const guildExtension = Prisma.defineExtension(client => client.$extends({
                     const guildAlias = guild.vanityURLCode && 0 === await client.guild.count({ where: { alias: guild.vanityURLCode }})
                         ? guild.vanityURLCode
                         : guildId.toString(36)
-                    const roles = z.object({
-                        guildMember: z.bigint(),
-                        teamMember: z.bigint(),
-                        teamRepresentative: z.bigint(),
-                        teamCaptain: z.bigint(),
-                        managementMember: z.bigint(),
-                        managementRepresentative: z.bigint(),
-                        managementCaptain: z.bigint(),
-                    }).array().length(1).parse(await client.$queryRaw`
-                        select
-                            new_snowflake() as "guildMember",
-                            new_snowflake() as "teamMember",
-                            new_snowflake() as "teamRepresentative",
-                            new_snowflake() as "teamCaptain",
-                            new_snowflake() as "managementMember",
-                            new_snowflake() as "managementRepresentative",
-                            new_snowflake() as "managementCaptain"
-                    `)[0]!
+                    const roles = await snowflakes(client,
+                        "guildMember",
+                        "teamMember", "teamRepresentative", "teamCaptain",
+                        "managementMember", "managementRepresentative", "managementCaptain"
+                    )
                     const publicRole = await client.role.findFirstOrThrow({ where: { type: 'Public' }, select: { id: true }})
+
+                    // create the new guild, its roles, its permissions, and its primary division
                     const newGuild = await client.guild.create({
                         data: {
                             name: guild.name,
@@ -46,9 +35,10 @@ export const guildExtension = Prisma.defineExtension(client => client.$extends({
                                         { type: 'AnyTeamMember', snowflake: roles.teamMember, },
                                         { type: 'AnyTeamRepresentative', snowflake: roles.teamRepresentative },
                                         { type: 'AnyTeamCaptain', snowflake: roles.teamCaptain },
-                                        { type: 'TeamMember', snowflake: roles.managementMember },
-                                        { type: 'TeamRepresentative', snowflake: roles.managementRepresentative },
-                                        { type: 'TeamCaptain', snowflake: roles.managementCaptain }
+
+                                        { type: 'ManagementMember', snowflake: roles.managementMember },
+                                        { type: 'ManagementRepresentative', snowflake: roles.managementRepresentative },
+                                        { type: 'ManagementCaptain', snowflake: roles.managementCaptain },
                                     ]
                                 }
                             },
@@ -58,6 +48,9 @@ export const guildExtension = Prisma.defineExtension(client => client.$extends({
                                     teamMembers: { connect: { snowflake: roles.teamMember }},
                                     teamRepresentatives: { connect: { snowflake: roles.teamRepresentative }},
                                     teamCaptains: { connect: { snowflake: roles.teamCaptain }},
+                                    managers: { connect: { snowflake: roles.managementMember }},
+                                    managerRepresentatives: { connect: { snowflake: roles.managementRepresentative }},
+                                    managerCaptains: { connect: { snowflake: roles.managementCaptain }},
 
                                     read: { connect: { snowflake: roles.guildMember }},
                                     update: { connect: { snowflake: roles.managementCaptain }},
@@ -65,51 +58,69 @@ export const guildExtension = Prisma.defineExtension(client => client.$extends({
                                     createDivision: { connect: { snowflake: roles.managementMember }},
                                 }
                             },
-                            managerTeam: {
+                            divisions: {
                                 create: {
-                                    guild: { connect: { snowflake: guildId }},
-                                    alias: 'management-team',
-                                    name: 'Management Team',
-                                    type: 'Management',
-                                    capacity: null,
-                                    division: {
-                                        create: {
-                                            guild: { connect: { snowflake: guildId }},
-                                            name: guild.name,
-                                            primary: true,
-                                            permission: {
-                                                create: {
-                                                    read: { connect: { snowflake: roles.guildMember }},
-                                                    update: { connect: { snowflake: roles.managementMember }},
-                                                    delete: {}
-                                                }
-                                            }
-                                        }
-                                    },
+                                    name: guild.name,
+                                    primary: true,
                                     permission: {
                                         create: {
-                                            members: { connect: { snowflake: roles.managementMember }},
-                                            representatives: { connect: { snowflake: roles.managementRepresentative }},
-                                            captains: { connect: { snowflake: roles.managementCaptain }},
-
                                             read: { connect: { snowflake: roles.guildMember }},
-                                            update: { connect: { snowflake: roles.managementCaptain }},
-                                            delete: {},
-
-                                            updateDivision: {},
-                                            updateRole: { connect: { snowflake: roles.managementCaptain }},
-
-                                            createMember: { connect: { snowflake: roles.managementCaptain }},
-                                            updateMember: { connect: { snowflake: roles.managementCaptain }},
-                                            deleteMember: { connect: { snowflake: roles.managementCaptain }},
-                                            readMember: { connect: { snowflake: roles.guildMember }},
-
-                                            createTime: {},
-                                            updateTime: {},
-                                            deleteTime: {},
-                                            readTime: {},
+                                            update: { connect: { snowflake: roles.managementMember }},
+                                            delete: {}
                                         }
-                                    }
+                                    },
+                                }
+                            }
+                        },
+                        select: {
+                            id: true,
+                            divisions: { select: { id: true }},
+                            permission: {
+                                select: {
+                                    anyMemberRoleId: true,
+                                    anyTeamMemberRoleId: true,
+                                    anyTeamRepresentativeRoleId: true,
+                                    anyTeamCaptainRoleId: true,
+                                    managementMemberRoleId: true,
+                                    managementRepresentativeRoleId: true,
+                                    managementCaptainRoleId: true
+                                }
+                            }
+                        }
+                    })
+
+                    // create the first management team
+                    const managementTeam = await client.team.create({
+                        data: {
+                            guild: { connect: { id: newGuild.id }},
+                            division: { connect: { id: newGuild.divisions[0]!.id }},
+                            alias: 'management-team',
+                            name: 'Management Team',
+                            type: 'Management',
+                            capacity: null,
+                            permission: {
+                                create: {
+                                    // The team roles aren't used anywhere else by snowflake, so we'll just make them in here instead of pre-populating the table.
+                                    members: { create: { type: 'TeamMember', guild: { connect: { id: newGuild.id }}}},
+                                    representatives: { create: { type: 'TeamRepresentative', guild: { connect: { id: newGuild.id }}}},
+                                    captains: { create: { type: 'TeamCaptain', guild: { connect: { id: newGuild.id }}}},
+
+                                    read: { connect: { snowflake: roles.guildMember }},
+                                    update: { connect: { snowflake: roles.managementCaptain }},
+                                    delete: {},
+
+                                    updateDivision: {},
+                                    updateRole: { connect: { snowflake: roles.managementCaptain }},
+
+                                    createMember: { connect: { snowflake: roles.managementCaptain }},
+                                    updateMember: { connect: { snowflake: roles.managementCaptain }},
+                                    deleteMember: { connect: { snowflake: roles.managementCaptain }},
+                                    readMember: { connect: { snowflake: roles.guildMember }},
+
+                                    createTime: {},
+                                    updateTime: {},
+                                    deleteTime: {},
+                                    readTime: {},
                                 }
                             }
                         },
@@ -117,22 +128,9 @@ export const guildExtension = Prisma.defineExtension(client => client.$extends({
                             id: true,
                             permission: {
                                 select: {
-                                    anyMemberRoleId: true,
-                                    anyTeamMemberRoleId: true,
-                                    anyTeamRepresentativeRoleId: true,
-                                    anyTeamCaptainRoleId: true
-                                }
-                            },
-                            teams: {
-                                select: {
-                                    id: true,
-                                    permission: {
-                                        select: {
-                                            memberRoleId: true,
-                                            representativeRoleId: true,
-                                            captainRoleId: true
-                                        }
-                                    }
+                                    memberRoleId: true,
+                                    representativeRoleId: true,
+                                    captainRoleId: true
                                 }
                             }
                         }
@@ -141,36 +139,42 @@ export const guildExtension = Prisma.defineExtension(client => client.$extends({
                     // establish parent/child relationships for the new roles
                     await client.roleChild.createMany({
                         data: [
+                            // all guild members are public members
                             { parentId: publicRole.id, childId: newGuild.permission!.anyMemberRoleId },
+
+                            // all team members are members, and each role is a member of the one below it
                             { parentId: newGuild.permission!.anyMemberRoleId, childId: newGuild.permission!.anyTeamMemberRoleId },
                             { parentId: newGuild.permission!.anyTeamMemberRoleId, childId: newGuild.permission!.anyTeamRepresentativeRoleId },
                             { parentId: newGuild.permission!.anyTeamRepresentativeRoleId, childId: newGuild.permission!.anyTeamCaptainRoleId },
-                            { parentId: newGuild.permission!.anyTeamMemberRoleId, childId: newGuild.teams[0]!.permission!.memberRoleId },
-                            { parentId: newGuild.permission!.anyTeamRepresentativeRoleId, childId: newGuild.teams[0]!.permission!.representativeRoleId },
-                            { parentId: newGuild.permission!.anyTeamCaptainRoleId, childId: newGuild.teams[0]!.permission!.captainRoleId },
-                            { parentId: newGuild.teams[0]!.permission!.memberRoleId, childId: newGuild.teams[0]!.permission!.representativeRoleId },
-                            { parentId: newGuild.teams[0]!.permission!.representativeRoleId, childId: newGuild.teams[0]!.permission!.captainRoleId }
-                        ]
-                    })
 
-                    // link the roles back to the team
-                    await client.role.updateMany({
-                        where: {
-                            id: {
-                                in: [
-                                    newGuild.teams[0]!.permission!.memberRoleId,
-                                    newGuild.teams[0]!.permission!.representativeRoleId,
-                                    newGuild.teams[0]!.permission!.captainRoleId
-                                ]
-                            }
-                        },
-                        data: { teamId: newGuild.teams[0]!.id }
+                            // all managers are members, and each role is a member of the one below it
+                            { parentId: newGuild.permission!.anyMemberRoleId, childId: newGuild.permission!.managementMemberRoleId },
+                            { parentId: newGuild.permission!.managementMemberRoleId, childId: newGuild.permission!.managementRepresentativeRoleId },
+                            { parentId: newGuild.permission!.managementRepresentativeRoleId, childId: newGuild.permission!.managementCaptainRoleId },
+
+                            // team roles are part of the corresponding any role
+                            { parentId: newGuild.permission!.anyTeamMemberRoleId, childId: managementTeam.permission!.memberRoleId },
+                            { parentId: newGuild.permission!.anyTeamRepresentativeRoleId, childId: managementTeam.permission!.representativeRoleId },
+                            { parentId: newGuild.permission!.anyTeamCaptainRoleId, childId: managementTeam.permission!.captainRoleId },
+
+                            // team roles are part of the ones below them
+                            { parentId: managementTeam.permission!.memberRoleId, childId: managementTeam.permission!.representativeRoleId },
+                            { parentId: managementTeam.permission!.representativeRoleId, childId: managementTeam.permission!.captainRoleId },
+
+                            // management members have at least captain access on a team
+                            { parentId: managementTeam.permission!.captainRoleId, childId: newGuild.permission!.managementMemberRoleId },
+
+                            // management team roles are members of the corresponding guild-level roles
+                            { parentId: newGuild.permission!.managementMemberRoleId, childId: managementTeam.permission!.memberRoleId },
+                            { parentId: newGuild.permission!.managementRepresentativeRoleId, childId: managementTeam.permission!.representativeRoleId },
+                            { parentId: newGuild.permission!.managementCaptainRoleId, childId: managementTeam.permission!.captainRoleId }
+                        ]
                     })
 
                     // now that the permission tables are set up, we can create the guild leader
                     await client.teamMember.create({
                         data: {
-                            team: { connect: { id: newGuild.teams[0]!.id }},
+                            team: { connect: { id: managementTeam.id }},
                             role: 'Captain',
                             member: {
                                 create: {

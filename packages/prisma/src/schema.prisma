@@ -223,8 +223,6 @@ model Guild {
     acronym String @db.VarChar(8)
     icon String?
 
-    managerTeamId Int? @unique @map("manager_team")
-
     // Marks when the bot first became aware it wasn't in a guild anymore.
     lostRemoteReferenceAt DateTime? @db.Timestamptz(3) @map("lost_remote_reference_at")
 
@@ -232,8 +230,6 @@ model Guild {
     teams Team[]
     members GuildMember[]
     divisions Division[]
-    managerTeam Team? @relation("guild_manager_team", fields: [managerTeamId], references: [id], onDelete: SetNull)
-
 
     roles Role[]
     @@schema("guild")
@@ -379,7 +375,6 @@ model Team {
 
     permission TeamPermission?
     roles Role[]
-    managerTeamFor Guild? @relation("guild_manager_team")
 
     @@unique([guildId, alias])
     @@schema("guild")
@@ -402,6 +397,7 @@ model TeamTime {
 
 model TeamMember {
     id Int @id @default(autoincrement()) @map("team_member_id")
+    snowflake BigInt @unique @default(dbgenerated("new_snowflake()"))
     teamId Int @map("team_id")
     memberId Int @map("guild_member_id")
     role TeamMemberRole @default(Member)
@@ -441,6 +437,9 @@ enum RoleType {
     AnyTeamMember @map("any_team_member")
     AnyTeamRepresentative @map("any_team_representative")
     AnyTeamCaptain @map("any_team_captain")
+    ManagementMember @map("management_member")
+    ManagementRepresentative @map("management_representative")
+    ManagementCaptain @map("management_captain")
     TeamMember @map("team_member")
     TeamRepresentative @map("team_representative")
     TeamCaptain @map("team_captain")
@@ -473,6 +472,9 @@ model Role {
     anyTeamMemberRole GuildPermission? @relation("any_team_member_role")
     anyTeamRepresentativeRole GuildPermission? @relation("any_team_representative_role")
     anyTeamCaptainRole GuildPermission? @relation("any_team_captain_role")
+    managementMemberRole GuildPermission? @relation("management_member_role")
+    managementRepresentativeRole GuildPermission? @relation("management_representative_role")
+    managementCaptainRole GuildPermission? @relation("management_captain_role")
 
     teamMemberRole TeamPermission? @relation("team_member_role")
     teamRepresentativeRole TeamPermission? @relation("team_representative_role")
@@ -502,6 +504,7 @@ model Role {
     teamDeleteTime TeamPermission[] @relation("team_delete_time")
     teamReadTime TeamPermission[] @relation("team_read_time")
 
+    @@unique([ guildId, teamId, type ])
     @@schema("role")
     @@map("role")
 }
@@ -620,11 +623,17 @@ model GuildPermission {
     anyTeamMemberRoleId Int @unique @map("any_team_member_role")
     anyTeamRepresentativeRoleId Int @unique @map("any_team_representative_role")
     anyTeamCaptainRoleId Int @unique @map("any_team_captain_role")
+    managementMemberRoleId Int @unique @map("management_member_role")
+    managementRepresentativeRoleId Int @unique @map("management_representative_role")
+    managementCaptainRoleId Int @unique @map("management_captain_role")
 
     members Role @relation("any_member_role", fields: [anyMemberRoleId], references: [id], onDelete: Restrict)
     teamMembers Role @relation("any_team_member_role", fields: [anyTeamMemberRoleId], references: [id], onDelete: Restrict)
     teamRepresentatives Role @relation("any_team_representative_role", fields: [anyTeamRepresentativeRoleId], references: [id], onDelete: Restrict)
     teamCaptains Role @relation("any_team_captain_role", fields: [anyTeamCaptainRoleId], references: [id], onDelete: Restrict)
+    managers Role @relation("management_member_role", fields: [managementMemberRoleId], references: [id], onDelete: Restrict)
+    managerRepresentatives Role @relation("management_representative_role", fields: [managementRepresentativeRoleId], references: [id], onDelete: Restrict)
+    managerCaptains Role @relation("management_captain_role", fields: [managementCaptainRoleId], references: [id], onDelete: Restrict)
 
     updateId Int @map("update")
     readId   Int @map("read")

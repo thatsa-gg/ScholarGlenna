@@ -1,21 +1,17 @@
 import { subcommand } from '../_command.js'
 import { djs } from '../_djs.js'
-import { z } from 'zod'
 import { database } from '../../util/database.js'
 import { debug } from '../../util/logging.js'
 import { EmbedBuilder } from '@glenna/discord'
 
 export const create = subcommand({
     description: 'Create a new raid division.',
-    input: z.object({
-        name: z.string().describe('Division name.'),
-        primary: z.boolean().nullable().transform(a => a ?? false).describe('Is this the new primary division for the guild?'),
+    input: {
+        name: djs.string().describe('Division name.'),
+        primary: djs.boolean().nullable().transform(a => a ?? false).describe('Is this the new primary division for the guild?'),
         source: djs.guild(),
-        actor: djs.actor(),
-    }),
-    async authorize({ source, actor }){
-        return database.isAuthorized(BigInt(source.id), BigInt(actor.id))
     },
+    authorization: { guild: [ 'createDivision' ] },
     async execute({ name, primary, source }){
         const snowflake = BigInt(source.id)
         const division = await database.$transaction(async database => {

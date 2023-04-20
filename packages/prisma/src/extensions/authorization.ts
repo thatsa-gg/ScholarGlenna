@@ -36,7 +36,7 @@ export const authorizationExtension = Prisma.defineExtension(client => client.$e
                             where: {
                                 teamId,
                                 AND: Object.assign({}, ...permission.map(p => ({
-                                    [p]: { some: { user: { snowflake }}}
+                                    [p]: { permissions: { some: { user: { snowflake }}}}
                                 })))
                             }
                         })
@@ -54,7 +54,7 @@ export const authorizationExtension = Prisma.defineExtension(client => client.$e
                             where: {
                                 divisionId,
                                 AND: Object.assign({}, ...permission.map(p => ({
-                                    [p]: { some: { user: { snowflake }}}
+                                    [p]: { permissions: { some: { user: { snowflake }}}}
                                 })))
                             }
                         })
@@ -72,7 +72,7 @@ export const authorizationExtension = Prisma.defineExtension(client => client.$e
                             where: {
                                 guildId,
                                 AND: Object.assign({}, ...permission.map(p => ({
-                                    [p]: { some: { user: { snowflake }}}
+                                    [p]: { permissions: { some: { user: { snowflake }}}}
                                 })))
                             }
                         })

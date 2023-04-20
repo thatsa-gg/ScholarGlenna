@@ -163,3 +163,10 @@ export function formatDuration(duration: Temporal.Duration){
 export function roundWeek(time: Temporal.ZonedDateTime){
     return time.round({ smallestUnit: 'day', roundingMode: 'floor' }).subtract({ days: time.dayOfWeek })
 }
+
+export type MaybeArray<T> = T | [T, ...T[]]
+export function asArray<T>(a: MaybeArray<T>): [T, ...T[]] {
+    if(Array.isArray(a))
+        return a
+    return [ a ]
+}
