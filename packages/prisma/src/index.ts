@@ -16,6 +16,7 @@ import { clientExtension } from './extensions/client.js'
 export * from '../generated/client/index.js'
 export type DatabaseClient = ReturnType<typeof Database.create>
 export type { Authorization, TeamPermissions, DivisionPermissions, GuildPermissions } from './extensions/authorization.js'
+export { permissionFragment } from './extensions/authorization.js'
 
 let instance: DatabaseClient | null = null
 export namespace Database {

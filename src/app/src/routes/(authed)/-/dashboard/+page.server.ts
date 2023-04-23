@@ -1,4 +1,5 @@
 import { database } from '$lib/server'
+import { permissionFragment } from '@glenna/prisma'
 import type { PageServerLoad } from './$types'
 
 export const load: PageServerLoad = async ({ parent }) => {
@@ -13,7 +14,8 @@ export const load: PageServerLoad = async ({ parent }) => {
             icon: true,
             name: true,
             teams: {
-                where: { members: { some: { member: { user: { id: data.user.id }}}}},
+                // all teams the user can see
+                where: { permission: { read: permissionFragment(data.user.id) }},
                 select: {
                     alias: true,
                     name: true,
@@ -22,6 +24,11 @@ export const load: PageServerLoad = async ({ parent }) => {
                         select: {
                             members: true
                         }
+                    },
+                    members: {
+                        // if this user is a member of the team, select their role.
+                        where: { member: { user: { id: data.user.id }}},
+                        select: { role: true }
                     }
                 }
             }

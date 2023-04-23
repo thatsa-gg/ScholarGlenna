@@ -24,6 +24,20 @@ function userId(id: UserId): bigint {
     }
 }
 
+export function permissionFragment(userId: bigint | number){
+    return {
+        permissions: {
+            some: {
+                user: typeof userId === 'bigint'? {
+                    snowflake: userId
+                } : {
+                    id: userId
+                }
+            }
+        }
+    } satisfies Prisma.RoleWhereInput
+}
+
 export const authorizationExtension = Prisma.defineExtension(client => client.$extends({
     result: {
         team: {
@@ -36,7 +50,7 @@ export const authorizationExtension = Prisma.defineExtension(client => client.$e
                             where: {
                                 teamId,
                                 AND: Object.assign({}, ...permission.map(p => ({
-                                    [p]: { permissions: { some: { user: { snowflake }}}}
+                                    [p]: permissionFragment(snowflake)
                                 })))
                             }
                         })
@@ -54,7 +68,7 @@ export const authorizationExtension = Prisma.defineExtension(client => client.$e
                             where: {
                                 divisionId,
                                 AND: Object.assign({}, ...permission.map(p => ({
-                                    [p]: { permissions: { some: { user: { snowflake }}}}
+                                    [p]: permissionFragment(snowflake)
                                 })))
                             }
                         })
@@ -72,7 +86,7 @@ export const authorizationExtension = Prisma.defineExtension(client => client.$e
                             where: {
                                 guildId,
                                 AND: Object.assign({}, ...permission.map(p => ({
-                                    [p]: { permissions: { some: { user: { snowflake }}}}
+                                    [p]: permissionFragment(snowflake)
                                 })))
                             }
                         })
