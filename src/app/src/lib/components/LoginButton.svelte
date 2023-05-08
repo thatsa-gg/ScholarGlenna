@@ -14,7 +14,7 @@
 </style>
 
 <a
-    href="/api/login"
+    href="/auth/sso"
     title="Discord OAuth2 Login"
     class="rounded-full bg-blueberry p-2 m-2">
     <Fa icon={faDiscord} size="1.5x" />

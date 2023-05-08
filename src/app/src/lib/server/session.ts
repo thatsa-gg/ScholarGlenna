@@ -1,4 +1,4 @@
-import { reauthorizeUser, type Authorization } from '@glenna/auth'
+import { reauthorizeUser, type Authorization } from './auth'
 import { Discord, Routes, type APIUser } from '@glenna/discord'
 import { database, cache } from './index.js'
 import { v4 as uuid } from 'uuid'

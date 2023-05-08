@@ -6,7 +6,6 @@ export default defineConfig({
     plugins: [sveltekit()],
     ssr: {
         external: [
-            '@glenna/auth',
             '@glenna/api',
             '@glenna/cache',
             '@glenna/discord',

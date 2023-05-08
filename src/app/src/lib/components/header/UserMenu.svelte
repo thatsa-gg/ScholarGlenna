@@ -33,7 +33,7 @@
     </button>
 
     <nav class:visible={menu} id="user-menu-items">
-        <a href="/api/logout" class="logout" role="menuitem"
+        <a href="/auth/signout" class="logout" role="menuitem"
             ><span>Log Out</span><Fa
                 icon={faRightFromBracket}
                 scale="1.25x"
