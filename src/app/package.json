@@ -42,7 +42,6 @@
     },
     "dependencies": {
         "@glenna/api": "workspace:*",
-        "@glenna/auth": "workspace:*",
         "@glenna/cache": "workspace:*",
         "@glenna/discord": "workspace:*",
         "@glenna/prisma": "workspace:*",

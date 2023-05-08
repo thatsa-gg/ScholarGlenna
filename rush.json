@@ -17,10 +17,6 @@
             "projectFolder": "packages/api"
         },
         {
-            "packageName": "@glenna/auth",
-            "projectFolder": "packages/auth"
-        },
-        {
             "packageName": "@glenna/cache",
             "projectFolder": "packages/cache"
         },
