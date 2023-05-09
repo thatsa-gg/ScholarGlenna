@@ -11,7 +11,7 @@ export const load = (async ({ cookies }) => {
 
     const session = await getSession(sessionID)
     if(!session)
-        throw redirect(303, '/api/logout')
+        throw redirect(303, '/suth/signout')
 
     const profile = await database.profile.findUnique({
         where: { id: session.profileId },
@@ -28,7 +28,7 @@ export const load = (async ({ cookies }) => {
         }
     })
     if(!profile)
-        throw redirect(303, '/api/logout')
+        throw redirect(303, '/auth/signout')
 
     // manual copy done here to avoid "Symbol(nodejs.util.inspect.custom)"
     // added by Prisma when client extension properties are used.

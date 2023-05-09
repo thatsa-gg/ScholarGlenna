@@ -5,6 +5,6 @@ export const prerender = false
 export const load: LayoutServerLoad = async ({ parent }) => {
     const data = await parent()
     if(!data.user)
-        throw redirect(302, '/api/login')
+        throw redirect(302, '/auth/sso')
     return data
 }

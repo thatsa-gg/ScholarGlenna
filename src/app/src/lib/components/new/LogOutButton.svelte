@@ -20,7 +20,7 @@
     }
 </style>
 
-<a href="/api/logout"
+<a href="/auth/signout"
     aria-label="Log Out">
     <Fa icon={faArrowRightFromBracket}
         scale="2x"
