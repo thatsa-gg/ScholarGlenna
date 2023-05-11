@@ -25,7 +25,7 @@
 
     main {
         grid-area: content;
-        @apply mt-12 p-6 bg-primary-400 rounded-md shadow-md w-md justify-self-center h-min;
+        @apply mt-12 p-6 bg-primary-600 rounded-md shadow-md w-md justify-self-center h-min;
         @apply md:w-sm;
         @apply sm:w-full;
         @apply transition-width ease-linear;

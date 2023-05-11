@@ -20,13 +20,13 @@
     nav {
         grid-row: header;
         grid-column: header-start / tools-end;
-        @apply bg-primary-400 shadow-sm;
+        @apply bg-primary-600 shadow-sm;
         @apply z-header sticky top-0;
     }
 
     div {
         grid-area: user;
-        @apply bg-primary-400 shadow-sm content-center p-1;
+        @apply bg-primary-600 shadow-sm content-center p-1;
         @apply z-header sticky top-0;
     }
 </style>

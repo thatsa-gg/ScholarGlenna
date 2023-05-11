@@ -56,10 +56,10 @@
             "avatar name" 50%
             "avatar discriminator" 50% / max-content auto;
         @apply grid gap-x-2 h-full w-40 text-left p-1;
-        @apply hover:bg-primary-700 transition-colors rounded-lg;
+        @apply hover:bg-primary-200 transition-colors rounded-lg;
         &:focus {
-            @apply ring-1 ring-inset ring-primary-950;
-            @apply bg-primary-700;
+            @apply ring-1 ring-inset ring-primary-50;
+            @apply bg-primary-200;
             @apply border-transparent;
             outline: none;
         }
@@ -80,13 +80,13 @@
         }
         &.discriminator {
             grid-area: discriminator;
-            @apply text-primary-950 text-xs/none self-start;
+            @apply text-primary-50 text-xs/none self-start;
         }
     }
 
     nav {
         display: none;
-        @apply bg-primary-600 rounded-b-lg p-1;
+        @apply bg-primary-400 rounded-b-lg p-1;
         &.visible {
             display: block;
         }
@@ -97,9 +97,9 @@
         justify-content: space-between;
         align-items: center;
         --link-theme: theme(colors.gray.100);
-        --link-hover: theme(colors.primary.600);
+        --link-hover: theme(colors.primary.400);
         &.logout {
-            --link-theme: theme(colors.strawberry.700);
+            --link-theme: theme(colors.strawberry.300);
             --link-hover: theme(colors.gray.200);
         }
 

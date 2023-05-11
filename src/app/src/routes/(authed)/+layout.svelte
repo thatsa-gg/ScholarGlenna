@@ -8,7 +8,7 @@
         position: relative;
         /* TODO: no padding on banner */
         /* TODO: get rid of the weird position-relative */
-        @apply -top-4 p-6 bg-primary-400 rounded-b-md shadow-md justify-self-center w-md h-min;
+        @apply -top-4 p-6 bg-primary-600 rounded-b-md shadow-md justify-self-center w-md h-min;
         @apply md:w-sm;
         @apply sm:w-full;
         @apply transition-width ease-linear;

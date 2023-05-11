@@ -15,6 +15,6 @@
         grid-row: header;
         grid-column: header-start / user-end;
 
-        @apply bg-primary-400 shadow-sm z-header sticky top-0;
+        @apply bg-primary-600 shadow-sm z-header sticky top-0;
     }
 </style>
