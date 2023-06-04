@@ -62,6 +62,28 @@ create type "public"."elitespecialization" as enum (
 );
 
 -- CreateEnum
+create type "public"."buildcategory" as enum (
+    'dps',
+    'dpssupport',
+    'healsupport',
+    'hybridsupport',
+    'specialized'
+);
+
+-- CreateEnum
+create type "public"."builddamagetype" as enum (
+    'power',
+    'condition',
+    'hybrid'
+);
+
+-- CreateEnum
+create type "public"."buildkeyboon" as enum (
+    'alacrity',
+    'quickness'
+);
+
+-- CreateEnum
 create type "log"."logdifficultytype" as enum (
     'normal_mode',
     'challenge_mode',
@@ -204,6 +226,7 @@ create table "guild"."guildmember" (
     "user_id" integer not null references "guild"."user"("user_id") on delete cascade,
     "name" text,
     "icon" text,
+    "willing_to_lead" boolean, -- willing to take on a leadership role; null means unanswered.
     "lost_remote_reference_at" timestamptz(3),
     unique("user_id", "guild_id"),
     unique("snowflake", "guild_id")
@@ -285,6 +308,50 @@ create table "app"."profile" (
 );
 
 -- CreateTable
+create table "app"."build" (
+    "build_id" serial primary key not null,
+    "snowflake" bigint unique not null default new_snowflake(),
+    "name" text unique not null,
+    "class" "public"."characterclass",
+    "specialization" "public"."elitespecialization",
+    "tank" boolean default false,
+    "category" "public"."buildcategory" not null,
+    "damage_type" "public"."builddamagetype",
+    "key_boon" "public"."buildkeyboon"
+);
+
+-- CreateTable
+create table "app"."playerbuild" (
+    "player_build_id" serial primary key not null,
+    "profile_id" int not null references "app"."profile"("profile_id") on delete cascade,
+    "build_id" int not null references "app"."build"("build_id") on delete cascade
+);
+
+-- CreateTable
+create table "app"."playerexperience" (
+    "player_experience_id" serial primary key not null,
+    "profile_id" int unique not null references "app"."profile"("profile_id") on delete cascade,
+    "total_fields" int not null default 13,
+    "completed_fields" int not null default 0,
+
+    "wing1" boolean,
+    "wing2" boolean,
+    "wing3" boolean,
+    "wing4" boolean,
+    "wing5" boolean,
+    "wing6" boolean,
+    "wing7" boolean,
+
+    "ibs_normal_strikes" boolean,
+
+    "eod_normal_strikes" boolean,
+    "aetherblade_hideout_cm" boolean,
+    "xunlai_jade_junkyard_cm" boolean,
+    "kaineng_overlook_cm" boolean,
+    "harvest_temple_cm" boolean
+);
+
+-- CreateTable
 create table "public"."log" (
     "log_id" serial primary key not null,
     "team_id" integer not null references "guild"."team"("team_id") on delete restrict,
@@ -314,6 +381,7 @@ create table "log"."log_player" (
 -- CreateEnum
 create type "role"."roletype" as enum (
     'public',
+    'superuser',
     'any_guild_member',
     'any_team_member',
     'any_team_representative',
@@ -339,7 +407,7 @@ create table "role"."role" (
 create index on "role"."role"("guild_id") include ("role_id");
 create index on "role"."role"("team_id") include ("role_id");
 create unique index only_one_public_role on "role"."role"("type") where "type" = 'public';
-insert into "role"."role"("type") values ('public') on conflict do nothing;
+insert into "role"."role"("type") values ('public'), ('superuser') on conflict do nothing;
 
 create materialized view "role"."publicrole" as
 select
@@ -593,3 +661,34 @@ create table "role"."teampermission" (
     "delete_time" int references "role"."role"("role_id") on delete restrict,
     "read_time" int references "role"."role"("role_id") on delete restrict
 );
+
+-- CreateView
+create view "guild"."guildstatistics" as
+with "unique_team_members" as (
+    select
+        "guild_id",
+        count("guild_member_id") filter (where "type" = 'normal') as "unique_team_members",
+        count("guild_member_id") filter (where "type" = 'management') as "unique_management_members",
+        count("guild_member_id") filter (where "type" = 'interest_group') as "unique_interest_members"
+    from (
+        select distinct
+            "guild"."guildmember"."guild_id",
+            "guild"."team"."type",
+            "guild"."guildmember"."guild_member_id"
+        from
+            "guild"."teammember"
+            inner join "guild"."guildmember" using("guild_member_id")
+            inner join "guild"."team" using("team_id")
+        where
+            "guild"."guildmember"."lost_remote_reference_at" is null
+    ) as "grouped_data"
+    group by
+        "guild_id"
+)
+select distinct
+    "guild_id",
+    "unique_team_members"."unique_team_members",
+    "unique_team_members"."unique_management_members",
+    "unique_team_members"."unique_interest_members"
+from
+    "unique_team_members";

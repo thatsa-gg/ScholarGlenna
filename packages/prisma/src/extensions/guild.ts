@@ -19,6 +19,7 @@ export const guildExtension = Prisma.defineExtension(client => client.$extends({
                         "managementMember", "managementRepresentative", "managementCaptain"
                     )
                     const publicRole = await client.role.findFirstOrThrow({ where: { type: 'Public' }, select: { id: true }})
+                    const superUserRole = await client.role.findFirstOrThrow({ where: { type: 'SuperUser' }, select: { id: true }})
 
                     // create the new guild, its roles, its permissions, and its primary division
                     const newGuild = await client.guild.create({
@@ -167,7 +168,10 @@ export const guildExtension = Prisma.defineExtension(client => client.$extends({
                             // management team roles are members of the corresponding guild-level roles
                             { parentId: newGuild.permission!.managementMemberRoleId, childId: managementTeam.permission!.memberRoleId },
                             { parentId: newGuild.permission!.managementRepresentativeRoleId, childId: managementTeam.permission!.representativeRoleId },
-                            { parentId: newGuild.permission!.managementCaptainRoleId, childId: managementTeam.permission!.captainRoleId }
+                            { parentId: newGuild.permission!.managementCaptainRoleId, childId: managementTeam.permission!.captainRoleId },
+
+                            // all superusers are considered guild captains
+                            { parentId: newGuild.permission!.managementCaptainRoleId, childId: superUserRole.id },
                         ]
                     })
 

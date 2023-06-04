@@ -60,6 +60,34 @@ enum EliteSpecialization {
     @@map("elitespecialization")
 }
 
+enum BuildCategory {
+    DPS             @map("dps")
+    DPSSupport      @map("dpssupport")
+    HealSupport     @map("healsupport")
+    HybridSupport   @map("hybridsupport")
+    Specialized     @map("specialized")
+
+    @@schema("public")
+    @@map("buildcategory")
+}
+
+enum BuildDamageType {
+    Power           @map("power")
+    Condition       @map("condition")
+    Hybrid          @map("hybrid")
+
+    @@schema("public")
+    @@map("builddamagetype")
+}
+
+enum BuildKeyBoon {
+    Alacrity        @map("alacrity")
+    Quickness       @map("quickness")
+
+    @@schema("public")
+    @@map("buildkeyboon")
+}
+
 // ========================================================================== //
 //                                   LOGS                                     //
 // ========================================================================== //
@@ -231,9 +259,22 @@ model Guild {
     members GuildMember[]
     divisions Division[]
 
+    statistics GuildStatistics @relation(fields: [id], references: [guildId])
+
     roles Role[]
     @@schema("guild")
     @@map("guild")
+}
+
+view GuildStatistics {
+    guildId Int @id @map("guild_id")
+    uniqueTeamMembers Int @map("unique_team_members")
+    uniqueManagementMembers Int @map("unique_management_members")
+    uniqueInterestGroupMembers Int @map("unique_interest_members")
+
+    guild Guild?
+    @@schema("guild")
+    @@map("guildstatistics")
 }
 
 model GuildMember {
@@ -243,6 +284,8 @@ model GuildMember {
     userId Int @map("user_id")
     name String?
     icon String?
+
+    willingToLead Boolean? @map("willing_to_lead")
 
     // Marks when the bot first became aware a user wasn't in a guild anymore.
     lostRemoteReferenceAt DateTime? @db.Timestamptz(3) @map("lost_remote_reference_at")
@@ -433,6 +476,7 @@ view TeamMemberComputed {
 // ========================================================================== //
 enum RoleType {
     Public @map("public")
+    SuperUser @map("superuser")
     AnyGuildMember @map("any_guild_member")
     AnyTeamMember @map("any_team_member")
     AnyTeamRepresentative @map("any_team_representative")
@@ -727,6 +771,67 @@ model Profile {
     userId Int @unique
 
     user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+    builds PlayerBuild[]
+    experience PlayerExperience?
     @@schema("app")
     @@map("profile")
+}
+
+model Build {
+    id Int @id @default(autoincrement()) @map("build_id")
+    snowflake BigInt @unique @default(dbgenerated("new_snowflake()"))
+
+    name String @unique
+    class CharacterClass?
+    specialization EliteSpecialization?
+
+    category BuildCategory
+    damageType BuildDamageType? @map("damage_type")
+    keyBoon BuildKeyBoon? @map("key_boon")
+    tank Boolean @default(false)
+
+    players PlayerBuild[]
+
+    @@schema("app")
+    @@map("build")
+}
+
+model PlayerBuild {
+    id Int @id @default(autoincrement()) @map("player_build_id")
+    profileId Int @map("profile_id")
+    buildId Int @map("build_id")
+
+    profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+    build Build @relation(fields: [buildId], references: [id], onDelete: Cascade)
+
+    @@schema("app")
+    @@map("playerbuild")
+}
+
+model PlayerExperience {
+    id Int @id @default(autoincrement()) @map("player_experience_id")
+    profileId Int @unique @map("profile_id")
+
+    totalFields Int @map("total_fields") @default(13) // the number of experience flags
+    completedFields Int @map("completed_fields") @default(0) // how many flags the user has filled out
+
+    wing1 Boolean?
+    wing2 Boolean?
+    wing3 Boolean?
+    wing4 Boolean?
+    wing5 Boolean?
+    wing6 Boolean?
+    wing7 Boolean?
+    ibsNormalStrikes Boolean? @map("ibs_normal_strikes")
+    eodNormalStrikes Boolean? @map("eod_normal_strikes")
+    aetherbladeHideoutCM Boolean? @map("aetherblade_hideout_cm")
+    xunlaiJadeJunkyardCM Boolean? @map("xunlai_jade_junkyard_cm")
+    kainengOverlookCM Boolean? @map("kaineng_overlook_cm")
+    harvestTempleCM Boolean? @map("harvest_temple_cm")
+
+    // further encounters will need to be added here
+
+    profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+    @@schema("app")
+    @@map("playerexperience")
 }
