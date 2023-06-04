@@ -57,7 +57,9 @@ export const info = subcommand({
                         { name: 'Primary Time Zone', value: team.primaryTimeZone },
                         {
                             name: 'DST Shift?',
-                            value: `${team.daylightSavings}${nextDST ? ` (${nextDST.timeCode()}}` : ''}`
+                            value: team.daylightSavings === 'RespectTime'
+                                ? `Keep the same time-of-day (Next change after ${nextDST?.timeCode() ?? '<Error>'})`
+                                : 'Keep the same reset-relative time'
                         },
                         { name: 'Alias', value: team.alias, inline: true },
                         { name: 'Logs Submitted', value: team._count.logs.toString(), inline: true},
