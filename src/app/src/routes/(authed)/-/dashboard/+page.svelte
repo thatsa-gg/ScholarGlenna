@@ -7,6 +7,10 @@
 <h1>Banner</h1>
 <p>Breadcrumbs</p>
 <div>
-    <p>Content</p>
-    <pre>{JSON.stringify(data.guilds, null, 4)}</pre>
+    Select a guild to begin:
+    <ul>
+        {#each data.guilds as guild}
+            <li><a href="/{guild.alias}">{guild.name}</a></li>
+        {/each}
+    </ul>
 </div>

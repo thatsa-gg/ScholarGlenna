@@ -6,7 +6,8 @@ export const load: PageServerLoad = async ({ parent }) => {
     const data = await parent()
     const guilds = await database.guild.findMany({
         where: {
-            members: { some: { user: { id: data.user.id }}}
+            members: { some: { user: { id: data.user.id }, lostRemoteReferenceAt: null }},
+            lostRemoteReferenceAt: null
         },
         select: {
             alias: true,

@@ -16,6 +16,7 @@
 >
     <button
         type="button"
+        class:menu-visible={menu}
         on:click={() => (menu = !menu)}
         role="menu"
         title="User Management"
@@ -57,11 +58,21 @@
             "avatar discriminator" 50% / max-content auto;
         @apply grid gap-x-2 h-full w-40 text-left p-1;
         @apply hover:bg-primary-200 transition-colors rounded-lg;
+
+        &, &.menu-visible {
+            &:focus, &:hover {
+                @apply bg-primary-200;
+            }
+        }
+
         &:focus {
             @apply ring-1 ring-inset ring-primary-50;
-            @apply bg-primary-200;
             @apply border-transparent;
             outline: none;
+        }
+
+        &.menu-visible {
+            @apply bg-primary-400 rounded-b-none;
         }
     }
 
