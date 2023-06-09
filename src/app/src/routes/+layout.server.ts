@@ -21,7 +21,6 @@ export const load = (async ({ cookies }) => {
                 select: {
                     id: true,
                     name: true,
-                    discriminator: true,
                     avatar: true,
                     snowflake: true
                 }
@@ -38,7 +37,6 @@ export const load = (async ({ cookies }) => {
         user: {
             id: profile.user.id,
             name: profile.user.name,
-            discriminator: profile.user.discriminator,
             avatar: profile.user.avatar,
             snowflake: profile.user.snowflake,
         }

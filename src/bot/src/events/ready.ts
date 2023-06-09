@@ -77,7 +77,6 @@ export const readyListener = listener('ready', {
                             select: {
                                 snowflake: true,
                                 name: true,
-                                discriminator: true,
                                 icon: true
                             }
                         },
@@ -155,10 +154,9 @@ export const readyListener = listener('ready', {
                         data.icon = guildMember.avatar
                     if(guildMember.nickname !== member.name)
                         data.name = guildMember.nickname
-                    if(guildMember.user.username !== member.user.name)
-                        user.name = guildMember.user.username
-                    if(guildMember.user.discriminator !== member.user.discriminator)
-                        user.discriminator = guildMember.user.discriminator
+                    const realUserName = guildMember.user.discriminator === "0" ? guildMember.user.username : `${guildMember.user.username}#${guildMember.user.discriminator}`
+                    if(realUserName !== member.user.name)
+                        user.name = realUserName
                     if(guildMember.user.avatar !== member.user.icon)
                         user.icon = guildMember.user.avatar
                     if(Object.keys(user).length > 0)

@@ -14,8 +14,7 @@ export const guildMemberRemoveListener = listener('guildMemberRemove', {
                 name: true,
                 user: {
                     select: {
-                        name: true,
-                        discriminator: true
+                        name: true
                     }
                 }
             }
@@ -30,7 +29,7 @@ export const guildMemberRemoveListener = listener('guildMemberRemove', {
             data: { lostRemoteReferenceAt: new Date() }
         })
 
-        const name = `${user.name ?? user.user.name}#${user.user.discriminator}`
+        const name = user.name ?? user.user.name
         // TODO: notify that ${name} left the server.
     }
 })

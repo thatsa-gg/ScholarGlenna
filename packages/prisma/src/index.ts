@@ -12,6 +12,7 @@ import { teamMemberExtension } from './extensions/teamMember.js'
 import { profileExtension } from './extensions/profile.js'
 import { authorizationExtension } from './extensions/authorization.js'
 import { clientExtension } from './extensions/client.js'
+import type { APIUser, User } from '@glenna/discord'
 
 export * from '../generated/client/index.js'
 export type DatabaseClient = ReturnType<typeof Database.create>
@@ -122,4 +123,10 @@ export function triggerIDToBoss(id: TriggerId): Boss {
     if(!boss)
         throw `Unrecognized Trigger ID ${id}`
     return boss
+}
+
+export function safeUsername(user: User | APIUser){
+    if(user.discriminator === "0")
+        return user.username
+    return `${user.username}#${user.discriminator}`
 }

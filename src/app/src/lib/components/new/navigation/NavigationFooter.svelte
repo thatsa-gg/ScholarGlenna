@@ -3,7 +3,6 @@
         displayName: string
         avatar: string
         username: string
-        discriminator: string
     }
 </script>
 
@@ -16,12 +15,12 @@
 <footer>
     <a href="/-/profile">
         <img alt={user.displayName} src={user.avatar} />
-        <span>{user.username}#{user.discriminator}</span>
+        <span>{user.username}</span>
     </a>
     <LogOutButton />
 </footer>
 
-<style lang="scss">
+<style lang="postcss">
     footer {
         display: flex;
         border-top: 1px solid var(--primary-color);

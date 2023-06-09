@@ -3,7 +3,7 @@
     import { faRightFromBracket } from "@fortawesome/free-solid-svg-icons";
 
     import { clickOutside } from "$lib/client/clickOutside";
-    export let user: { avatar: string; name: string; discriminator: string };
+    export let user: { avatar: string; name: string };
 
     let avatar: HTMLImageElement | undefined = undefined;
     let menu: boolean = false;
@@ -30,7 +30,6 @@
             bind:this={avatar}
         />
         <span class="username">{user.name}</span>
-        <span class="discriminator">#{user.discriminator}</span>
     </button>
 
     <nav class:visible={menu} id="user-menu-items">
@@ -53,10 +52,8 @@
     }
 
     button {
-        grid-template:
-            "avatar name" 50%
-            "avatar discriminator" 50% / max-content auto;
-        @apply grid gap-x-2 h-full w-40 text-left p-1;
+        @apply flex gap-2 items-center;
+        @apply h-full w-40 text-left p-1;
         @apply hover:bg-primary-200 transition-colors rounded-lg;
 
         &, &.menu-visible {
@@ -77,21 +74,14 @@
     }
 
     img {
-        grid-area: avatar;
-        display: block;
-        @apply rounded-full max-h-full;
+        @apply block rounded-full max-h-full;
     }
 
     span {
-        display: block;
+        @apply block;
         &.username {
-            grid-area: name;
             @apply whitespace-nowrap text-ellipsis overflow-hidden;
-            @apply font-semibold text-sm/none self-end;
-        }
-        &.discriminator {
-            grid-area: discriminator;
-            @apply text-primary-50 text-xs/none self-start;
+            @apply font-semibold text-sm/none;
         }
     }
 
@@ -104,9 +94,7 @@
     }
 
     a {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+        @apply flex justify-between items-center;
         --link-theme: theme(colors.gray.100);
         --link-hover: theme(colors.primary.400);
         &.logout {

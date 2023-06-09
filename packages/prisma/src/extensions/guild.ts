@@ -1,4 +1,5 @@
 import { Prisma } from '../../generated/client/index.js'
+import { safeUsername } from '../index.js'
 import { snowflakes } from './client.js'
 import type { Guild } from '@glenna/discord'
 
@@ -191,8 +192,7 @@ export const guildExtension = Prisma.defineExtension(client => client.$extends({
                                             where: { snowflake: ownerId },
                                             create: {
                                                 snowflake: ownerId,
-                                                name: owner.user.username,
-                                                discriminator: owner.user.discriminator,
+                                                name: safeUsername(owner.user),
                                                 icon: owner.user.avatar
                                             }
                                         }

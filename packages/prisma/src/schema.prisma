@@ -210,7 +210,6 @@ model User {
     id Int @id @default(autoincrement()) @map("user_id")
     snowflake BigInt @unique
     name String
-    discriminator String @db.Char(4)
     icon String?
 
     guildMemberships GuildMember[]
@@ -460,9 +459,8 @@ model TeamMember {
 view TeamMemberComputed {
     id Int @id @map("team_member_id")
 
-    nickname String?
     username String
-    discriminator String
+    nickname String?
 
     memberAvatar String? @map("member_avatar")
     userAvatar String? @map("user_avatar")

@@ -194,7 +194,6 @@ create table "guild"."user" (
     "user_id" serial primary key not null,
     "snowflake" bigint unique not null, -- from Discord
     "name" text not null,
-    "discriminator" char(4) not null,
     "icon" text
 );
 
@@ -294,7 +293,6 @@ create view "guild"."teammembercomputed" as select
     "guild"."teammember"."team_member_id",
     "guild"."guildmember"."name" as "nickname",
     "guild"."user"."name" as "username",
-    "guild"."user"."discriminator",
     "guild"."guildmember"."icon" as "member_avatar",
     "guild"."user"."icon" as "user_avatar"
 from "guild"."teammember"

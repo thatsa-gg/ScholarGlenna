@@ -4,7 +4,6 @@
     export let user: {
         avatar: string
         name: string
-        discriminator: string
     };
 </script>
 

@@ -10,10 +10,9 @@ export const userUpdateListener = listener('userUpdate', {
         const data: Prisma.UserUpdateInput = {}
         if(currentUser.icon !== newUser.avatar)
             data.icon = newUser.avatar
-        if(currentUser.name !== newUser.username)
-            data.name = newUser.username
-        if(currentUser.discriminator !== newUser.discriminator)
-            data.discriminator = newUser.discriminator
+        const realUserName = newUser.discriminator === "0" ? newUser.username : `${newUser.username}#${newUser.discriminator}`
+        if(realUserName !== currentUser.name)
+            data.name = realUserName
         if(Object.keys(data).length > 0)
             await database.user.update({ where: { id: currentUser.id }, data })
     }

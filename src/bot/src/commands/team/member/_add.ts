@@ -43,7 +43,7 @@ export const add = subcommand({
         const guildMember = await database.guildMember.findOrCreate(guild, member)
         await database.teamMember.add(team, guildMember, { role })
 
-        const username = member.nickname ?? `${user.username}#${user.discriminator}`
+        const username = member.nickname ?? user.username
         debug(`Added ${username} to team ${team.name} (${team.id}).`)
 
         return {

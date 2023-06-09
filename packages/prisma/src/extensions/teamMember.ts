@@ -2,12 +2,8 @@ import type { AutocompleteInteraction } from '@glenna/discord'
 import { Prisma, type Team, type TeamMemberRole, type GuildMember } from '../../generated/client/index.js'
 import type { TeamPermissions } from './authorization.js'
 
-function displayName({ nickname, username, discriminator }: { nickname: string | null, username: string, discriminator: string }){
-    if(nickname)
-        return nickname
-    if(discriminator == "0") // new-style discord users use "0" to indicate no discriminator
-        return username
-    return `${username}#${discriminator}`
+function displayName({ nickname, username }: { nickname: string | null, username: string }){
+    return nickname ?? username
 }
 
 export const teamMemberExtension = Prisma.defineExtension((client) => client.$extends({
@@ -66,10 +62,7 @@ export const teamMemberExtension = Prisma.defineExtension((client) => client.$ex
                                         { name: { contains: searchValue, mode: 'insensitive' }},
                                         {
                                             user: {
-                                                OR: [
-                                                    { name: { contains: searchValue, mode: 'insensitive' }},
-                                                    { discriminator: { contains: searchValue, mode: 'insensitive' }}
-                                                ]
+                                                name: { contains: searchValue, mode: 'insensitive' }
                                             }
                                         }
                                     ]
@@ -81,8 +74,7 @@ export const teamMemberExtension = Prisma.defineExtension((client) => client.$ex
                                 computed: {
                                     select: {
                                         nickname: true,
-                                        username: true,
-                                        discriminator: true
+                                        username: true
                                     }
                                 }
                             }
@@ -101,7 +93,7 @@ export const teamMemberExtension = Prisma.defineExtension((client) => client.$ex
     result: {
         teamMemberComputed: {
             displayName: {
-                needs: { nickname: true, username: true, discriminator: true },
+                needs: { nickname: true, username: true },
                 compute: displayName
             }
         }

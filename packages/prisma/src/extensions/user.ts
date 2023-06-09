@@ -16,17 +16,16 @@ export const userExtension = Prisma.defineExtension(client => client.$extends({
     },
     result: {
         user: {
-            displayName: {
-                needs: { name: true, discriminator: true },
-                compute({ name, discriminator }){ return `${name}#${discriminator}` }
-            },
-
             avatar: {
-                needs: { snowflake: true, icon: true, discriminator: true },
-                compute({ snowflake, icon, discriminator }){
+                needs: { snowflake: true, icon: true },
+                compute({ snowflake, icon }){
                     if(icon)
                         return DiscordCDN.avatar(snowflake.toString(), icon)
-                    return DiscordCDN.defaultAvatar(Number.parseInt(discriminator))
+                    // from discord docs:
+                    // old-style usernames with discriminators use the discriminator % 5 to determine the default avatar,
+                    // and new-style usernames without use (user_id >> 22)%6.
+                    // We're lazy, and eventually all will be new-style, so we're only going to calculate those.
+                    return DiscordCDN.defaultAvatar(Number(snowflake >> 22n) % 6)
                 }
             }
         }
