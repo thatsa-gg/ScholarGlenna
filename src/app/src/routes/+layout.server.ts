@@ -11,7 +11,7 @@ export const load = (async ({ cookies }) => {
 
     const session = await getSession(sessionID)
     if(!session)
-        throw redirect(303, '/suth/signout')
+        throw redirect(303, '/auth/signout')
 
     const profile = await database.profile.findUnique({
         where: { id: session.profileId },
@@ -22,7 +22,8 @@ export const load = (async ({ cookies }) => {
                     id: true,
                     name: true,
                     discriminator: true,
-                    avatar: true
+                    avatar: true,
+                    snowflake: true
                 }
             }
         }
@@ -38,7 +39,8 @@ export const load = (async ({ cookies }) => {
             id: profile.user.id,
             name: profile.user.name,
             discriminator: profile.user.discriminator,
-            avatar: profile.user.avatar
+            avatar: profile.user.avatar,
+            snowflake: profile.user.snowflake,
         }
     }
 }) satisfies LayoutServerLoad
