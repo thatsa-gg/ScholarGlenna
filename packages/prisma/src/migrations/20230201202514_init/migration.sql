@@ -653,12 +653,10 @@ create table "role"."teampermission" (
     "create_member" int not null references "role"."role"("role_id") on delete restrict,
     "update_member" int not null references "role"."role"("role_id") on delete restrict,
     "delete_member" int not null references "role"."role"("role_id") on delete restrict,
-    "read_member" int not null references "role"."role"("role_id") on delete restrict,
 
     "create_time" int references "role"."role"("role_id") on delete restrict,
     "update_time" int references "role"."role"("role_id") on delete restrict,
-    "delete_time" int references "role"."role"("role_id") on delete restrict,
-    "read_time" int references "role"."role"("role_id") on delete restrict
+    "delete_time" int references "role"."role"("role_id") on delete restrict
 );
 
 -- CreateView

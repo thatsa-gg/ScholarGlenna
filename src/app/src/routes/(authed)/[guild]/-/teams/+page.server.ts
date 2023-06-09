@@ -28,7 +28,6 @@ export const load: PageServerLoad = async ({ parent }) => {
             }
         }
     })
-    // TODO: merge readTime into read permission to avoid unnecessary extra queries
     return {
         ...data,
         teams: teams.map(team => ({

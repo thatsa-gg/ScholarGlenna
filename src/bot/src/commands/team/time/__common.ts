@@ -17,5 +17,5 @@ export const AutocompleteTime: AutocompleteFn = async ({ value }, interaction, a
     const team = interaction.options.getString('team')
     if(!team)
         return []
-    return await database.teamTime.autocompleteId(interaction, BigInt(team), value, isTeamAuthorization(authorization) ? asArray(authorization.team) : [ 'readTime' ])
+    return await database.teamTime.autocompleteId(interaction, BigInt(team), value, isTeamAuthorization(authorization) ? asArray(authorization.team) : [ 'read' ])
 }

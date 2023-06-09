@@ -10,7 +10,7 @@ export const list = subcommand({
         guild: djs.guild().transform(database.guild.transformOrThrow({ id: true })),
     },
     authorization: {
-        key: 'team', team: 'readMember'
+        key: 'team', team: 'read'
     },
     async execute({ team: snowflake, guild }, interaction){
         const team = await database.team.findUniqueOrThrow({

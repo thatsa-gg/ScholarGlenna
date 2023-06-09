@@ -117,12 +117,10 @@ export const guildExtension = Prisma.defineExtension(client => client.$extends({
                                     createMember: { connect: { snowflake: roles.managementCaptain }},
                                     updateMember: { connect: { snowflake: roles.managementCaptain }},
                                     deleteMember: { connect: { snowflake: roles.managementCaptain }},
-                                    readMember: { connect: { snowflake: roles.guildMember }},
 
                                     createTime: {},
                                     updateTime: {},
                                     deleteTime: {},
-                                    readTime: {},
                                 }
                             }
                         },

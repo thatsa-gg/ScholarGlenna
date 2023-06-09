@@ -81,12 +81,10 @@ export const create = subcommand({
                         createMember: { connect: { id: guildPermissions.managementMemberRoleId }},
                         updateMember: { connect: { id: guildPermissions.managementMemberRoleId }},
                         deleteMember: { connect: { id: guildPermissions.managementMemberRoleId }},
-                        readMember: { connect: { id: guildPermissions.anyMemberRoleId }},
 
                         createTime: { connect: { id: guildPermissions.managementMemberRoleId }},
                         updateTime: { connect: { id: guildPermissions.managementMemberRoleId }},
                         deleteTime: { connect: { id: guildPermissions.managementMemberRoleId }},
-                        readTime: { connect: { id: guildPermissions.anyMemberRoleId }},
                     }
                 }
             },

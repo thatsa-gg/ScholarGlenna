@@ -12,7 +12,7 @@ export function teamMember(teamKey?: string){
                 throw `Could not find team key for looking up member!`
             const team = interaction.options.getString(key)
             const snowflake = null !== team && /^\d+$/.test(team) ? BigInt(team) : null
-            const permissions = asArray<TeamPermissions>(isTeamAuthorization(authorization) ? authorization.team : 'readMember')
+            const permissions = asArray<TeamPermissions>(isTeamAuthorization(authorization) ? authorization.team : 'read')
             return await database.teamMember.autocompleteSnowflake(interaction, snowflake, value, permissions)
         }
     })

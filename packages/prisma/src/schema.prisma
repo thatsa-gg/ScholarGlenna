@@ -541,11 +541,9 @@ model Role {
     teamCreateMember TeamPermission[] @relation("team_create_member")
     teamUpdateMember TeamPermission[] @relation("team_update_member")
     teamDeleteMember TeamPermission[] @relation("team_delete_member")
-    teamReadMember TeamPermission[] @relation("team_read_member")
     teamCreateTime TeamPermission[] @relation("team_create_time")
     teamUpdateTime TeamPermission[] @relation("team_update_time")
     teamDeleteTime TeamPermission[] @relation("team_delete_time")
-    teamReadTime TeamPermission[] @relation("team_read_time")
 
     @@unique([ guildId, teamId, type ])
     @@schema("role")
@@ -732,12 +730,10 @@ model TeamPermission {
     createMemberId Int @map("create_member")
     updateMemberId Int @map("update_member")
     deleteMemberId Int @map("delete_member")
-    readMemberId   Int @map("read_member")
 
     createTimeId Int? @map("create_time")
     updateTimeId Int? @map("update_time")
     deleteTimeId Int? @map("delete_time")
-    readTimeId   Int? @map("read_time")
 
     update Role @relation("team_update", fields: [updateId], references: [id], onDelete: Restrict)
     delete Role? @relation("team_delete", fields: [deleteId], references: [id], onDelete: Restrict)
@@ -749,12 +745,10 @@ model TeamPermission {
     createMember Role @relation("team_create_member", fields: [createMemberId], references: [id], onDelete: Restrict)
     updateMember Role @relation("team_update_member", fields: [updateMemberId], references: [id], onDelete: Restrict)
     deleteMember Role @relation("team_delete_member", fields: [deleteMemberId], references: [id], onDelete: Restrict)
-    readMember   Role @relation("team_read_member", fields: [readMemberId], references: [id], onDelete: Restrict)
 
     createTime Role? @relation("team_create_time", fields: [createTimeId], references: [id], onDelete: Restrict)
     updateTime Role? @relation("team_update_time", fields: [updateTimeId], references: [id], onDelete: Restrict)
     deleteTime Role? @relation("team_delete_time", fields: [deleteTimeId], references: [id], onDelete: Restrict)
-    readTime   Role? @relation("team_read_time", fields: [readTimeId], references: [id], onDelete: Restrict)
     @@schema("role")
     @@map("teampermission")
 }

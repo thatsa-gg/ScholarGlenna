@@ -13,7 +13,7 @@ export const remove = subcommand({
     },
     authorization: {
         key: 'team',
-        team: [ 'readTime', 'deleteTime' ]
+        team: [ 'read', 'deleteTime' ]
     },
     async execute({ guild, team: snowflake, time: timeIndex }){
         const team = await database.team.findUniqueOrThrow({

@@ -44,9 +44,9 @@ export const load: LayoutServerLoad = async ({ parent, params, url }) => {
         },
         permissions: {
             read: true,
-            manager: guild.isAuthorized([ "managers" ], user),
-            update: guild.isAuthorized([ "update" ], user),
-            createTeam: guild.isAuthorized([ "createTeam" ], user),
+            manager: await guild.isAuthorized([ "managers" ], user),
+            update: await guild.isAuthorized([ "update" ], user),
+            createTeam: await guild.isAuthorized([ "createTeam" ], user),
         }
     }
 }

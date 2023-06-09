@@ -12,7 +12,7 @@ export const info = subcommand({
     },
     authorization: {
         key: 'team',
-        team: [ 'read', 'readMember', 'readTime' ]
+        team: [ 'read' ]
     },
     async execute({ team: snowflake, guild }){
         const team = await database.team.findUniqueOrThrow({

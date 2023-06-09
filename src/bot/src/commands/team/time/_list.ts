@@ -13,7 +13,7 @@ export const list = subcommand({
     },
     authorization: {
         key: 'team',
-        team: [ 'readTime' ]
+        team: [ 'read' ]
     },
     async execute({ team: snowflake, guild }, interaction){
         const team = await database.team.findUniqueOrThrow({

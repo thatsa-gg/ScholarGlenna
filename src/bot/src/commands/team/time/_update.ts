@@ -17,7 +17,7 @@ export const update = subcommand({
         reset: djs.number(-24, 24).nullable().describe('Offset relative to daily reset (0:00 UTC).')
     },
     authorization: {
-        key: 'team', team: [ 'readTime', 'updateTime' ]
+        key: 'team', team: [ 'read', 'updateTime' ]
     },
     async execute({ guild, team: snowflake, time: timeIndex, duration, day, reset }){
         const team = await database.team.findUniqueOrThrow({
