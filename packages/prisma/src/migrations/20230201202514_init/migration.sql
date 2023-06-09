@@ -215,6 +215,7 @@ create table "guild"."guild" (
     "alias" varchar(32) unique not null,
     "acronym" varchar(8) not null,
     "icon" text,
+    "invite_url" text,
     "lost_remote_reference_at" timestamptz(3)
 );
 

@@ -247,6 +247,7 @@ model Guild {
     snowflake BigInt @unique
     name String
     alias String @unique @db.VarChar(32)
+    inviteURL String? @map("invite_url")
 
     acronym String @db.VarChar(8)
     icon String?
