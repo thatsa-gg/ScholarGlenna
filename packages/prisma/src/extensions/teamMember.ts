@@ -3,7 +3,11 @@ import { Prisma, type Team, type TeamMemberRole, type GuildMember } from '../../
 import type { TeamPermissions } from './authorization.js'
 
 function displayName({ nickname, username, discriminator }: { nickname: string | null, username: string, discriminator: string }){
-    return nickname ?? `${username}#${discriminator}`
+    if(nickname)
+        return nickname
+    if(discriminator == "0") // new-style discord users use "0" to indicate no discriminator
+        return username
+    return `${username}#${discriminator}`
 }
 
 export const teamMemberExtension = Prisma.defineExtension((client) => client.$extends({
