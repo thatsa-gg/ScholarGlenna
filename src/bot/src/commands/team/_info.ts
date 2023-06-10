@@ -1,7 +1,7 @@
 import { subcommand } from '../_command.js'
 import { djs } from '../_djs.js'
 import { database } from '../../util/database.js'
-import { formatDuration } from '@glenna/util'
+import { formatDuration, timeZoneFriendlyName } from '@glenna/util'
 
 export const info = subcommand({
     description: 'Fetch team information.',
@@ -54,7 +54,7 @@ export const info = subcommand({
                         { name: 'Level', value: team.level, inline: true },
                         { name: 'Region', value: team.region, inline: true },
                         { name: 'Capacity', value: `${team._count.members} / ${team.capacity ?? 'Unlimited'}` },
-                        { name: 'Primary Time Zone', value: team.primaryTimeZone },
+                        { name: 'Primary Time Zone', value: timeZoneFriendlyName(team.primaryTimeZone) },
                         {
                             name: 'DST Shift?',
                             value: team.daylightSavings === 'RespectTime'
@@ -66,7 +66,7 @@ export const info = subcommand({
                         {
                             name: 'Times',
                             value: nextRuns
-                                .map(({ index, timeCode, duration }) => `- (${index}) ${timeCode()} for ${formatDuration(duration)}`)
+                                .map(time => `- (${time.index}) ${time} (${time.timeCode('d')} ${time.timeCode('t')}) for ${formatDuration(time.duration)}`)
                                 .join("\n")
                         }
                     ]

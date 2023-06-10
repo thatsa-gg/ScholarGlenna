@@ -27,7 +27,7 @@ export const list = subcommand({
         })
 
         const runTimes = await team.nextRunTimes()
-        const times = runTimes.map(({ index, timeCode, duration }) => `(${index}) ${timeCode()} for ${formatDuration(duration)}`)
+        const times = runTimes.map(time => `- (${time.index}) ${time} (${time.timeCode('d')} ${time.timeCode('t')}) for ${formatDuration(time.duration)}`)
 
         return {
             embeds: [
@@ -37,7 +37,7 @@ export const list = subcommand({
                     fields: [
                         {
                             name: 'Times',
-                            value: times.length > 0 ? times.map(a => `- ${a}`).join(`\n`) : `*Use ${slashCommandMention(interaction, 'team', 'time', 'add')} to add run times to this team.*`
+                            value: times.length > 0 ? times.join(`\n`) : `*Use ${slashCommandMention(interaction, 'team', 'time', 'add')} to add run times to this team.*`
                         },
                         ...(team.nextDaylightSavingsShift === null ? [] : [
                             {

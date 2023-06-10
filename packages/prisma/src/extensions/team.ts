@@ -1,6 +1,6 @@
-import { formatDuration, roundWeek, timestampToFriendlyString } from '@glenna/util'
+import { roundWeek, timestampToFriendlyString } from '@glenna/util'
 import { Temporal, toTemporalInstant } from '@js-temporal/polyfill'
-import { Prisma, type TeamTime, type Team, type TeamType } from '../../generated/client/index.js'
+import { Prisma, type TeamTime, type Team } from '../../generated/client/index.js'
 import type { AutocompleteInteraction } from '@glenna/discord'
 import type { TeamPermissions } from './authorization.js'
 
@@ -14,13 +14,14 @@ function calculationTimeZone(team: Pick<Team, 'primaryTimeZone' | 'daylightSavin
 
 function transformTeamTime(data: {
     now?: Temporal.ZonedDateTime,
-    timeZone: Temporal.TimeZoneLike,
+    calculationTZ: Temporal.TimeZoneLike,
+    presentationTZ: Temporal.TimeZoneLike,
     currentWeek?: Temporal.ZonedDateTime,
     time: Pick<TeamTime, 'index' | 'duration' | 'time'>
 }){
-    const now = data.now ?? Temporal.Now.zonedDateTimeISO(data.timeZone)
+    const now = data.now ?? Temporal.Now.zonedDateTimeISO(data.calculationTZ)
     const current = data.currentWeek ?? roundWeek(now)
-    const time = toTemporalInstant.apply(data.time.time).toZonedDateTimeISO(data.timeZone)
+    const time = toTemporalInstant.apply(data.time.time).toZonedDateTimeISO(data.calculationTZ)
     const offset = time.since(roundWeek(time))
     let next = current.add(offset) // TODO: will this be an hour off if it crosses the DST transition
     if(Temporal.ZonedDateTime.compare(next, now) < 0)
@@ -33,9 +34,8 @@ function transformTeamTime(data: {
         timeCode(style: 't' | 'T' | 'd' | 'D' | 'f' | 'F' | 'r' = 'f'){
             return `<t:${next.epochSeconds}:${style}>`
         },
-        toString(format: 'embed' | 'plain' = 'embed'){
-            const time = format === 'embed' ? `<t:${next.epochSeconds}>` : next.withTimeZone('UTC').toString({ smallestUnit: 'minute' })
-            return `${time} for ${formatDuration(duration)}`
+        toString(){
+            return timestampToFriendlyString(next.withTimeZone(data.presentationTZ))
         }
     }
 }
@@ -46,7 +46,7 @@ function nextRunTimes(team: Pick<Team, 'primaryTimeZone' | 'daylightSavings'>, t
     const timeZone = calculationTimeZone(team)
     const now = Temporal.Now.zonedDateTimeISO(timeZone)
     const currentWeek = now.round({ smallestUnit: 'day', roundingMode: 'floor' }).subtract({ days: now.dayOfWeek })
-    return times.map(time => transformTeamTime({ now, currentWeek, timeZone, time }))
+    return times.map(time => transformTeamTime({ now, currentWeek, calculationTZ: timeZone, presentationTZ: team.primaryTimeZone, time }))
                 .sort((a, b) => Temporal.ZonedDateTime.compare(a.time, b.time))
 }
 
@@ -105,8 +105,8 @@ export const teamExtension = Prisma.defineExtension((client) => client.$extends(
                                     primaryTimeZone: true,
                                     daylightSavings: true
                                 }
-                            }).then(team => transformTeamTime({ time, timeZone: calculationTimeZone(team) }))
-                        return transformTeamTime({ time, timeZone: calculationTimeZone(team) })
+                            }).then(team => transformTeamTime({ time, calculationTZ: calculationTimeZone(team), presentationTZ: team.primaryTimeZone }))
+                        return transformTeamTime({ time, calculationTZ: calculationTimeZone(team), presentationTZ: team.primaryTimeZone })
                     }
                     return compute
                 }
@@ -162,7 +162,8 @@ export const teamExtension = Prisma.defineExtension((client) => client.$extends(
                                 index: true,
                                 duration: true,
                                 time: true
-                            }
+                            },
+                            orderBy: { index: 'asc' }
                         }
                     }
                 })

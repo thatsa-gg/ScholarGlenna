@@ -2,6 +2,7 @@ import { subcommand } from '../_command.js'
 import { djs } from '../_djs.js'
 import { database } from '../../util/database.js'
 import { TeamDaylightSavings, TeamFocus, TeamLevel, TeamRegion, TeamType } from '@glenna/prisma'
+import { timeZoneFriendlyName } from '@glenna/util'
 
 export const update = subcommand({
     description: 'Update a raid team.',
@@ -56,7 +57,7 @@ export const update = subcommand({
                         ... capacity === null ? []
                             : capacity === 0 ? [{ name: 'Capacity', value: 'Unlimited', inline: true }]
                             : [{ name: 'Capacity', value: capacity.toString(), inline: true }],
-                        ... !primaryTimeZone ? [] : [{ name: 'Primary Time Zone', value: primaryTimeZone }],
+                        ... !primaryTimeZone ? [] : [{ name: 'Primary Time Zone', value: timeZoneFriendlyName(primaryTimeZone) }],
                         ... !daylightSavings ? [] : [{ name: 'DST Shift?', value: daylightSavings }]
                     ]
                 }
