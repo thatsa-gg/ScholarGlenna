@@ -5,7 +5,6 @@
     import { clickOutside } from "$lib/client/clickOutside";
     export let user: { avatar: string; name: string };
 
-    let avatar: HTMLImageElement | undefined = undefined;
     let menu: boolean = false;
 </script>
 
@@ -26,8 +25,6 @@
         <img
             src={user.avatar}
             alt={user.name}
-            width={avatar?.height}
-            bind:this={avatar}
         />
         <span class="username">{user.name}</span>
     </button>

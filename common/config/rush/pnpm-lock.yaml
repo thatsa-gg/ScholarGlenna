@@ -102,6 +102,7 @@ importers:
       '@glenna/discord': workspace:*
       '@glenna/prisma': workspace:*
       '@glenna/util': workspace:*
+      '@js-temporal/polyfill': ~0.4.4
       '@sveltejs/adapter-node': ^1.2.0
       '@sveltejs/kit': ^1.15.1
       '@trpc/client': 10.19.0
@@ -133,6 +134,7 @@ importers:
       '@glenna/discord': link:../../packages/discord
       '@glenna/prisma': link:../../packages/prisma
       '@glenna/util': link:../../packages/util
+      '@js-temporal/polyfill': 0.4.4
       dotenv: 16.0.3
       trpc-sveltekit: 3.5.4_67ikw7jmgmu54ekj6bvfee3epy
       uuid: 9.0.0
@@ -500,6 +502,14 @@ packages:
 
   /@js-temporal/polyfill/0.4.3:
     resolution: {integrity: sha512-6Fmjo/HlkyVCmJzAPnvtEWlcbQUSRhi8qlN9EtJA/wP7FqXsevLLrlojR44kzNzrRkpf7eDJ+z7b4xQD/Ycypw==}
+    engines: {node: '>=12'}
+    dependencies:
+      jsbi: 4.3.0
+      tslib: 2.5.0
+    dev: false
+
+  /@js-temporal/polyfill/0.4.4:
+    resolution: {integrity: sha512-2X6bvghJ/JAoZO52lbgyAPFj8uCflhTo2g7nkFzEQdXd/D8rEeD4HtmTEpmtGCva260fcd66YNXBOYdnmHqSOg==}
     engines: {node: '>=12'}
     dependencies:
       jsbi: 4.3.0

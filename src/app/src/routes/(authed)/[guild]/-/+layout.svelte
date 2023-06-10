@@ -10,6 +10,7 @@
 </svelte:head>
 
 <div>
+    {JSON.stringify(data.guild.statistics, null, 2)}
     <!-- region sigils in top right corner: (NA) (EU) -->
     <!-- N teams / M divisions / K unique raiders | X groups / Y members -->
     <!-- Description (collapsed if over certain length, with "more" button) -->
@@ -37,5 +38,10 @@
     }
     nav {
         grid-area: nav;
+    }
+
+    div, nav {
+        @apply bg-primary-600 shadow-md w-md;
+        @apply transition-width ease-linear;
     }
 </style>

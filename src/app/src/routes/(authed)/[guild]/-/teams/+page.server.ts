@@ -21,6 +21,7 @@ export const load: PageServerLoad = async ({ parent }) => {
             icon: true,
             region: true,
             type: true,
+            nextRunTimes: true,
             _count: {
                 select: {
                     members: true
@@ -30,16 +31,23 @@ export const load: PageServerLoad = async ({ parent }) => {
     })
     return {
         ...data,
-        teams: teams.map(team => ({
-            id: team.id,
-            name: team.name,
-            capacity: team.capacity,
-            members: team._count.members,
-            region: team.region,
-            focus: team.focus,
-            level: team.level,
-            type: team.type,
-            alias: team.alias,
+        teams: await Promise.all(teams.map(async team => {
+            const times = await team.nextRunTimes()
+            return {
+                id: team.id,
+                name: team.name,
+                capacity: team.capacity,
+                members: team._count.members,
+                region: team.region,
+                focus: team.focus,
+                level: team.level,
+                type: team.type,
+                alias: team.alias,
+                times: times.map(time => ({
+                    timestamp: time.time.epochMilliseconds,
+                    duration: time.duration.round({ largestUnit: 'hours' }).toString()
+                }))
+            }
         }))
     }
 }

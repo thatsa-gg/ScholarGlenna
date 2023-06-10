@@ -30,5 +30,7 @@
 <style lang="postcss">
     div {
         grid-area: branding;
+        @apply bg-primary-600 shadow-md rounded-md;
+        @apply w-40;
     }
 </style>
