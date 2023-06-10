@@ -1,4 +1,4 @@
-import { formatDuration, roundWeek } from '@glenna/util'
+import { formatDuration, roundWeek, timestampToFriendlyString } from '@glenna/util'
 import { Temporal, toTemporalInstant } from '@js-temporal/polyfill'
 import { Prisma, type TeamTime, type Team, type TeamType } from '../../generated/client/index.js'
 import type { AutocompleteInteraction } from '@glenna/discord'
@@ -169,7 +169,7 @@ export const teamExtension = Prisma.defineExtension((client) => client.$extends(
                 if(!team)
                     return []
                 return nextRunTimes(team, team.times).map(time => ({
-                    name: `(${time.index}) ${time.toString('plain')}`,
+                    name: `(${time.index}) ${timestampToFriendlyString(time.time.withTimeZone(team.primaryTimeZone))}`,
                     value: time.index
                 })).filter(t => t.name.includes(searchValue)).slice(0, 25)
             }

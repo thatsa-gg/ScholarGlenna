@@ -170,3 +170,59 @@ export function asArray<T>(a: MaybeArray<T>): [T, ...T[]] {
         return a
     return [ a ]
 }
+
+export const CommonTimeZones = {
+    'US Eastern': 'America/Detroit',
+    'US Central': 'America/Chicago',
+    'US Mountain': 'America/Mountain',
+    'US Pacific': 'America/Pacific',
+    'US Hawaii': 'Pacific/Honolulu',
+    'EU Central': 'Europe/Berlin',
+    'EU East': 'Europe/Athens',
+    'AU East': 'Australia/Sydney',
+    'AU Central': 'Australia/South',
+    'AU West': 'Australia/West',
+    'UTC': 'UTC'
+} as const
+
+type ReverseMap<T extends Record<keyof T, keyof any>> = {
+    [P in T[keyof T]]: {
+        [K in keyof T]: T[K] extends P ? K: never
+    }[keyof T]
+}
+export const TZDataTimeZones = Object.fromEntries(Object.entries(CommonTimeZones).map(([ key, value ]) => [ value, key ])) as ReverseMap<typeof CommonTimeZones>
+
+export function timeZoneFriendlyName(zone: string){
+    if(zone in TZDataTimeZones)
+        return TZDataTimeZones[zone as keyof typeof TZDataTimeZones]
+    return zone
+}
+
+export function timeZoneFromFriendlyName(zone: string){
+    if(zone in CommonTimeZones){
+        return CommonTimeZones[zone as keyof typeof CommonTimeZones]
+    }
+    return zone
+}
+
+export function timestampToFriendlyString(timestamp: Temporal.ZonedDateTime){
+    const day = [
+        'Sundays',
+        'Mondays',
+        'Tuesdays',
+        'Wednesdays',
+        'Thursdays',
+        'Fridays',
+        'Saturdays'
+    ][timestamp.dayOfWeek % 7]
+    const timeZone = timeZoneFriendlyName(timestamp.timeZone.toString())
+    const utc = timestamp.withTimeZone('UTC')
+    const utcDay = utc.round({ smallestUnit: 'day', roundingMode: 'floor' })
+    const reset = utc.since(utcDay)
+    const fraction = reset.hours + reset.minutes / 60.0
+
+    const today = timestamp.round({ smallestUnit: 'day', roundingMode: 'floor' })
+    if(Temporal.ZonedDateTime.compare(today, utcDay) < 0)
+        return `${day} R+${fraction} ${timeZone}`
+    return `${day} R-${24 - fraction} ${timeZone}`
+}

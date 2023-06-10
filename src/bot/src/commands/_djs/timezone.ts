@@ -3,7 +3,14 @@ import { z } from 'zod'
 
 import tzdata from 'tzdata' assert { type: "json" }
 import { Builders, Fetchers } from './_builder.js'
-const supportedZones = Object.keys(tzdata.zones)
+import { CommonTimeZones, timeZoneFromFriendlyName } from '@glenna/util'
+
+const supportedZones = Object.keys({
+    ...CommonTimeZones,
+    ...tzdata.zones
+})
+
+const commonTimeZones = Object.keys(CommonTimeZones)
 
 const Timezone = Symbol('djs-timezone')
 export function timezone(){
@@ -14,30 +21,19 @@ export function timezone(){
     return extend(handler, {
         type: Timezone,
         async autocomplete({ value }){
-
             const search = value.toLowerCase()
             const matching = supportedZones
                 .filter(zone => zone.toLowerCase().includes(search))
-                .map(zone => ({ name: zone, value: zone }))
-            const smaller = [
-                'America/Detroit',
-                'America/Chicago',
-                'America/Edmonton',
-                'America/Los Angeles',
-                'Europe/London',
-                'Europe/Berlin',
-                'Europe/Athens',
-                'Europe/Istanbul',
-                'Australia/Sydney',
-                'Australia/South',
-                'Australia/West',
-                'UTC',
-            ]
+                .map(zone => ({
+                    name: zone,
+                    value: timeZoneFromFriendlyName(zone)
+                }))
+
             if(matching.length > 25){
-                const smallerMatch = smaller.filter(z => z.toLowerCase().includes(search))
+                const smallerMatch = commonTimeZones.filter(z => z.toLowerCase().includes(search))
                 if(smallerMatch.length === 0)
-                    return smaller.map(name => ({ name, value: name }))
-                return smallerMatch.map(name => ({ name, value: name }))
+                    return commonTimeZones.map(name => ({ name, value: timeZoneFromFriendlyName(name) }))
+                return smallerMatch.map(name => ({ name, value: timeZoneFromFriendlyName(name) }))
             }
             return matching
         }

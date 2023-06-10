@@ -13,7 +13,7 @@ export const update = subcommand({
         team: djs.team().describe('The team to update times for.'),
         time: djs.autocomplete(djs.integer(), { autocomplete: AutocompleteTime }).describe('The time to update.'),
         duration: djs.number(15, 1440).nullable().describe('The new duration in minutes.'),
-        day: djs.nativeEnum(Days).nullable().describe('Day-of-week (in UTC).'),
+        day: djs.nativeEnum(Days).nullable().describe('Day-of-week (in the team\'s time zone).'),
         reset: djs.number(-24, 24).nullable().describe('Offset relative to daily reset (0:00 UTC).')
     },
     authorization: {
@@ -43,16 +43,27 @@ export const update = subcommand({
             }
         })
 
-        const now = Temporal.Now.zonedDateTimeISO('UTC')
-        const today = now.round({ smallestUnit: 'day', roundingMode: 'floor' })
+        const currentUTC = toTemporalInstant.apply(current.time).toZonedDateTimeISO('UTC')
+        const currentLocal = currentUTC.withTimeZone(team.primaryTimeZone)
+
+        const localNow = Temporal.Now.zonedDateTimeISO(team.primaryTimeZone)
+        const localDay = localNow.round({ smallestUnit: 'day', roundingMode: 'floor' })
+        const localTimeDay = localDay.subtract({ days: localDay.dayOfWeek }).add({ days: day ?? currentLocal.dayOfWeek })
+
+        const utcTimeDay = localTimeDay.withTimeZone('UTC').round({ smallestUnit: 'day', roundingMode: 'floor' })
+        const utcDay = Temporal.ZonedDateTime.compare(utcTimeDay, localTimeDay) < 0
+            ? utcTimeDay.add({ days: 1 })
+            : utcTimeDay
+
+        const utcTime = utcDay.add(null !== reset
+            ? Temporal.Duration.from({ minutes: (reset * 60)|0 }) // new reset
+            : currentUTC.since(currentUTC.round({ smallestUnit: 'day', roundingMode: 'floor' }))) // same time-of-day
+
         const time = await database.teamTime.update({
             where: { id: current.id },
             data: {
                 time: day !== null || reset !== null ?
-                    new Date(today.subtract({ days: today.dayOfWeek })
-                        .add({ days: day ?? toTemporalInstant.apply(current.time).toZonedDateTimeISO('UTC').dayOfWeek })
-                        .add(reset ? Temporal.Duration.from({ minutes: (reset * 60)|0 }) : now.since(today))
-                        .epochMilliseconds)
+                    new Date(utcTime.epochMilliseconds)
                     : undefined,
                 duration: duration ?? undefined
             },
