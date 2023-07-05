@@ -9,16 +9,16 @@
         "@glenna/prisma": "workspace:*",
         "@glenna/util": "workspace:*",
         "winston": "^3.8.2",
-        "zod": "^3.21.4",
+        "zod": "3.21.4",
         "papaparse": "~5.4.1",
         "@glenna/api": "workspace:*",
-        "@js-temporal/polyfill": "^0.4.3",
+        "@js-temporal/polyfill": "0.4.4",
         "tzdata": "~1.0.38"
     },
     "devDependencies": {
-        "@rushstack/heft": "^0.50.0",
-        "@types/node": "^18",
-        "typescript": "^5.0.3",
+        "@rushstack/heft": "0.50.0",
+        "@types/node": "20.3.3",
+        "typescript": "5.1.6",
         "@types/papaparse": "~5.3.7"
     },
     "scripts": {

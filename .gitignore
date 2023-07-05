@@ -4,6 +4,8 @@ node_modules/
 .pnpm-store/
 invite.url
 *.tsbuildinfo
+packages/*/temp
+src/*/temp
 .parcel-cache
 .rush
 

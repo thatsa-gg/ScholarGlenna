@@ -4,11 +4,11 @@
     "type": "module",
     "private": true,
     "dependencies": {
-        "prisma": "^4.12.0",
+        "prisma": "4.12.0",
         "@glenna/prisma": "workspace:*"
     },
     "devDependencies": {
-        "@rushstack/heft": "^0.50.0"
+        "@rushstack/heft": "0.50.0"
     },
     "scripts": {
         "build": "heft build --clean",

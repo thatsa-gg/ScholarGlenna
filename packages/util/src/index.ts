@@ -215,7 +215,7 @@ export function timestampToFriendlyString(timestamp: Temporal.ZonedDateTime){
         'Fridays',
         'Saturdays'
     ][timestamp.dayOfWeek % 7]
-    const timeZone = timeZoneFriendlyName(timestamp.timeZone.toString())
+    const timeZone = timeZoneFriendlyName(timestamp.timeZoneId)
     const utc = timestamp.withTimeZone('UTC')
     const utcDay = utc.round({ smallestUnit: 'day', roundingMode: 'floor' })
     const reset = utc.since(utcDay)
