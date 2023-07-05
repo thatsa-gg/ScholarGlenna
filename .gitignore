@@ -22,6 +22,7 @@ jspm_packages/
 .npm
 .eslintcache
 .node_repl_history
+/temp
 
 # Rush temporary files
 common/deploy/
