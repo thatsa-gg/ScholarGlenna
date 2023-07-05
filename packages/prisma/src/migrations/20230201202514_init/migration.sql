@@ -193,6 +193,7 @@ create type "guild"."teamdaylightsavings" as enum (
 create table "guild"."user" (
     "user_id" serial primary key not null,
     "snowflake" bigint unique not null, -- from Discord
+    "alias" text unique not null, -- pending removal upon Discord migrating all users to new username system
     "name" text not null,
     "icon" text
 );
@@ -263,6 +264,7 @@ create table "guild"."team" (
     "role" bigint,
     "channel" bigint,
     "icon" text,
+    "level_check_cutoff" timestamptz(3) not null default '1970-01-01 00:00:00+00',
 
     unique("guild_id", "alias")
 );

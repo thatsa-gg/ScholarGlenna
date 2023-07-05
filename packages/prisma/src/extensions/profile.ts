@@ -1,6 +1,6 @@
 import { Prisma } from '../../generated/client/index.js'
 import type { APIUser } from '@glenna/discord'
-import { safeUsername } from '../index.js'
+import { safeAlias, safeUsername } from '../index.js'
 
 export const profileExtension = Prisma.defineExtension(client => client.$extends({
     model: {
@@ -18,6 +18,7 @@ export const profileExtension = Prisma.defineExtension(client => client.$extends
                                 create: {
                                     snowflake,
                                     name: safeUsername(user),
+                                    alias: safeAlias(user),
                                     icon: user.avatar
                                 }
                             }
@@ -27,6 +28,7 @@ export const profileExtension = Prisma.defineExtension(client => client.$extends
                         user: {
                             update: {
                                 name: safeUsername(user),
+                                alias: safeAlias(user),
                                 icon: user.avatar,
                             }
                         }

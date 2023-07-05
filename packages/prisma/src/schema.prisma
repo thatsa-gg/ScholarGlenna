@@ -211,6 +211,7 @@ model User {
     snowflake BigInt @unique
     name String
     icon String?
+    alias String
 
     guildMemberships GuildMember[]
     accounts Account[]
@@ -405,6 +406,7 @@ model Team {
     capacity Int? @db.SmallInt @default(10)
     primaryTimeZone String @default("America/Detroit") @map("primary_time_zone")
     daylightSavings TeamDaylightSavings @default(RespectReset) @map("daylight_savings")
+    levelCheckCutoffDate DateTime @db.Timestamptz(3) @map("level_check_cutoff") @default(dbgenerated("'1970-01-01 00:00:00+00'"))
 
     role BigInt?
     channel BigInt?

@@ -1,7 +1,7 @@
 import { database } from '../util/database.js'
 import { debug } from '../util/logging.js'
 import { listener } from '../EventListener.js'
-import { safeUsername, type Prisma } from '@glenna/prisma'
+import { safeUsername, type Prisma, safeAlias } from '@glenna/prisma'
 
 export const guildMemberUpdateListener = listener('guildMemberUpdate', {
     async execute(oldMember, newMember){
@@ -59,6 +59,7 @@ export const guildMemberUpdateListener = listener('guildMemberUpdate', {
                 data: {
                     snowflake,
                     name: safeUsername(newMember.user),
+                    alias: safeAlias(newMember.user),
                     icon: newMember.user.avatar,
                 },
                 select: {

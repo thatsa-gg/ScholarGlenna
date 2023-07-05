@@ -18,10 +18,24 @@
     }
 
     body {
-        @apply w-full min-h-full
+        @apply w-full min-h-full;
+
+        /* so drawers don't introduce a weird slide when removing the scrollbar */
     }
 
     *, *::after, *::before {
-        box-sizing: border-box;
+        @apply box-border fill-current;
     }
+}
+
+.scroll-w-auto {
+    scrollbar-width: auto;
+}
+
+.scroll-w-thin {
+    scrollbar-width: thin;
+}
+
+.scroll-w-none {
+    scrollbar-width: none;
 }

@@ -1,15 +1,12 @@
-import { redirect, type RequestHandler } from '@sveltejs/kit'
-import { OAuth2Routes, OAuth2Scopes } from '@glenna/discord'
-import { SSO_RETURN_URI, OAUTH_CLIENT_ID } from '$lib/server'
+import type { RequestHandler } from '@sveltejs/kit'
+import { redirectAuth } from '$lib/server/auth'
+import { z } from 'zod'
 
-export const GET: RequestHandler = async() => {
-    const params = new URLSearchParams()
-    params.append(`client_id`, OAUTH_CLIENT_ID)
-    params.append(`redirect_uri`, SSO_RETURN_URI)
-    params.append(`response_type`, `code`)
-    params.append(`scope`, [
-        OAuth2Scopes.Identify,
-        OAuth2Scopes.Guilds
-    ].join(" "))
-    throw redirect(302, `${OAuth2Routes.authorizationURL}?${params}`)
-}
+const validateUrl = z.string().regex(/\/.*/).catch(`/-/dashboard`).default(`/-/dashboard`)
+
+// used when people try to log in
+// redirect_uri is an optional parameter to send people back where they came from
+// (default is the dashboard)
+export const GET = (async ({ url }) => {
+    throw await redirectAuth(validateUrl.parse(url.searchParams.get('redirect_uri')))
+}) satisfies RequestHandler

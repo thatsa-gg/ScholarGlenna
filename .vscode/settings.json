@@ -22,6 +22,16 @@
         "**/.svn/**",
         "packages/**"
     ],
+    "tailwindCSS.classAttributes": [
+        "class",
+        "className",
+        "spanClass",
+        "divClass",
+        "hoverClass",
+        "backgroundClass",
+        "backdropClass",
+        "ngClass"
+    ],
     "editor.quickSuggestions": {
         "other": "on",
         "comments": "off",

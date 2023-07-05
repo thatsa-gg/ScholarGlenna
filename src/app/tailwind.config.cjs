@@ -1,3 +1,7 @@
+// Plugins
+const flowbite = require('flowbite/plugin')
+
+// Settings
 const defaultTheme = require('tailwindcss/defaultTheme')
 const defaultColors = require('tailwindcss/colors')
 const palettes = require('./colors/palettes.json')
@@ -12,11 +16,17 @@ const breaks = Object.entries({
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-    content: ['./src/**/*.{html,svelte,js,ts}'],
+    content: [
+        './src/**/*.{html,svelte,js,ts}',
+        './node_modules/flowbite-svelte/**/*.{html,svelte,js,ts}',
+    ],
+    plugins: [
+        flowbite
+    ],
     theme: {
-        screens: Object.fromEntries(breaks.map(([k, max]) => [ k, { max } ])),
+        //screens: Object.fromEntries(breaks.map(([k, max]) => [ k, { max } ])),
         extend: {
-            width: Object.fromEntries(breaks),
+            //width: Object.fromEntries(breaks),
             transitionProperty: {
                 width: 'width'
             },
@@ -26,11 +36,23 @@ module.exports = {
             zIndex: {
                 max: 1000,
                 header: 200
+            },
+            padding: {
+                'sm': '0.125rem',
+                'md': '0.375rem',
+                'lg': '0.5rem',
+                'xl': '0.75rem',
+                '2xl': '1rem',
+                '3xl': '1.5rem',
             }
         },
         colors: Object.assign({}, defaultColors, ...palettes.map(palette => ({
             [palette.paletteName]: Object.fromEntries(palette.swatches.map(({ name, color }) => [ name, `#${color}` ]))
-        }))),
+        }), {
+            header: {
+                DEFAULT: '#010409'
+            }
+        })),
         boxShadow: {
             'b-sm': '0 1px 0 rgb(2 2 2 / 0.2), 0 2px 0 rgb(5 5 5 / 0.05), 0 2px 0 rgb(2 2 2 / 0.05)',
             'b-md': '0 2px 0 rgb(2 2 2 / 0.2), 0 4px 0 rgb(5 5 5 / 0.05), 0 4px 0 rgb(2 2 2 / 0.05)',

@@ -1,13 +1,20 @@
-import { SSO_RETURN_URI } from './index'
+import {
+    cache,
+    OAUTH_CLIENT_ID,
+    SSO_RETURN_URI,
+} from './index'
 import { env } from '$env/dynamic/private'
 import {
     RouteBases,
     Routes,
+    OAuth2Routes,
     OAuth2Scopes,
     type RESTPostOAuth2RefreshTokenResult,
     type RESTPostOAuth2AccessTokenResult,
 } from '@glenna/discord'
 import { z } from 'zod'
+import { redirect } from '@sveltejs/kit'
+import { v4 as uuid } from 'uuid'
 
 const authorizationScopes = [
     OAuth2Scopes.Identify,
@@ -40,7 +47,7 @@ const RefreshToken = z.object({
     expires_in: z.number()
 })
 
-export async function authorizeUser(oauth2Code: string): Promise<Authorization> {
+export async function authorizeUser(oauth2Code: string, state: string): Promise<Authorization> {
     const response = await fetch(`${RouteBases.api}${Routes.oauth2TokenExchange()}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -78,4 +85,33 @@ export async function reauthorizeUser(refreshToken: string): Promise<Authorizati
         refreshToken: result.refresh_token || refreshToken,
         expiresIn: result.expires_in
     }
+}
+
+async function newState(){
+    let id = uuid()
+    while(await cache.client.exists(`oauth2state:${id}`))
+        id = uuid()
+    return id
+}
+
+function maybeUrlToString(url: string | URL){
+    if(typeof url === 'string')
+        return url
+    return `${url.pathname}${url.search}`
+}
+
+export async function redirectAuth(url: string | URL){
+    const state = await newState()
+    await cache.client.set(`oauth2state:${state}`, maybeUrlToString(url), "EX", 10 * 60) // 10 minutes
+
+    const params = new URLSearchParams()
+    params.append(`client_id`, OAUTH_CLIENT_ID)
+    params.append(`redirect_uri`, SSO_RETURN_URI)
+    params.append(`response_type`, `code`)
+    params.append(`scope`, [
+        OAuth2Scopes.Identify,
+        OAuth2Scopes.Guilds
+    ].join(" "))
+    params.append(`state`, state)
+    return redirect(302, `${OAuth2Routes.authorizationURL}?${params}`)
 }

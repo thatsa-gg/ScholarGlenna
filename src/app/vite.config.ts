@@ -13,7 +13,8 @@ export default defineConfig({
             '@glenna/util',
         ],
         noExternal: [
-            '@fortawesome/*'
+            '@fortawesome/*',
+            'svelte-octicons',
         ]
     },
     server: {

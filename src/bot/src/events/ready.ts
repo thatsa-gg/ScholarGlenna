@@ -4,7 +4,7 @@ import { sendWelcomeMessage } from '../util/guild.js'
 import { listener } from '../EventListener.js'
 import { DISCORD_TOKEN, OAUTH_CLIENT_ID } from '../config.js'
 import { registerCommands } from '../commands/index.js'
-import type { Prisma } from '@glenna/prisma'
+import { safeAlias, type Prisma, safeUsername } from '@glenna/prisma'
 import { DiscordAPIError, Role } from '@glenna/discord'
 
 function isUserOrMemberNotFoundError(e: any): e is (DiscordAPIError & { code: 10013 | 10007 }) {
@@ -77,6 +77,7 @@ export const readyListener = listener('ready', {
                             select: {
                                 snowflake: true,
                                 name: true,
+                                alias: true,
                                 icon: true
                             }
                         },
@@ -154,9 +155,12 @@ export const readyListener = listener('ready', {
                         data.icon = guildMember.avatar
                     if(guildMember.nickname !== member.name)
                         data.name = guildMember.nickname
-                    const realUserName = guildMember.user.discriminator === "0" ? guildMember.user.username : `${guildMember.user.username}#${guildMember.user.discriminator}`
+                    const realUserName = safeUsername(guildMember.user)
                     if(realUserName !== member.user.name)
                         user.name = realUserName
+                    const realAlias = safeAlias(guildMember.user)
+                    if(realAlias !== member.user.alias)
+                        user.alias = realAlias
                     if(guildMember.user.avatar !== member.user.icon)
                         user.icon = guildMember.user.avatar
                     if(Object.keys(user).length > 0)

@@ -130,3 +130,9 @@ export function safeUsername(user: User | APIUser){
         return user.username
     return `${user.username}#${user.discriminator}`
 }
+
+export function safeAlias(user: User | APIUser){
+    if(user.discriminator === "0")
+        return user.username
+    return BigInt(user.id).toString(16)
+}

@@ -1,6 +1,6 @@
 import { type Guild, Prisma } from '../../generated/client/index.js'
 import type { GuildMember } from '@glenna/discord'
-import { safeUsername } from '../index.js'
+import { safeAlias, safeUsername } from '../index.js'
 
 export const guildMemberExtension = Prisma.defineExtension((client) => client.$extends({
     model: {
@@ -21,6 +21,7 @@ export const guildMemberExtension = Prisma.defineExtension((client) => client.$e
                                 create: {
                                     snowflake,
                                     name: safeUsername(member.user),
+                                    alias: safeAlias(member.user),
                                     icon: member.user.avatar,
                                 }
                             }

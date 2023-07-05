@@ -3,6 +3,10 @@
 declare namespace App {
     interface PageData {
         title?: string
+        context?: {
+            name: string,
+            href: string
+        }[]
     }
 }
 
