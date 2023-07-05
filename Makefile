@@ -65,7 +65,8 @@ $(DELEGATE_BOT):
 
 .PHONY: prepare-dev-environment inject-make-function docker-login
 prepare-dev-environment:
-	npm install -g @microsoft/rush
+	npm install -g npm@9.7
+	npm install -g @microsoft/rush@5.100
 
 inject-make-function:
 	[ -f ~/.bash_aliases ] && grep 'make() (' ~/.bash_aliases >/dev/null || cat .devcontainer/.bash_aliases >> ~/.bash_aliases
