@@ -15,11 +15,11 @@
     {#if href}
         <a {href} class={classList} title={label} aria-label={label}>
             {#if $$slots.leader}
-                <span class="leader mr-2" aria-hidden="true"><slot name="leader"/></span>
+                <span class="leader" aria-hidden="true"><slot name="leader"/></span>
             {/if}
             <span class={["content", spanClass].filter(a => a).join(" ")}><slot /></span>
             {#if $$slots.trailer}
-                <span class="trailer ml-2" aria-hidden="true"><slot name="trailer"/></span>
+                <span class="trailer" aria-hidden="true"><slot name="trailer"/></span>
             {/if}
         </a>
     {:else}
@@ -33,7 +33,8 @@
     a, button {
         @apply grid no-underline px-md py-sm rounded-md items-center;
         grid-template: "leader content trailer" min-content /
-                        min-content minmax(0, auto) min-content;
+                        minmax(1rem, auto) minmax(0, auto) min-content;
+        gap: 0.5rem;
     }
     span {
         @apply overflow-hidden text-ellipsis whitespace-nowrap;
