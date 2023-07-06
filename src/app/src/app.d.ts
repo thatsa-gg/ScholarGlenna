@@ -1,5 +1,6 @@
 /// <reference types="@sveltejs/kit" />
 
+import type { load } from './routes/@[user]/+layout.server'
 declare namespace App {
     interface PageData {
         title?: string
@@ -7,6 +8,8 @@ declare namespace App {
             name: string,
             href: string
         }[]
+        params?:
+            Awaited<ReturnType<typeof load>>['params']
     }
 }
 

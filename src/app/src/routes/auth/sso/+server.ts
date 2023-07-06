@@ -8,5 +8,5 @@ const validateUrl = z.string().regex(/\/.*/).catch(`/-/dashboard`).default(`/-/d
 // redirect_uri is an optional parameter to send people back where they came from
 // (default is the dashboard)
 export const GET = (async ({ url }) => {
-    throw await redirectAuth(validateUrl.parse(url.searchParams.get('redirect_uri')))
+    throw await redirectAuth(validateUrl.parse(decodeURIComponent(url.searchParams.get('redirect_uri') ?? "")))
 }) satisfies RequestHandler

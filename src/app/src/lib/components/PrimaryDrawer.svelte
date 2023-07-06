@@ -29,7 +29,7 @@
             <X16 />
         </Button>
     </div>
-    <ScrollPane scrollStyle="thin" class="flex-grow">
+    <ScrollPane scrollStyle="auto" class="flex-grow">
         <nav>
             <ul class="p-4">
                 {#if user}

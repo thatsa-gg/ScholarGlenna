@@ -1,15 +1,27 @@
 import type { LayoutServerLoad } from "./$types"
-import UserLocalHeader from "./UserLocalHeader.svelte"
+import { database } from "$lib/server"
+import { error } from "@sveltejs/kit"
 
-export const load = (async ({ parent }) => {
+export const load = (async ({ parent, params }) => {
+    const user = await database.user.findUnique({
+        where: { alias: params.user },
+        select: {
+            name: true,
+            alias: true,
+        }
+    })
+
+    if(!user)
+        throw error(404)
+
     const data = await parent()
     return {
         ...data,
-        _components: {
-            localHeader: [
-                UserLocalHeader,
-                {}
-            ]
+        params: {
+            user: {
+                name: user.name,
+                alias: user.alias
+            }
         }
     }
 }) satisfies LayoutServerLoad

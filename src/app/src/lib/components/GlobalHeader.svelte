@@ -17,15 +17,13 @@
 </script>
 
 <PrimaryDrawer bind:this={primaryDrawer} {user} />
-{#if user}
-    <UserDrawer bind:this={userDrawer} {user} />
-{/if}
+<UserDrawer bind:this={userDrawer} {user} />
 
-<div class="flex flex-row p-4 pb-2 gap-2">
+<div class="flex flex-row p-4 gap-2 pb-2 last:pb-2">
     <div class="flex flex-row flex-auto gap-2">
         <Button
             hoverClass={false}
-            class="border border-primary-500 hover:border-primary-50 transition-colors duration-100"
+            class="border border-primary-500 hover:border-primary-50 transition-colors duration-100 mr-2"
             on:click={primaryDrawer.open}
         >
             <ThreeBars16 />

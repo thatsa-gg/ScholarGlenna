@@ -11,10 +11,10 @@
     <title>{"Scholar Glenna"}</title>
 </svelte:head>
 
-<header class="pb-2 bg-primary-900">
+<header class="bg-primary-900">
     <GlobalHeader user={data.user} />
     {#if $page.data?._components?.localHeader}
-        <svelte:component this={$page.data._components.localHeader[0]} {...$page.data._components.localHeader[1]} {...data} />
+        <svelte:component this={$page.data._components.localHeader[0]} {...$page.data._components.localHeader[1]} />
     {/if}
 </header>
 

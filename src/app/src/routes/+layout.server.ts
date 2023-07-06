@@ -87,6 +87,7 @@ export const load = (async ({ cookies }) => {
         user: {
             id: profile.user.id,
             name: profile.user.name,
+            alias: profile.user.alias,
             avatar: profile.user.avatar,
             guilds: profile.user.guildMemberships.map(membership => ({
                 alias: membership.guild.alias,
