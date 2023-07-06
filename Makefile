@@ -71,5 +71,11 @@ prepare-dev-environment:
 inject-make-function:
 	[ -f ~/.bash_aliases ] && grep 'make() (' ~/.bash_aliases >/dev/null || cat .devcontainer/.bash_aliases >> ~/.bash_aliases
 
+config.env:
+	echo "Discord token file not found!"
+	./.devcontainer/initialize-config >> config.env
+
+	echo "Restart your terminal to load the configuration."
+
 docker-login:
 	docker login $(DOCKER_REGISTRY)

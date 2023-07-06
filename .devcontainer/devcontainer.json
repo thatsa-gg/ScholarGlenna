@@ -34,5 +34,5 @@
             "packages": "make,redis-tools,postgresql-client"
         }
     },
-    "postCreateCommand": "make prepare-dev-environment inject-make-function"
+    "postCreateCommand": "make prepare-dev-environment inject-make-function config.env"
 }

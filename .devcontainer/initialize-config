@@ -1,0 +1,13 @@
+#!/bin/bash
+grep -qxF 'export $(grep -v "^#" /workspace/config.env | xargs)' ~/.bashrc || echo 'export $(grep -v "^#" /workspace/config.env | xargs)' >> ~/.bashrc
+
+printf "DISCORD_TOKEN=" >&2
+read -s DISCORD_TOKEN
+printf "\nOAUTH_CLIENT_ID=" >&2
+read -s OAUTH_CLIENT_ID
+printf "\nOAUTH_CLIENT_SECRET=" >&2
+read -s OAUTH_CLIENT_SECRET
+printf "\n" >&2
+echo "DISCORD_TOKEN=${DISCORD_TOKEN}"
+echo "OAUTH_CLIENT_ID=${OAUTH_CLIENT_ID}"
+echo "OAUTH_CLIENT_SECRET=${OAUTH_CLIENT_SECRET}"

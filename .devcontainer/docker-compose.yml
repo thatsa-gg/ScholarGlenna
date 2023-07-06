@@ -5,7 +5,6 @@ services:
         image: mcr.microsoft.com/devcontainers/base:bullseye
         env_file:
             - development.env
-            - ../config.env
         volumes:
             - /var/run/docker.sock:/var/run/docker-host.sock
             - ..:/workspace:cached
