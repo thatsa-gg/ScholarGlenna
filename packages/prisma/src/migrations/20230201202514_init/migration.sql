@@ -189,6 +189,14 @@ create type "guild"."teamdaylightsavings" as enum (
     'respect_reset'
 );
 
+-- CreateEnum
+create type "app"."visibility" as enum (
+    'public',
+    'same_guild',
+    'same_team',
+    'private'
+);
+
 -- CreateTable
 create table "guild"."user" (
     "user_id" serial primary key not null,

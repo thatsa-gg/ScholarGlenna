@@ -211,7 +211,7 @@ model User {
     snowflake BigInt @unique
     name String
     icon String?
-    alias String
+    alias String @unique
 
     guildMemberships GuildMember[]
     accounts Account[]
@@ -760,6 +760,16 @@ model TeamPermission {
 //                                   APP                                      //
 // ========================================================================== //
 
+enum Visibility {
+    Public @map("public")
+    SameGuild @map("same_guild")
+    SameTeam @map("same_team")
+    Private @map("private")
+
+    @@map("visibility")
+    @@schema("app")
+}
+
 model Profile {
     id Int @id @default(autoincrement()) @map("profile_id")
     snowflake BigInt @unique // same as user.snowflake, to ease lookups and handling
@@ -768,6 +778,8 @@ model Profile {
     user User @relation(fields: [userId], references: [id], onDelete: Cascade)
     builds PlayerBuild[]
     experience PlayerExperience?
+
+    visibility Visibility @default(Private)
     @@schema("app")
     @@map("profile")
 }

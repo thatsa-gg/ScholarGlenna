@@ -30,6 +30,21 @@ function resolveUserId(id: UserId): bigint | number | null {
     }
 }
 
+function asLookup(id: NonNullable<UserId>): { id: number } | { snowflake: bigint } {
+    switch(typeof id){
+        case 'bigint': return { snowflake: id }
+        case 'string': return { snowflake: BigInt(id) }
+        case 'number': return { id }
+        default:
+            if('id' in id){
+                if(typeof id.id === 'string')
+                    return { snowflake: BigInt(id.id) }
+                return { id: id.id }
+            }
+            return { snowflake: BigInt(id.snowflake) }
+    }
+}
+
 export function permissionFragment(user: UserId): Prisma.RoleWhereInput {
     const id = resolveUserId(user)
     if(null === id)
@@ -85,6 +100,69 @@ export const authorizationExtension = Prisma.defineExtension(client => client.$e
                                 AND: Object.assign({}, ...permission.map(p => ({ [p]: fragment })))
                             }
                         })
+                    }
+                }
+            }
+        },
+        profile: {
+            isVisible: {
+                needs: { id: true, visibility: true },
+                compute({ id: profileId, visibility }){
+                    return async function check(user: UserId): Promise<boolean> {
+                        if(visibility === 'Public')
+                            return true
+                        if(user === null || user === undefined)
+                            return false
+                        if(visibility === 'SameGuild')
+                            return 0 < await client.user.count({
+                                where: {
+                                    ...asLookup(user),
+                                    guildMemberships: { some: { guild: { members: { some: { user: { profile: { id: profileId }}}}}}}
+                                }
+                            })
+                        if(visibility === 'SameTeam')
+                            return 0 < await client.user.count({
+                                where: {
+                                    ...asLookup(user),
+                                    OR: [
+                                        // on the same team
+                                        { teamMemberRoles: { some: { teamMember: { team: { members: { some: { member: { user: { profile: { id: profileId }}}}}}}}}},
+                                        {
+                                            guildMemberships: {
+                                                some: {
+                                                    guild: {
+                                                        // is a manager and in the same guild
+                                                        permission: { managers: { members: { some: { user: asLookup(user) }}}},
+                                                        members: { some: { user: { profile: { id: profileId }}}}
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            })
+                        if(visibility === 'Private')
+                            return 0 < await client.user.count({
+                                where: {
+                                    ...asLookup(user),
+                                    OR: [
+                                        // is self
+                                        { profile: { id: profileId } },
+                                        {
+                                            guildMemberships: {
+                                                some: {
+                                                    guild: {
+                                                        // is a manager and in the same guild
+                                                        permission: { managers: { members: { some: { user: asLookup(user) }}}},
+                                                        members: { some: { user: { profile: { id: profileId }}}}
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            })
+                        return false
                     }
                 }
             }
