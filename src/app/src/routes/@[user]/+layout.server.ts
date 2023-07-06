@@ -33,6 +33,9 @@ export const load = (async ({ parent, params }) => {
 
     return {
         ...data,
+        context: [
+            { name: user.name, href: `/@${user.alias}` }
+        ],
         params: {
             user: {
                 name: user.name,
