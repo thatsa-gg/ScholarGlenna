@@ -19,7 +19,7 @@
 <PrimaryDrawer bind:this={primaryDrawer} {user} />
 <UserDrawer bind:this={userDrawer} {user} />
 
-<div class="flex flex-row p-4 gap-2 pb-2 last:pb-2">
+<div class="flex flex-row p-4 gap-2 pb-2 last:pb-4">
     <div class="flex flex-row flex-auto gap-2">
         <Button
             hoverClass={false}

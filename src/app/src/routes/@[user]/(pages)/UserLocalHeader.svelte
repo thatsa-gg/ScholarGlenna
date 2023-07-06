@@ -5,7 +5,7 @@
     import { page } from "$app/stores"
 
     export let user: NonNullable<LayoutServerData['params']['user']>
-    const path = $page.url.pathname
+    $: path = $page.url.pathname
 </script>
 
 <LocalHeader label="User">

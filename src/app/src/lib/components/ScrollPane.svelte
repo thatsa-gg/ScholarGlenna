@@ -3,7 +3,7 @@
 </script>
 
 <div class={["flex flex-col h-0", $$restProps.class].filter(a => a).join(" ")}>
-    <div class={`flex-auto overflow-y-scroll scroll-w-${scrollStyle}`}>
+    <div class={`flex-auto overflow-y-auto scroll-w-${scrollStyle}`}>
         <slot />
     </div>
 </div>

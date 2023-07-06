@@ -3,6 +3,7 @@
 </script>
 <script lang="ts">
     import { onMount } from 'svelte';
+    import { beforeNavigate } from '$app/navigation';
     import { clickOutside } from "$lib/client/clickOutside";
 
     export let id: string
@@ -62,6 +63,8 @@
             }
         }
     }
+
+    beforeNavigate(() => visible = false)
 </script>
 
 {#if visible}
