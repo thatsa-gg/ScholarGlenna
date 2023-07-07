@@ -37,8 +37,8 @@
                     <DrawerButton href={`/@${user.alias}/logs`}><Log16 slot="leader" /> Your Logs</DrawerButton>
                     <DrawerDivider />
                     <DrawerButton href={`/@${user.alias}/settings`}><Gear16 slot="leader" /> Account Settings</DrawerButton>
-                    <DrawerButton href={`/@${user.alias}/accounts`}><Key16 slot="leader" /> Accounts &amp; API Keys</DrawerButton>
-                    <DrawerButton href={`/@${user.alias}/builds`}><Tools16 slot="leader" /> Builds</DrawerButton>
+                    <DrawerButton href={`/@${user.alias}/settings/builds`}><Tools16 slot="leader" /> Builds</DrawerButton>
+                    <DrawerButton href={`/@${user.alias}/settings/accounts`}><Key16 slot="leader" /> Accounts &amp; API Keys</DrawerButton>
                 </ul>
             </nav>
         </ScrollPane>

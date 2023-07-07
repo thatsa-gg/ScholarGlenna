@@ -5,7 +5,7 @@
 
 <li class:active>
     <a {href}>
-        <slot name="leader" />
+        <span class="leader"><slot name="leader" /></span>
         <span><slot /></span>
     </a>
 </li>
@@ -13,7 +13,7 @@
 <style lang="postcss">
     a {
         @apply flex flex-row;
-        @apply no-underline px-md py-sm rounded-md items-center relative;
+        @apply no-underline px-xl py-sm rounded-md items-center relative;
         @apply hover:bg-primary-500;
         gap: 0.5rem;
         line-height: 30px;
@@ -39,5 +39,9 @@
                 content: "";
             }
         }
+    }
+
+    span.leader {
+        @apply text-primary-100;
     }
 </style>

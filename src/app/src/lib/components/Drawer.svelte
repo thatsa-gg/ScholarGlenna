@@ -54,7 +54,7 @@
 
             // prevent the body from scrolling and padding to make up
             // for the lost width.
-            if(visible){
+            if(visible && body.scrollHeight > window.innerHeight){
                 body.style.paddingRight = `${scrollbarWidth}px`;
                 body.style.overflow = "hidden";
             } else {
