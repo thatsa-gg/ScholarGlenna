@@ -4,7 +4,7 @@
     "type": "module",
     "private": true,
     "dependencies": {
-        "prisma": "4.12.0",
+        "prisma": "4.16.2",
         "@glenna/prisma": "workspace:*"
     },
     "devDependencies": {
