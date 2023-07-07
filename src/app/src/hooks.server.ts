@@ -1,9 +1,7 @@
 import type { Handle } from '@sveltejs/kit'
-import { createTRPCHandle } from 'trpc-sveltekit'
-import { router } from '@glenna/api'
+import { getUserSessionData } from '$lib/server/user'
 
-// see also: routes/api/trpc/README.md
-export const handle: Handle = createTRPCHandle({
-    url: '/api/trpc',
-    router,
-})
+export const handle = (async ({ event, resolve }) => {
+    event.locals.session = await getUserSessionData(event.cookies.get('session_id'))
+    return await resolve(event)
+}) satisfies Handle

@@ -1,74 +1,63 @@
-import { getSession } from '$lib/server/session'
 import { database, profilePermission } from '$lib/server'
 import { redirect } from '@sveltejs/kit'
 import type { LayoutServerLoad } from './$types'
 
 export const prerender = false
-export const load = (async ({ cookies }) => {
-    const sessionID = cookies.get('session_id')
-    if(!sessionID)
+export const load = (async ({ locals }) => {
+    const { session } = locals
+    if(!session)
         return { user: null }
 
-    const session = await getSession(sessionID)
-    if(!session)
-        throw redirect(303, '/auth/signout')
-
-    const profile = await database.profile.findUnique({
-        where: { id: session.profileId },
+    const user = await database.user.findUnique({
+        where: { id: session.user.id },
         select: {
-            id: true,
-            user: {
+            name: true,
+            alias: true,
+            avatar: true,
+            guildMemberships: {
+                where: {
+                    guild: {
+                        lostRemoteReferenceAt: null,
+                        permission: {
+                            read: profilePermission(session.user)
+                        }
+                    }
+                },
+                orderBy: {
+                    guild: {
+                        name: 'asc'
+                    }
+                },
                 select: {
-                    id: true,
-                    name: true,
-                    alias: true,
-                    avatar: true,
-                    guildMemberships: {
+                    guild: {
+                        select: {
+                            alias: true,
+                            name: true,
+                            isAuthorized: true,
+                            inviteURL: true,
+                            statistics: true,
+                        }
+                    },
+                    teamMemberships: {
                         where: {
-                            guild: {
-                                lostRemoteReferenceAt: null,
+                            team: {
                                 permission: {
-                                    read: profilePermission(session)
+                                    read: profilePermission(session.user)
                                 }
                             }
                         },
                         orderBy: {
-                            guild: {
+                            team: {
                                 name: 'asc'
                             }
                         },
                         select: {
-                            guild: {
+                            role: true,
+                            team: {
                                 select: {
                                     alias: true,
                                     name: true,
-                                    isAuthorized: true,
-                                    inviteURL: true,
-                                    statistics: true,
-                                }
-                            },
-                            teamMemberships: {
-                                where: {
-                                    team: {
-                                        permission: {
-                                            read: profilePermission(session)
-                                        }
-                                    }
-                                },
-                                orderBy: {
-                                    team: {
-                                        name: 'asc'
-                                    }
-                                },
-                                select: {
-                                    role: true,
-                                    team: {
-                                        select: {
-                                            alias: true,
-                                            name: true,
-                                            icon: true,
-                                        }
-                                    }
+                                    icon: true,
                                 }
                             }
                         }
@@ -77,7 +66,8 @@ export const load = (async ({ cookies }) => {
             }
         }
     })
-    if(!profile)
+
+    if(!user)
         throw redirect(303, '/auth/signout')
 
     // manual copy done here to avoid "Symbol(nodejs.util.inspect.custom)"
@@ -85,11 +75,10 @@ export const load = (async ({ cookies }) => {
     // Vite doesn't know how to serialize those
     return {
         user: {
-            id: profile.user.id,
-            name: profile.user.name,
-            alias: profile.user.alias,
-            avatar: profile.user.avatar,
-            guilds: profile.user.guildMemberships.map(membership => ({
+            name: user.name,
+            alias: user.alias,
+            avatar: user.avatar,
+            guilds: user.guildMemberships.map(membership => ({
                 alias: membership.guild.alias,
                 name: membership.guild.name,
                 inviteURL: membership.guild.inviteURL,

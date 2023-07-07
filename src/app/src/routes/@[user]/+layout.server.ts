@@ -2,7 +2,7 @@ import type { LayoutServerLoad } from "./$types"
 import { database } from "$lib/server"
 import { error } from "@sveltejs/kit"
 
-export const load = (async ({ parent, params }) => {
+export const load = (async ({ parent, params, locals }) => {
     const user = await database.user.findUnique({
         where: {
             alias: params.user,
@@ -25,12 +25,11 @@ export const load = (async ({ parent, params }) => {
     if(!user)
         throw error(404)
 
-    const data = await parent()
-
     // this returns 404 so people can't figure out which users are on the platform so easily
-    if(!user.profile!.isVisible(data.user))
-        return error(404)
+    if(!await user.profile!.isVisible(locals.session?.user))
+        throw error(404)
 
+    const data = await parent()
     return {
         ...data,
         context: [
