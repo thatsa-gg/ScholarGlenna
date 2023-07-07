@@ -3,6 +3,14 @@
         "paletteName": "primary",
         "swatches": [
             {
+                "name": "1100",
+                "color": "010409"
+            },
+            {
+                "name": "1000",
+                "color": "090A0E"
+            },
+            {
                 "name": "950",
                 "color": "121214"
             },
@@ -13,6 +21,10 @@
             {
                 "name": "800",
                 "color": "1E1F22"
+            },
+            {
+                "name": "750",
+                "color": "222327"
             },
             {
                 "name": "700",
