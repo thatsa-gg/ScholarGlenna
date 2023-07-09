@@ -117,7 +117,10 @@ export const authorizationExtension = Prisma.defineExtension(client => client.$e
                             return 0 < await client.user.count({
                                 where: {
                                     ...asLookup(user),
-                                    guildMemberships: { some: { guild: { members: { some: { user: { profile: { id: profileId }}}}}}}
+                                    OR: [
+                                        { guildMemberships: { some: { guild: { members: { some: { user: { profile: { id: profileId }}}}}}}},
+                                        { roles: { some: { role: { type: 'SuperUser' }}}}, // SuperUsers can always see everything
+                                    ]
                                 }
                             })
                         if(visibility === 'SameTeam')
@@ -137,7 +140,8 @@ export const authorizationExtension = Prisma.defineExtension(client => client.$e
                                                     }
                                                 }
                                             }
-                                        }
+                                        },
+                                        { roles: { some: { role: { type: 'SuperUser' }}}}, // SuperUsers can always see everything
                                     ]
                                 }
                             })
@@ -158,7 +162,8 @@ export const authorizationExtension = Prisma.defineExtension(client => client.$e
                                                     }
                                                 }
                                             }
-                                        }
+                                        },
+                                        { roles: { some: { role: { type: 'SuperUser' }}}}, // SuperUsers can always see everything
                                     ]
                                 }
                             })
