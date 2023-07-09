@@ -4,8 +4,8 @@
     import BrandingLogo from './BrandingLogo.svelte';
     import DiscordLogin from './DiscordLogin.svelte';
     import { ThreeBars16 } from 'svelte-octicons';
-    import PrimaryDrawer from './PrimaryDrawer.svelte';
-    import UserDrawer from './UserDrawer.svelte';
+    import PrimaryDrawer from './drawers/PrimaryDrawer.svelte';
+    import UserDrawer from './drawers/UserDrawer.svelte';
     import UserIcon from './UserIcon.svelte';
     import type { LayoutServerData } from './../../routes/$types';
     export let user: LayoutServerData['user'];

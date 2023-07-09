@@ -1,5 +1,5 @@
 import type { LayoutLoad } from "./$types"
-import UserLocalHeader from "./UserLocalHeader.svelte"
+import UserLocalHeader from "$lib/components/headers/UserLocalHeader.svelte"
 
 export const load = (async ({ parent }) => {
     const data = await parent()
@@ -9,7 +9,8 @@ export const load = (async ({ parent }) => {
             localHeader: [
                 UserLocalHeader,
                 {
-                    user: data.params.user
+                    profile: data.params.profile,
+                    ownProfile: data.params.profile.alias === data.params.currentUser.alias
                 }
             ]
         }

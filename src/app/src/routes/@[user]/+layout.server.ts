@@ -3,7 +3,7 @@ import { database } from "$lib/server"
 import { error } from "@sveltejs/kit"
 
 export const load = (async ({ parent, params, locals }) => {
-    const user = await database.user.findUnique({
+    const profile = await database.user.findUnique({
         where: {
             alias: params.user,
             NOT: {
@@ -22,23 +22,26 @@ export const load = (async ({ parent, params, locals }) => {
         }
     })
 
-    if(!user)
+    if(!profile)
         throw error(404)
 
     // this returns 404 so people can't figure out which users are on the platform so easily
-    if(!await user.profile!.isVisible(locals.session?.user))
+    if(!await profile.profile!.isVisible(locals.session?.user))
         throw error(404)
 
     const data = await parent()
     return {
         ...data,
         context: [
-            { name: user.name, href: `/@${user.alias}` }
+            { name: profile.name, href: `/@${profile.alias}` }
         ],
         params: {
-            user: {
-                name: user.name,
-                alias: user.alias
+            currentUser: {
+                alias: locals.session?.user.alias
+            },
+            profile: {
+                name: profile.name,
+                alias: profile.alias
             }
         }
     }

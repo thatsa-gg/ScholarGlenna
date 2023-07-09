@@ -3,7 +3,8 @@ import type { ParamMatcher } from "@sveltejs/kit"
 const illegalGuildNames = new Set([
     '-',
     'api',
-    'auth'
+    'auth',
+    'settings'
 ])
 export const match = ((param) => {
     return !illegalGuildNames.has(param)

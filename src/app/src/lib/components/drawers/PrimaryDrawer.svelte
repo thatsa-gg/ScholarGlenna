@@ -1,13 +1,13 @@
 <script lang="ts">
-    import Drawer from './Drawer.svelte';
-    import BrandingLogo from './BrandingLogo.svelte';
-    import Button from './Button.svelte';
+    import Drawer from '../Drawer.svelte';
+    import BrandingLogo from '../BrandingLogo.svelte';
+    import Button from '../Button.svelte';
     import { X16, Home16, People16 } from 'svelte-octicons';
-    import ScrollPane from './ScrollPane.svelte';
-    import DrawerButton from './DrawerButton.svelte';
-    import DrawerDivider from './DrawerDivider.svelte';
+    import ScrollPane from '../ScrollPane.svelte';
+    import DrawerButton from '../DrawerButton.svelte';
+    import DrawerDivider from '../DrawerDivider.svelte';
 
-    import type { LayoutServerData } from './../../routes/$types'
+    import type { LayoutServerData } from '../../../routes/$types'
 
     export let user: LayoutServerData['user']
 
