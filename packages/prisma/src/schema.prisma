@@ -773,7 +773,7 @@ enum Visibility {
 model Profile {
     id Int @id @default(autoincrement()) @map("profile_id")
     snowflake BigInt @unique // same as user.snowflake, to ease lookups and handling
-    userId Int @unique
+    userId Int @unique @map("user_id")
 
     user User @relation(fields: [userId], references: [id], onDelete: Cascade)
     builds PlayerBuild[]

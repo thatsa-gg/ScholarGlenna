@@ -313,7 +313,7 @@ from "guild"."teammember"
 create table "app"."profile" (
     "profile_id" serial primary key not null,
     "snowflake" bigint unique not null,
-    "userId" integer unique not null references "guild"."user" on delete cascade,
+    "user_id" integer unique not null references "guild"."user" on delete cascade,
     "visibility" "app"."visibility" not null default 'private'
 );
 
