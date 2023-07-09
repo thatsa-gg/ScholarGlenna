@@ -28,6 +28,8 @@
         "zod": "3.21.4",
         "prisma": "4.16.2",
         "@prisma/client": "4.16.2",
-        "@js-temporal/polyfill": "0.4.4"
+        "@js-temporal/polyfill": "0.4.4",
+        "@discordjs/rest": "1.7.1",
+        "discord-api-types": "0.37.47"
     }
 }

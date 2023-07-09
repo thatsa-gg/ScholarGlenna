@@ -8,7 +8,7 @@ export const update = subcommand({
     description: 'Update a raid team.',
     input: {
         team: djs.team().describe('The team to update.'),
-        guild: djs.guild().transform(database.guild.transformOrThrow({ id: true })),
+        source: djs.guild(),
         actor: djs.actor(),
 
         // options:
@@ -23,9 +23,9 @@ export const update = subcommand({
         dst: djs.nativeEnum(TeamDaylightSavings).nullable().describe("Whether the team times should respect DST or reset."),
     },
     authorization: { key: 'team', team: 'update' },
-    async execute({ team: snowflake, guild, name, alias, focus, level, region, capacity, type, timezone: primaryTimeZone, dst: daylightSavings }){
+    async execute({ team: snowflake, source, name, alias, focus, level, region, capacity, type, timezone: primaryTimeZone, dst: daylightSavings }){
         const team = await database.team.update({
-            where: { snowflake, guild },
+            where: { snowflake, guild: { snowflake: BigInt(source.id) }},
             data: {
                 name: name ?? undefined,
                 alias: alias ?? undefined,

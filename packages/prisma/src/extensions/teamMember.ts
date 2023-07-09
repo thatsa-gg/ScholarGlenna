@@ -22,7 +22,7 @@ export const teamMemberExtension = Prisma.defineExtension((client) => client.$ex
                 else
                     return client.teamMember.deleteMany({ where: { ...filter, team: { id: team.id }}})
             },
-            add(team: Pick<Team, 'id'>, member: Pick<GuildMember, 'id'>, options?: { role?: TeamMemberRole }){
+            add(team: Pick<Team, 'id'>, member: Pick<GuildMember, 'id'>, options?: { role?: TeamMemberRole }): Promise<{ id: number }>{
                 return client.teamMember.upsert({
                     where: {
                         teamId_memberId: {
@@ -37,6 +37,9 @@ export const teamMemberExtension = Prisma.defineExtension((client) => client.$ex
                         role: options?.role ?? 'Member',
                         team: { connect: { id: team.id }},
                         member: { connect: { id: member.id }}
+                    },
+                    select: {
+                        id: true
                     }
                 })
             },

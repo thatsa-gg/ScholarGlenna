@@ -11,7 +11,6 @@
         "winston": "^3.8.2",
         "zod": "3.21.4",
         "papaparse": "~5.4.1",
-        "@glenna/api": "workspace:*",
         "@js-temporal/polyfill": "0.4.4",
         "tzdata": "~1.0.38"
     },

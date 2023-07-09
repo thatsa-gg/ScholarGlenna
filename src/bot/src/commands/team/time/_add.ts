@@ -14,7 +14,7 @@ function currentTimeOfDay(){
 export const add = subcommand({
     description: `Add a team time (UTC).`,
     input: {
-        guild: djs.guild().transform(database.guild.transformOrThrow({ id: true })),
+        source: djs.guild(),
         team: djs.team().describe('The team to add times for.'),
         day: djs.nativeEnum(Days).describe('Day-of-week (in the team\'s time zone).'),
         reset: djs.number(-24, 24).describe('Offset relative to daily reset (0:00 UTC).'),
@@ -23,9 +23,9 @@ export const add = subcommand({
     authorization: {
         key: 'team', team: 'createTime'
     },
-    async execute({ guild, team: snowflake, duration, day, reset }){
+    async execute({ source, team: snowflake, duration, day, reset }){
         const team = await database.team.findUniqueOrThrow({
-            where: { snowflake, guild },
+            where: { snowflake, guild: { snowflake: BigInt(source.id) }},
             select: {
                 id: true,
                 primaryTimeZone: true,

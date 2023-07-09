@@ -12,11 +12,11 @@ export const role = subcommand({
         role: djs.role().nullable().describe('The new role.'),
         remove: djs.stringEnum([ 'Keep Roster', 'Clear Roster' ]).nullable().describe('Should the role be removed? What should happen to the roster?'),
         source: djs.guild(),
-        guild: djs.guild().transform(database.guild.transformOrThrow({ id: true })),
         actor: djs.actor(),
     },
     authorization: { key: 'team', team: [ 'updateRole' ]},
-    async execute({ team: snowflake, role, remove, guild, source }, interaction){
+    async execute({ team: snowflake, role, remove, source }, interaction){
+        const guild = await database.team.findUniqueOrThrow({ where: { snowflake: BigInt(source.id) }, select: { id: true }})
         const team = await database.team.findUniqueOrThrow({
             where: { snowflake, guild },
             select: {

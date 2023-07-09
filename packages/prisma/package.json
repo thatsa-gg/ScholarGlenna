@@ -9,10 +9,10 @@
         "@rushstack/heft": "0.50.0",
         "typescript": "5.1.6",
         "prisma": "4.16.2",
+        "@prisma/client": "4.16.2",
         "@types/node": "20.3.3"
     },
     "dependencies": {
-        "@prisma/client": "4.16.2",
         "@js-temporal/polyfill": "0.4.4",
         "zod": "3.21.4",
         "@glenna/discord": "workspace:*",

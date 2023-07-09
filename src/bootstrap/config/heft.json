@@ -6,7 +6,7 @@
             "actionKind": "deleteGlobs",
             "heftEvent": "clean",
             "globsToDelete": [
-                "dist"
+                "temp", "dist"
             ]
         },
         {

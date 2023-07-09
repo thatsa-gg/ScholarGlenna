@@ -8,7 +8,7 @@ import { Days, AutocompleteTime } from './__common.js'
 export const update = subcommand({
     description: `Alter a team time (UTC).`,
     input: {
-        guild: djs.guild().transform(database.guild.transformOrThrow({ id: true })),
+        source: djs.guild(),
         actor: djs.actor(),
         team: djs.team().describe('The team to update times for.'),
         time: djs.autocomplete(djs.integer(), { autocomplete: AutocompleteTime }).describe('The time to update.'),
@@ -19,9 +19,9 @@ export const update = subcommand({
     authorization: {
         key: 'team', team: [ 'read', 'updateTime' ]
     },
-    async execute({ guild, team: snowflake, time: timeIndex, duration, day, reset }){
+    async execute({ source, team: snowflake, time: timeIndex, duration, day, reset }){
         const team = await database.team.findUniqueOrThrow({
-            where: { snowflake, guild },
+            where: { snowflake, guild: { snowflake: BigInt(source.id) }},
             select: {
                 id: true,
                 primaryTimeZone: true,

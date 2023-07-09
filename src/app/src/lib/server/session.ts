@@ -1,5 +1,6 @@
 import { reauthorizeUser, type Authorization } from './auth'
-import { Discord, Routes, type APIUser } from '@glenna/discord'
+import { REST } from '@discordjs/rest'
+import { Routes, type APIUser } from 'discord-api-types/v10'
 import { database, cache } from './index.js'
 import { v4 as uuid } from 'uuid'
 
@@ -12,7 +13,7 @@ export interface Session {
 export const SESSION_EXPIRATION_DURATION_SECONDS = 30 * 24 * 60 * 60
 
 export async function createSession(authorization: Authorization): Promise<Session & { expiration: Date }> {
-    const client = Discord.Rest.createUserClient(authorization.accessToken)
+    const client = new REST({ authPrefix: 'Bearer', version: '10' }).setToken(authorization.accessToken)
     const user = await client.get(Routes.user()) as APIUser
     const profile = await database.profile.import(user)
     const id = uuid()

@@ -13,10 +13,6 @@
     "telemetryEnabled": false,
     "projects": [
         {
-            "packageName": "@glenna/api",
-            "projectFolder": "packages/api"
-        },
-        {
             "packageName": "@glenna/cache",
             "projectFolder": "packages/cache"
         },

@@ -14,35 +14,37 @@ export const create = subcommand({
         channel: djs.channel().nullable().describe('Team channel.'),
         role: djs.role().nullable().describe('Team role for member syncing and pinging.'),
         source: djs.guild(),
-        guild: djs.guild().transform(database.guild.transformOrThrow({
-            id: true,
-            divisions: {
-                where: { primary: true },
-                select: { id: true }
-            },
-            permission: {
-                select: {
-                    anyMemberRoleId: true,
-                    anyTeamMemberRoleId: true,
-                    anyTeamRepresentativeRoleId: true,
-                    anyTeamCaptainRoleId: true,
-                    managementMemberRoleId: true,
-                    managementRepresentativeRoleId: true,
-                    managementCaptainRoleId: true,
-                }
-            }
-        })),
     },
     authorization: {
         guild: [ 'createTeam' ]
     },
-    async execute({
-        name, channel, role, source, guild,
-        guild: {
-            divisions: [division],
-            permission: guildPermissions
-        }
-    }, interaction) {
+    async execute({ name, channel, role, source }, interaction) {
+        const guild = await database.guild.findUnique({
+            where: {
+                snowflake: BigInt(source.id)
+            },
+            select: {
+                id: true,
+                divisions: {
+                    where: { primary: true },
+                    select: { id: true }
+                },
+                permission: {
+                    select: {
+                        anyMemberRoleId: true,
+                        anyTeamMemberRoleId: true,
+                        anyTeamRepresentativeRoleId: true,
+                        anyTeamCaptainRoleId: true,
+                        managementMemberRoleId: true,
+                        managementRepresentativeRoleId: true,
+                        managementCaptainRoleId: true,
+                    }
+                }
+            }
+        })
+        if(!guild)
+            throw new PublicError(`Fatal error: guild ${source.id} could not be found in the database!`)
+        const { divisions: [ division ], permission: guildPermissions } = guild
         if(!division)
             throw new PublicError(`Fatal error: guild ${guild.id} is missing a primary division!`)
         if(!guildPermissions)

@@ -77,5 +77,10 @@ config.env:
 
 	echo "Restart your terminal to load the configuration."
 
+mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
+current_dir := $(patsubst %/,%,$(dir $(mkfile_path)))
+src/app/.env.local: config.env
+	ln -s $(current_dir)/config.env $(current_dir)/src/app/.env.local
+
 docker-login:
 	docker login $(DOCKER_REGISTRY)

@@ -7,14 +7,14 @@ export const list = subcommand({
     description: `Fetch a team's members.`,
     input: {
         team: djs.team().describe('The team to fetch.'),
-        guild: djs.guild().transform(database.guild.transformOrThrow({ id: true })),
+        source: djs.guild(),
     },
     authorization: {
         key: 'team', team: 'read'
     },
-    async execute({ team: snowflake, guild }, interaction){
+    async execute({ team: snowflake, source }, interaction){
         const team = await database.team.findUniqueOrThrow({
-            where: { snowflake, guild },
+            where: { snowflake, guild: { snowflake: BigInt(source.id) }},
             select: {
                 type: true,
                 name: true,

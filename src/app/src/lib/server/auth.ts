@@ -1,9 +1,8 @@
 import {
     cache,
-    OAUTH_CLIENT_ID,
     SSO_RETURN_URI,
 } from './index'
-import { env } from '$env/dynamic/private'
+import { OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET } from '$env/static/private'
 import {
     RouteBases,
     Routes,
@@ -11,7 +10,7 @@ import {
     OAuth2Scopes,
     type RESTPostOAuth2RefreshTokenResult,
     type RESTPostOAuth2AccessTokenResult,
-} from '@glenna/discord'
+} from 'discord-api-types/v10'
 import { z } from 'zod'
 import { redirect } from '@sveltejs/kit'
 import { v4 as uuid } from 'uuid'
@@ -19,11 +18,6 @@ import { v4 as uuid } from 'uuid'
 const authorizationScopes = [
     OAuth2Scopes.Identify,
 ].join(' ')
-
-if(!env.OAUTH_CLIENT_ID)
-    throw `[env] Missing: OAUTH_CLIENT_ID`
-if(!env.OAUTH_CLIENT_SECRET)
-    throw `[env] Missing: OAUTH_CLIENT_SECRET`
 
 export type Authorization = {
     accessToken: string
@@ -52,8 +46,8 @@ export async function authorizeUser(oauth2Code: string, state: string): Promise<
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
-            client_id: env.OAUTH_CLIENT_ID,
-            client_secret: env.OAUTH_CLIENT_SECRET,
+            client_id: OAUTH_CLIENT_ID,
+            client_secret: OAUTH_CLIENT_SECRET,
             grant_type: `authorization_code`,
             redirect_uri: SSO_RETURN_URI,
             code: oauth2Code,
@@ -73,8 +67,8 @@ export async function reauthorizeUser(refreshToken: string): Promise<Authorizati
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
-            client_id: env.OAUTH_CLIENT_ID,
-            client_secret: env.OAUTH_CLIENT_SECRET,
+            client_id: OAUTH_CLIENT_ID,
+            client_secret: OAUTH_CLIENT_SECRET,
             grant_type: `refresh_token`,
             refresh_token: refreshToken
         })

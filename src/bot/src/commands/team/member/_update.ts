@@ -12,7 +12,6 @@ export const update = subcommand({
         team: djs.team().describe('The team to modify.'),
         member: teamMember().describe('The member to remove.'),
         role: djs.nativeEnum(TeamMemberRole).nullable().describe("The member's new role on the team."),
-        guild: djs.guild().transform(database.guild.transformOrThrow({ id: true })),
         actor: djs.actor(),
         source: djs.guild(),
     },
@@ -20,9 +19,9 @@ export const update = subcommand({
         // TODO: restrict role update authorization to lower roles only
         key: 'team', team: 'updateMember'
     },
-    async execute({ team: snowflake, member, source, guild, role }){
+    async execute({ team: snowflake, member, source, role }){
         const team = await database.team.findUniqueOrThrow({
-            where: { snowflake, guild },
+            where: { snowflake, guild: { snowflake: BigInt(source.id) }},
             select: {
                 id: true,
                 type: true,

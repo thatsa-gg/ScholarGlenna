@@ -13,12 +13,15 @@ export const add = subcommand({
         member: djs.user().describe('The member to add.'),
         role: djs.nativeEnum(TeamMemberRole).nullable().transform(a => a ?? 'Member').describe("The new member's role on the team."),
         source: djs.guild(),
-        guild: djs.guild().transform(database.guild.transformOrThrow({ id: true })),
     },
     authorization: {
         key: 'team', team: 'createMember'
     },
-    async execute({ team: snowflake, member: user, role, source, guild }){
+    async execute({ team: snowflake, member: user, role, source }){
+        const guild = await database.guild.findUniqueOrThrow({
+            where: { snowflake: BigInt(source.id) },
+            select: { id: true }
+        })
         const member = await source.members.fetch(user)
         if(!member)
             throw `Could not find member in guild.`

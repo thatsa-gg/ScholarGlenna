@@ -8,16 +8,16 @@ export const list = subcommand({
     description: `Fetch a team's session times.`,
     input: {
         team: djs.team().describe('The team to fetch times for.'),
-        guild: djs.guild().transform(database.guild.transformOrThrow({ id: true })),
+        source: djs.guild(),
         actor: djs.actor(),
     },
     authorization: {
         key: 'team',
         team: [ 'read' ]
     },
-    async execute({ team: snowflake, guild }, interaction){
+    async execute({ team: snowflake, source }, interaction){
         const team = await database.team.findUniqueOrThrow({
-            where: { snowflake, guild },
+            where: { snowflake, guild: { snowflake: BigInt(source.id) }},
             select: {
                 type: true,
                 name: true,

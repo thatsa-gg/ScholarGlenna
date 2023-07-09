@@ -6,7 +6,7 @@ import { AutocompleteTime } from './__common.js'
 export const remove = subcommand({
     description: `Remove a team time (UTC).`,
     input: {
-        guild: djs.guild().transform(database.guild.transformOrThrow({ id: true })),
+        source: djs.guild(),
         actor: djs.actor(),
         team: djs.team().describe('The team to remove times from.'),
         time: djs.autocomplete(djs.number(), { autocomplete: AutocompleteTime }).describe('The time to remove.')
@@ -15,9 +15,9 @@ export const remove = subcommand({
         key: 'team',
         team: [ 'read', 'deleteTime' ]
     },
-    async execute({ guild, team: snowflake, time: timeIndex }){
+    async execute({ source, team: snowflake, time: timeIndex }){
         const team = await database.team.findUniqueOrThrow({
-            where: { snowflake, guild },
+            where: { snowflake, guild: { snowflake: BigInt(source.id) }},
             select: {
                 id: true,
                 primaryTimeZone: true,

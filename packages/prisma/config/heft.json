@@ -11,6 +11,15 @@
             ]
         },
         {
+            "actionId": "typescript-clean",
+            "actionKind": "deleteGlobs",
+            "heftEvent": "clean",
+            "globsToDelete": [
+                "dist",
+                "temp"
+            ]
+        },
+        {
             "actionId": "prisma-generate",
             "actionKind": "runScript",
             "heftEvent": "pre-compile",

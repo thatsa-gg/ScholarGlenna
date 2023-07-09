@@ -1,6 +1,3 @@
-// Plugins
-const flowbite = require('flowbite/plugin')
-
 // Settings
 const defaultTheme = require('tailwindcss/defaultTheme')
 const defaultColors = require('tailwindcss/colors')
@@ -18,10 +15,6 @@ const breaks = Object.entries({
 module.exports = {
     content: [
         './src/**/*.{html,svelte,js,ts}',
-        './node_modules/flowbite-svelte/**/*.{html,svelte,js,ts}',
-    ],
-    plugins: [
-        flowbite
     ],
     theme: {
         //screens: Object.fromEntries(breaks.map(([k, max]) => [ k, { max } ])),

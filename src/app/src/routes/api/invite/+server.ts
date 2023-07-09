@@ -1,22 +1,22 @@
 import { redirect, type RequestHandler } from '@sveltejs/kit'
 import { OAUTH_CLIENT_ID } from '$lib/server'
-import { OAuth2Routes, OAuth2Scopes, PermissionsBitField } from '@glenna/discord'
+import { OAuth2Routes, OAuth2Scopes, PermissionFlagsBits } from 'discord-api-types/v10'
 
 // build out the URL params in a static context here
 const inviteParams = new URLSearchParams()
 inviteParams.append(`client_id`, OAUTH_CLIENT_ID)
 inviteParams.append(`permissions`, (
-    PermissionsBitField.Flags.AddReactions
-    | PermissionsBitField.Flags.ViewChannel // and read the messages therein
-    | PermissionsBitField.Flags.AttachFiles
-    | PermissionsBitField.Flags.SendMessages
-    | PermissionsBitField.Flags.SendMessagesInThreads
-    | PermissionsBitField.Flags.EmbedLinks // auto-create embeds from posted links
-    | PermissionsBitField.Flags.AttachFiles
-    | PermissionsBitField.Flags.UseExternalEmojis
-    | PermissionsBitField.Flags.UseExternalStickers
-    | PermissionsBitField.Flags.ChangeNickname // change own nickname
-    | PermissionsBitField.Flags.CreatePublicThreads
+    PermissionFlagsBits.AddReactions
+    | PermissionFlagsBits.ViewChannel // and read the messages therein
+    | PermissionFlagsBits.AttachFiles
+    | PermissionFlagsBits.SendMessages
+    | PermissionFlagsBits.SendMessagesInThreads
+    | PermissionFlagsBits.EmbedLinks // auto-create embeds from posted links
+    | PermissionFlagsBits.AttachFiles
+    | PermissionFlagsBits.UseExternalEmojis
+    | PermissionFlagsBits.UseExternalStickers
+    | PermissionFlagsBits.ChangeNickname // change own nickname
+    | PermissionFlagsBits.CreatePublicThreads
 ).toString())
 inviteParams.append(`scope`, [
     OAuth2Scopes.Bot,
