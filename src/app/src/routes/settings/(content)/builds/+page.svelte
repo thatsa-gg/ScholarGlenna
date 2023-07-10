@@ -1,12 +1,13 @@
 <script lang="ts">
     import type { ActionData, PageData } from "./$types"
     import { enhance } from "$app/forms"
+    import { Debouncer } from "$lib/client/debounce"
     import Checkbox from "$lib/components/form/Checkbox.svelte"
     import Button from "$lib/components/Button.svelte"
     import { Check16, Alert16 } from "svelte-octicons"
     import Fa from "svelte-fa"
     import { faSpinner } from "@fortawesome/free-solid-svg-icons"
-    import { Debouncer } from "$lib/client/debounce";
+
     export let data: PageData
     export let form: ActionData
     $: roles = form?.roles ?? data.roles
@@ -42,7 +43,7 @@
     <table class="w-full">
         <thead>
             <tr>
-                <th colspan="2"></th>
+                <th colspan="2" aria-hidden="true"></th>
                 <th class="bg-blueberry-900">Pure</th>
                 <th class="bg-blueberry-900">Alacrity</th>
                 <th class="bg-blueberry-900">Quickness</th>
