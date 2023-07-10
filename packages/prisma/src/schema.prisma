@@ -776,7 +776,8 @@ model Profile {
     userId Int @unique @map("user_id")
 
     user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-    builds PlayerBuild[]
+    builds PlayerBuild[] @ignore
+    buildRoles PlayerRole?
     experience PlayerExperience?
 
     visibility Visibility @default(Private)
@@ -813,6 +814,42 @@ model PlayerBuild {
 
     @@schema("app")
     @@map("playerbuild")
+}
+
+model PlayerRole {
+    id Int @id @default(autoincrement()) @map("player_role_id")
+    profileId Int @unique @map("profile_id")
+
+    heal Boolean @default(false)
+    healAlacrity Boolean @default(false) @map("heal_alacrity")
+    healQuickness Boolean @default(false) @map("heal_quickness")
+
+    healTank Boolean @default(false) @map("heal_tank")
+    healTankAlacrity Boolean @default(false) @map("heal_tank_alacrity")
+    healTankQuickness Boolean @default(false) @map("heal_tank_quickness")
+
+    dpsPower Boolean @default(false) @map("dps_power")
+    dpsPowerAlacrity Boolean @default(false) @map("dps_power_alacrity")
+    dpsPowerQuickness Boolean @default(false) @map("dps_power_quickness")
+
+    dpsCondition Boolean @default(false) @map("dps_condition")
+    dpsConditionAlacrity Boolean @default(false) @map("dps_condition_alacrity")
+    dpsConditionQuickness Boolean @default(false) @map("dps_condition_quickness")
+
+    dpsTank Boolean @default(false) @map("dps_tank")
+    dpsTankAlacrity Boolean @default(false) @map("dps_tank_alacrity")
+    dpsTankQuickness Boolean @default(false) @map("dps_tank_quickness")
+
+    handKite Boolean @default(false) @map("hand_kite")
+    bloodScourge Boolean @default(false) @map("blood_scourge")
+    qadimLamp Boolean @default(false) @map("qadim_lamp")
+    qadimKite Boolean @default(false) @map("qadim_kite")
+    pylonKite Boolean @default(false) @map("pylon_kite")
+    shPusher Boolean @default(false) @map("sh_pusher")
+
+    profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+    @@schema("app")
+    @@map("playerrole")
 }
 
 model PlayerExperience {

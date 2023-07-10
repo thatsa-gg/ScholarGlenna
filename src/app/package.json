@@ -47,6 +47,7 @@
         "@js-temporal/polyfill": "0.4.4",
         "svelte-octicons": "~18.4.0",
         "@discordjs/rest": "1.7.1",
-        "discord-api-types": "0.37.47"
+        "discord-api-types": "0.37.47",
+        "zod-form-data": "~2.0.1"
     }
 }

@@ -338,6 +338,34 @@ create table "app"."playerbuild" (
 );
 
 -- CreateTable
+create table "app"."playerrole" (
+    "player_role_id" serial primary key not null,
+    "profile_id" int not null references "app"."profile"("profile_id") on delete cascade,
+
+    "heal" boolean not null default false,
+    "heal_alacrity" boolean not null default false,
+    "heal_quickness" boolean not null default false,
+    "heal_tank" boolean not null default false,
+    "heal_tank_alacrity" boolean not null default false,
+    "heal_tank_quickness" boolean not null default false,
+    "dps_power" boolean not null default false,
+    "dps_power_alacrity" boolean not null default false,
+    "dps_power_quickness" boolean not null default false,
+    "dps_condition" boolean not null default false,
+    "dps_condition_alacrity" boolean not null default false,
+    "dps_condition_quickness" boolean not null default false,
+    "dps_tank" boolean not null default false,
+    "dps_tank_alacrity" boolean not null default false,
+    "dps_tank_quickness" boolean not null default false,
+    "hand_kite" boolean not null default false,
+    "blood_scourge" boolean not null default false,
+    "qadim_lamp" boolean not null default false,
+    "qadim_kite" boolean not null default false,
+    "pylon_kite" boolean not null default false,
+    "sh_pusher" boolean not null default false
+);
+
+-- CreateTable
 create table "app"."playerexperience" (
     "player_experience_id" serial primary key not null,
     "profile_id" int unique not null references "app"."profile"("profile_id") on delete cascade,

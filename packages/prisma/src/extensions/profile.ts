@@ -22,7 +22,8 @@ export const profileExtension = Prisma.defineExtension(client => client.$extends
                                     icon: user.avatar
                                 }
                             }
-                        }
+                        },
+                        buildRoles: { create: {} }
                     },
                     update: {
                         user: {
@@ -30,6 +31,12 @@ export const profileExtension = Prisma.defineExtension(client => client.$extends
                                 name: safeUsername(user),
                                 alias: safeAlias(user),
                                 icon: user.avatar,
+                            }
+                        },
+                        buildRoles: {
+                            upsert: {
+                                create: {},
+                                update: {}
                             }
                         }
                     }

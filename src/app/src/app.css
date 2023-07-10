@@ -8,6 +8,7 @@
     :root {
         color-scheme: dark;
         @apply font-primary font-normal;
+        @apply fill-current;
 
         /* base font size / rem basis */
         font-size: 16px;
@@ -24,7 +25,7 @@
     }
 
     *, *::after, *::before {
-        @apply box-border fill-current;
+        @apply box-border;
     }
 }
 
