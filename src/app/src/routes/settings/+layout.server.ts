@@ -15,7 +15,8 @@ export const load = (async ({ parent, locals }) => {
             user: {
                 select: {
                     name: true,
-                    alias: true
+                    alias: true,
+                    avatar: true
                 }
             }
         }
@@ -37,7 +38,8 @@ export const load = (async ({ parent, locals }) => {
             },
             profile: {
                 name: profile.user.name,
-                alias: profile.user.alias
+                alias: profile.user.alias,
+                avatar: profile.user.avatar
             }
         }
     }

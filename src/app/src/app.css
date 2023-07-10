@@ -39,3 +39,7 @@
 .scroll-w-none {
     scrollbar-width: none;
 }
+
+hr {
+    @apply border-primary-500 my-4;
+}

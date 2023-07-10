@@ -13,6 +13,7 @@ export const load = (async ({ parent, params, locals }) => {
         select: {
             name: true,
             alias: true,
+            avatar: true,
             profile: {
                 select: {
                     visibility: true,
@@ -41,7 +42,8 @@ export const load = (async ({ parent, params, locals }) => {
             },
             profile: {
                 name: profile.name,
-                alias: profile.alias
+                alias: profile.alias,
+                avatar: profile.user.avatar
             }
         }
     }
