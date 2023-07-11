@@ -44,9 +44,9 @@
         <thead>
             <tr>
                 <th colspan="2" aria-hidden="true"></th>
-                <th class="bg-blueberry-900">Pure</th>
+                <th class="bg-blueberry-900 rounded-l-md">Pure</th>
                 <th class="bg-blueberry-900">Alacrity</th>
-                <th class="bg-blueberry-900">Quickness</th>
+                <th class="bg-blueberry-900 rounded-r-md">Quickness</th>
             </tr>
         </thead>
         <tbody class="text-left">
