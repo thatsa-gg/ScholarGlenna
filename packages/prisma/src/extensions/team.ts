@@ -1,8 +1,8 @@
 import { roundWeek, timestampToFriendlyString } from '@glenna/util'
 import { Temporal, toTemporalInstant } from '@js-temporal/polyfill'
 import { Prisma, type TeamTime, type Team } from '../../generated/client/index.js'
-import type { AutocompleteInteraction } from '@glenna/discord'
 import type { TeamPermissions } from './authorization.js'
+import type { APIGuild, APIUser } from 'discord-api-types/v10'
 
 type MaybePromise<T> = T | Promise<T>
 
@@ -115,11 +115,11 @@ export const teamExtension = Prisma.defineExtension((client) => client.$extends(
     },
     model: {
         team: {
-            async autocompleteSnowflake(interaction: AutocompleteInteraction, searchValue: string, permissions: TeamPermissions[]){
-                const snowflake = BigInt(interaction.user.id)
+            async autocompleteSnowflake(guild: Pick<APIGuild, 'id'>, user: Pick<APIUser, 'id'>, searchValue: string, permissions: TeamPermissions[]){
+                const snowflake = BigInt(user.id)
                 const teams = await client.team.findMany({
                     where: {
-                        guild: { snowflake: BigInt(interaction.guild!.id) },
+                        guild: { snowflake: BigInt(guild.id) },
                         OR: [
                             { name: { startsWith: searchValue, mode: 'insensitive' }},
                             { alias: { startsWith: searchValue, mode: 'insensitive' }}
@@ -140,14 +140,14 @@ export const teamExtension = Prisma.defineExtension((client) => client.$extends(
             }
         },
         teamTime: {
-            async autocompleteId(interaction: AutocompleteInteraction, teamSnowflake: bigint | null, searchValue: string, permissions: TeamPermissions[]){
+            async autocompleteId(guild: Pick<APIGuild, 'id'>, user: Pick<APIUser, 'id'>, teamSnowflake: bigint | null, searchValue: string, permissions: TeamPermissions[]){
                 if(!teamSnowflake)
                     return
-                const snowflake = BigInt(interaction.user.id)
+                const snowflake = BigInt(user.id)
                 const team = await client.team.findUnique({
                     where: {
                         snowflake: teamSnowflake,
-                        guild: { snowflake: BigInt(interaction.guild!.id) },
+                        guild: { snowflake: BigInt(guild.id) },
                         permission: {
                             AND: Object.assign({}, ...permissions.map(p => ({
                                 [p]: { permissions: { some: { user: { snowflake }}}}

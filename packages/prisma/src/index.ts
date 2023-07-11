@@ -1,7 +1,6 @@
 import {
     PrismaClient,
     type Boss,
-    type Prisma,
 } from '../generated/client/index.js'
 import { refineExtension } from './extensions/refine.js'
 import { userExtension } from './extensions/user.js'
@@ -12,12 +11,17 @@ import { teamMemberExtension } from './extensions/teamMember.js'
 import { profileExtension } from './extensions/profile.js'
 import { authorizationExtension } from './extensions/authorization.js'
 import { clientExtension } from './extensions/client.js'
-import type { APIUser, User } from '@glenna/discord'
+import type { APIUser, APIGuildMember } from "discord-api-types/v10"
 
 export * from '../generated/client/index.js'
 export type DatabaseClient = ReturnType<typeof Database.create>
 export type { Authorization, TeamPermissions, DivisionPermissions, GuildPermissions } from './extensions/authorization.js'
 export { permissionFragment } from './extensions/authorization.js'
+export type SimpleAPIUser = Pick<APIUser, 'id' | 'username' | 'discriminator' | 'avatar'>
+export type SimpleAPIGuildMember = Pick<APIGuildMember, 'nick' | 'avatar'> & {
+    user: SimpleAPIUser
+}
+
 
 let instance: DatabaseClient | null = null
 export namespace Database {
@@ -125,13 +129,13 @@ export function triggerIDToBoss(id: TriggerId): Boss {
     return boss
 }
 
-export function safeUsername(user: User | APIUser){
+export function safeUsername(user: Pick<APIUser, 'discriminator' | 'username'>){
     if(user.discriminator === "0")
         return user.username
     return `${user.username}#${user.discriminator}`
 }
 
-export function safeAlias(user: User | APIUser){
+export function safeAlias(user: Pick<APIUser, 'discriminator' | 'username' | 'id'>){
     if(user.discriminator === "0")
         return user.username
     return BigInt(user.id).toString(16)

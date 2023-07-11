@@ -1,18 +1,23 @@
 import { Prisma } from '../../generated/client/index.js'
-import { safeUsername, safeAlias } from '../index.js'
+import { safeUsername, safeAlias, type SimpleAPIGuildMember } from '../index.js'
 import { snowflakes } from './client.js'
-import type { Guild } from '@glenna/discord'
+import type { APIGuild } from 'discord-api-types/v10'
+
+function guildAcronym(name: string){
+    return name.replace(/'s /g, ' ')
+        .replace(/\w+/g, e => e[0]!)
+        .replace(/\s/g, '')
+}
 
 export const guildExtension = Prisma.defineExtension(client => client.$extends({
     model: {
         guild: {
-            async import(guild: Guild){
-                const owner = await guild.fetchOwner()
+            async import(guild: Pick<APIGuild, 'id' | 'vanity_url_code' | 'name' | 'icon'>, owner: SimpleAPIGuildMember){
                 const guildId = BigInt(guild.id)
-                const ownerId = BigInt(owner.id)
+                const ownerId = BigInt(owner.user.id)
                 client.$transaction(async client => {
-                    const guildAlias = guild.vanityURLCode && 0 === await client.guild.count({ where: { alias: guild.vanityURLCode }})
-                        ? guild.vanityURLCode
+                    const guildAlias = guild.vanity_url_code && 0 === await client.guild.count({ where: { alias: guild.vanity_url_code }})
+                        ? guild.vanity_url_code
                         : guildId.toString(36)
                     const roles = await snowflakes(client,
                         "guildMember",
@@ -28,7 +33,7 @@ export const guildExtension = Prisma.defineExtension(client => client.$extends({
                             name: guild.name,
                             snowflake: guildId,
                             alias: guildAlias,
-                            acronym: guild.nameAcronym,
+                            acronym: guildAcronym(guild.name),
                             icon: guild.icon,
                             roles: {
                                 createMany: {
@@ -182,7 +187,7 @@ export const guildExtension = Prisma.defineExtension(client => client.$extends({
                             member: {
                                 create: {
                                     snowflake: ownerId,
-                                    name: owner.nickname,
+                                    name: owner.nick,
                                     icon: owner.avatar,
                                     guild: { connect: { snowflake: guildId }},
                                     user: {

@@ -14,8 +14,10 @@ export enum Days {
 }
 
 export const AutocompleteTime: AutocompleteFn = async ({ value }, interaction, authorization) => {
+    if(!interaction.guild)
+        return []
     const team = interaction.options.getString('team')
     if(!team)
         return []
-    return await database.teamTime.autocompleteId(interaction, BigInt(team), value, isTeamAuthorization(authorization) ? asArray(authorization.team) : [ 'read' ])
+    return await database.teamTime.autocompleteId(interaction.guild, interaction.user, BigInt(team), value, isTeamAuthorization(authorization) ? asArray(authorization.team) : [ 'read' ])
 }

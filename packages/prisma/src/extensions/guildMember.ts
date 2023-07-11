@@ -1,18 +1,17 @@
 import { type Guild, Prisma } from '../../generated/client/index.js'
-import type { GuildMember } from '@glenna/discord'
-import { safeAlias, safeUsername } from '../index.js'
+import { safeAlias, safeUsername, type SimpleAPIGuildMember } from '../index.js'
 
 export const guildMemberExtension = Prisma.defineExtension((client) => client.$extends({
     model: {
         guildMember: {
-            async findOrCreate(guild: Pick<Guild, 'id'>, member: GuildMember){
+            async findOrCreate(guild: Pick<Guild, 'id'>, member: SimpleAPIGuildMember){
                 const snowflake = BigInt(member.user.id)
                 return await client.guildMember.upsert({
                     where: { snowflake_guildId: { guildId: guild.id, snowflake }},
                     update: {},
                     create: {
                         snowflake,
-                        name: member.nickname,
+                        name: member.nick,
                         icon: member.avatar,
                         guild: { connect: { id: guild.id }},
                         user: {

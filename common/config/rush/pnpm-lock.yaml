@@ -48,15 +48,18 @@ importers:
 
   ../../packages/prisma:
     dependencies:
-      '@glenna/discord':
-        specifier: workspace:*
-        version: link:../discord
+      '@discordjs/rest':
+        specifier: 1.7.1
+        version: 1.7.1
       '@glenna/util':
         specifier: workspace:*
         version: link:../util
       '@js-temporal/polyfill':
         specifier: 0.4.4
         version: 0.4.4
+      discord-api-types:
+        specifier: 0.37.48
+        version: 0.37.48
       zod:
         specifier: 3.21.4
         version: 3.21.4
@@ -1276,6 +1279,10 @@ packages:
 
   /discord-api-types@0.37.47:
     resolution: {integrity: sha512-rNif8IAv6duS2z47BMXq/V9kkrLfkAoiwpFY3sLxxbyKprk065zqf3HLTg4bEoxRSmi+Lhc7yqGDrG8C3j8GFA==}
+    dev: false
+
+  /discord-api-types@0.37.48:
+    resolution: {integrity: sha512-vu2NQJD7SZRjpKDC2DPNsxTz34KS53OrotA+LGRW6mcyT55Hjqu66aRrouzjYhea7tllL9I7rvWVX7bg3aT2AQ==}
     dev: false
 
   /discord.js@14.7.1:

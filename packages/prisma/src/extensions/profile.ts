@@ -1,5 +1,5 @@
 import { Prisma } from '../../generated/client/index.js'
-import type { APIUser } from '@glenna/discord'
+import type { APIUser } from 'discord-api-types/v10'
 import { safeAlias, safeUsername } from '../index.js'
 
 export const profileExtension = Prisma.defineExtension(client => client.$extends({

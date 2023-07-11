@@ -1,6 +1,6 @@
-import type { AutocompleteInteraction } from '@glenna/discord'
 import { Prisma, type Team, type TeamMemberRole, type GuildMember } from '../../generated/client/index.js'
 import type { TeamPermissions } from './authorization.js'
+import type { APIGuild, APIUser } from 'discord-api-types/v10'
 
 function displayName({ nickname, username }: { nickname: string | null, username: string }){
     return nickname ?? username
@@ -43,14 +43,14 @@ export const teamMemberExtension = Prisma.defineExtension((client) => client.$ex
                     }
                 })
             },
-            async autocompleteSnowflake(interaction: AutocompleteInteraction, teamSnowflake: bigint | null, searchValue: string, permissions: TeamPermissions[]){
+            async autocompleteSnowflake(guild: Pick<APIGuild, 'id'>, user: Pick<APIUser, 'id'>, teamSnowflake: bigint | null, searchValue: string, permissions: TeamPermissions[]){
                 if(!teamSnowflake)
                     return
-                const snowflake = BigInt(interaction.user.id)
+                const snowflake = BigInt(user.id)
                 const team = await client.team.findUnique({
                     where: {
                         snowflake: teamSnowflake,
-                        guild: { snowflake: BigInt(interaction.guild!.id) },
+                        guild: { snowflake: BigInt(guild.id) },
                         permission: {
                             AND: Object.assign({}, ...permissions.map(p => ({
                                 [p]: { permissions: { some: { user: { snowflake }}}}

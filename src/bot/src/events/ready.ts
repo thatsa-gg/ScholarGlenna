@@ -98,7 +98,12 @@ export const readyListener = listener('ready', {
         })
         debug(`Create new guilds.`)
         for(const guild of client.guilds.cache.filter((_, k) => !presentData.has(k)).values()){
-            await database.guild.import(guild)
+            await database.guild.import({
+                id: guild.id,
+                name: guild.name,
+                icon: guild.icon,
+                vanity_url_code: guild.vanityURLCode
+            }, await guild.fetchOwner())
             //await sendWelcomeMessage(guild) // TODO: restore welcome message once testing is complete
         }
 

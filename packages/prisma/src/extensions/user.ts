@@ -1,6 +1,7 @@
-import { DiscordCDN } from '@glenna/discord'
+import { CDN } from '@discordjs/rest'
 import { Prisma } from '../../generated/client/index.js'
 
+const DiscordCDN = new CDN()
 export const userExtension = Prisma.defineExtension(client => client.$extends({
     model: {
         user: {

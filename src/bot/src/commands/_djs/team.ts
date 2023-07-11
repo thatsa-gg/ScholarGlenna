@@ -11,7 +11,9 @@ export function team(){
     return extend(_snowflake(), {
         type: Team,
         async autocomplete({ value }, interaction, authorization){
-            return await database.team.autocompleteSnowflake(interaction, value, isTeamAuthorization(authorization)
+            if(!interaction.guild)
+                return []
+            return await database.team.autocompleteSnowflake(interaction.guild, interaction.user, value, isTeamAuthorization(authorization)
                 ? asArray(authorization.team)
                 : [ 'read' ])
         }

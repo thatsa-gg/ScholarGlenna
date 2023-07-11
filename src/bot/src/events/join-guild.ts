@@ -8,7 +8,12 @@ import { sendWelcomeMessage } from '../util/guild.js'
 export const joinGuildListener = listener('guildCreate', {
     async execute(guild){
         info(`Joining guild: "${guild.name}" (${guild.id})`)
-        await database.guild.import(guild)
+        await database.guild.import({
+            id: guild.id,
+            name: guild.name,
+            icon: guild.icon,
+            vanity_url_code: guild.vanityURLCode
+        }, await guild.fetchOwner())
 
         debug(`Registering commands on "${guild.name}" (${guild.id})`)
         await registerCommands({

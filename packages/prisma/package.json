@@ -15,8 +15,9 @@
     "dependencies": {
         "@js-temporal/polyfill": "0.4.4",
         "zod": "3.21.4",
-        "@glenna/discord": "workspace:*",
-        "@glenna/util": "workspace:*"
+        "@glenna/util": "workspace:*",
+        "@discordjs/rest": "1.7.1",
+        "discord-api-types": "0.37.48"
     },
     "scripts": {
         "migrate": "prisma migrate deploy",
