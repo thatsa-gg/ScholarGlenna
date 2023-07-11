@@ -1,10 +1,9 @@
 import type { Actions, PageServerLoad } from './$types'
 import { database } from '$lib/server'
 import { error, fail } from '@sveltejs/kit'
-import { z } from 'zod'
 import { zfd } from 'zod-form-data'
 
-export const load = (async ({ parent, locals }) => {
+export const load = (async ({ locals }) => {
     if(!locals.session)
         throw error(403)
     const roles = await database.playerRole.upsert({
@@ -41,9 +40,7 @@ export const load = (async ({ parent, locals }) => {
         }
     })
 
-    const data = await parent()
     return {
-        ...data,
         roles: {
             heal: roles.heal,
             healAlacrity: roles.healAlacrity,

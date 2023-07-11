@@ -37,8 +37,12 @@
         <nav class="grid" aria-label="Page content">
             <ul class="list-none flex flex-row">
                 {#each context as part, idx}
-                    <li class="grid last:font-semibold">
-                        <Button href={part.href}>{part.name}</Button>
+                    <li class="flex items-center text-sm last:text-base last:font-bold">
+                        {#if idx === context.length - 1}
+                            <Button href={part.href}>{part.name}</Button>
+                        {:else}
+                            <Button href={part.href} spanClass="underline decoration-primary-200 hover:no-underline">{part.name}</Button>
+                        {/if}
                     </li>
                 {/each}
             </ul>
@@ -55,3 +59,13 @@
         {/if}
     </div>
 </div>
+
+<style lang="postcss">
+    li:not(:last-child) {
+        &::after {
+            content: "/";
+            display: inline-block;
+            @apply text-xl px-1 font-light;
+        }
+    }
+</style>

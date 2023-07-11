@@ -2,7 +2,7 @@ import type { LayoutServerLoad } from "./$types"
 import { database } from "$lib/server"
 import { error } from "@sveltejs/kit"
 
-export const load = (async ({ parent, params, locals }) => {
+export const load = (async ({ params, locals }) => {
     const profile = await database.user.findUnique({
         where: {
             alias: params.user,
@@ -30,9 +30,7 @@ export const load = (async ({ parent, params, locals }) => {
     if(!await profile.profile!.isVisible(locals.session?.user))
         throw error(404)
 
-    const data = await parent()
     return {
-        ...data,
         context: [
             { name: profile.name, href: `/@${profile.alias}` }
         ],

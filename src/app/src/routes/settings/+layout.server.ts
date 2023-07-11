@@ -2,7 +2,7 @@ import type { LayoutServerLoad } from "./$types"
 import { database } from "$lib/server"
 import { error } from "@sveltejs/kit"
 
-export const load = (async ({ parent, locals }) => {
+export const load = (async ({ locals }) => {
     // we can throw 403 for this route, they're not signed in.
     if(!locals.session?.profile)
         throw error(403)
@@ -26,9 +26,7 @@ export const load = (async ({ parent, locals }) => {
     // to access profiles for anyone else, so no need to check
     // visibility here.
 
-    const data = await parent()
     return {
-        ...data,
         context: [
             { name: profile.user.name, href: `/@${profile.user.alias}` }
         ],
