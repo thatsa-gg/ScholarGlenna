@@ -2,7 +2,8 @@ import {
     cache,
     SSO_RETURN_URI,
 } from './index'
-import { OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET } from '$env/static/private'
+import { OAUTH_CLIENT_ID } from '$env/static/private'
+import { env } from '$env/dynamic/private'
 import {
     RouteBases,
     Routes,
@@ -47,7 +48,7 @@ export async function authorizeUser(oauth2Code: string, state: string): Promise<
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
             client_id: OAUTH_CLIENT_ID,
-            client_secret: OAUTH_CLIENT_SECRET,
+            client_secret: env.OAUTH_CLIENT_SECRET,
             grant_type: `authorization_code`,
             redirect_uri: SSO_RETURN_URI,
             code: oauth2Code,
@@ -68,7 +69,7 @@ export async function reauthorizeUser(refreshToken: string): Promise<Authorizati
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
             client_id: OAUTH_CLIENT_ID,
-            client_secret: OAUTH_CLIENT_SECRET,
+            client_secret: env.OAUTH_CLIENT_SECRET,
             grant_type: `refresh_token`,
             refresh_token: refreshToken
         })

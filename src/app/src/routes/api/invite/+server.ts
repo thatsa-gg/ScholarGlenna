@@ -1,5 +1,5 @@
 import { redirect, type RequestHandler } from '@sveltejs/kit'
-import { OAUTH_CLIENT_ID } from '$lib/server'
+import { OAUTH_CLIENT_ID } from '$env/static/private'
 import { OAuth2Routes, OAuth2Scopes, PermissionFlagsBits } from 'discord-api-types/v10'
 
 // build out the URL params in a static context here
