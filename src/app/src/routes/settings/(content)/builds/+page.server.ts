@@ -118,7 +118,7 @@ export const actions: Actions = {
 
                 healTank: data.data['heal-tank'],
                 healTankAlacrity: data.data['heal-tank-alacrity'],
-                healTankQuickness: data.data['heal-quickness'],
+                healTankQuickness: data.data['heal-tank-quickness'],
 
                 dpsPower: data.data['dps-power'],
                 dpsPowerAlacrity: data.data['dps-power-alacrity'],

@@ -5,7 +5,10 @@
     export let checked: boolean = false
 </script>
 
-<label {...$$restProps}>
-    <input type="checkbox" {id} {name} bind:checked={checked} />
-    <span><slot /></span>
-</label>
+<div class="contents">
+    <input type="checkbox" checked={checked} disabled class="hidden peer" />
+    <label {...$$restProps}>
+        <input type="checkbox" {id} {name} bind:checked={checked} />
+        <span><slot /></span>
+    </label>
+</div>
