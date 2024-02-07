@@ -1,0 +1,30 @@
+version: '3'
+
+services:
+    devcontainer:
+        image: mcr.microsoft.com/devcontainers/base:bullseye
+        env_file:
+            - development.env
+        volumes:
+            - /var/run/docker.sock:/var/run/docker-host.sock
+            - ..:/workspace:cached
+        entrypoint: /usr/local/share/docker-init.sh
+        command: sleep infinity
+    postgres:
+        image: postgres:15.2-alpine
+        env_file: development.env
+        volumes:
+            - type: volume
+              source: sql-db
+              target: /var/lib/postgresql/data
+    redis:
+        image: redis:7.0-alpine
+        env_file: development.env
+        volumes:
+            - type: volume
+              source: redis-db
+              target: /data
+
+volumes:
+    sql-db:
+    redis-db:

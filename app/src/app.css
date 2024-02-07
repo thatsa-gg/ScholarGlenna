@@ -1,0 +1,48 @@
+/* TODO: replace this with a local copy? */
+@import url('https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,100..900;1,100..900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        color-scheme: dark;
+        @apply font-primary font-normal;
+        @apply fill-current;
+
+        /* base font size / rem basis */
+        font-size: 16px;
+
+        cursor: default;
+    }
+
+    html {
+        @apply w-full h-full;
+        @apply bg-primary-900 text-gray-100;
+    }
+
+    body {
+        @apply w-full min-h-full;
+
+        /* so drawers don't introduce a weird slide when removing the scrollbar */
+    }
+
+    *, *::after, *::before {
+        @apply box-border;
+    }
+}
+
+@layer utilities {
+    .scroll-w-auto {
+        scrollbar-width: auto;
+    }
+
+    .scroll-w-thin {
+        scrollbar-width: thin;
+    }
+
+    .scroll-w-none {
+        scrollbar-width: none;
+    }
+}

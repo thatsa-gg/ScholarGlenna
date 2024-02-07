@@ -1,0 +1,38 @@
+{
+    "name": "Docker from Docker Compose",
+    "dockerComposeFile": "docker-compose.yml",
+    "service": "devcontainer",
+    "workspaceFolder": "/workspace",
+    "remoteEnv": {
+       "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "dbaeumer.vscode-eslint",
+                "ms-azuretools.vscode-docker",
+                "EditorConfig.EditorConfig",
+                "eamodio.gitlens",
+                "svelte.svelte-vscode",
+                "amodio.toggle-excluded-files",
+                "Tobermory.es6-string-html",
+                "Prisma.prisma",
+                "bradlc.vscode-tailwindcss"
+            ]
+        }
+    },
+    "features": {
+       "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+            "version": "latest",
+            "enableNonRootDocker": "true",
+            "moby": "true"
+        },
+        "ghcr.io/devcontainers/features/node:1": {
+            "version": "18"
+        },
+        "ghcr.io/rocker-org/devcontainer-features/apt-packages": {
+            "packages": "make,redis-tools,postgresql-client"
+        }
+    },
+    //"postCreateCommand": "./.devcontainer/initialize-config && make prepare-dev-environment inject-make-function config.env src/app/.env.local"
+}

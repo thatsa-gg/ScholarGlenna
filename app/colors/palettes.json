@@ -1,0 +1,173 @@
+[
+    {
+        "paletteName": "primary",
+        "swatches": [
+            {
+                "name": "1100",
+                "color": "010409"
+            },
+            {
+                "name": "1000",
+                "color": "090A0E"
+            },
+            {
+                "name": "950",
+                "color": "121214"
+            },
+            {
+                "name": "900",
+                "color": "18191B"
+            },
+            {
+                "name": "800",
+                "color": "1E1F22"
+            },
+            {
+                "name": "750",
+                "color": "222327"
+            },
+            {
+                "name": "700",
+                "color": "26272B"
+            },
+            {
+                "name": "600",
+                "color": "2B2D31"
+            },
+            {
+                "name": "DEFAULT",
+                "color": "2B2D31"
+            },
+            {
+                "name": "500",
+                "color": "313338"
+            },
+            {
+                "name": "400",
+                "color": "3A3C42"
+            },
+            {
+                "name": "300",
+                "color": "4E5058"
+            },
+            {
+                "name": "200",
+                "color": "5D6069"
+            },
+            {
+                "name": "100",
+                "color": "949BA4"
+            },
+            {
+                "name": "50",
+                "color": "BCC5D0"
+            }
+        ]
+    },
+    {
+        "paletteName": "blueberry",
+        "swatches": [
+            {
+                "name": "950",
+                "color": "171C57"
+            },
+            {
+                "name": "900",
+                "color": "2F39A8"
+            },
+            {
+                "name": "800",
+                "color": "3E4BCF"
+            },
+            {
+                "name": "700",
+                "color": "4B58E8"
+            },
+            {
+                "name": "600",
+                "color": "525FEE"
+            },
+            {
+                "name": "500",
+                "color": "5865F2"
+            },
+            {
+                "name": "DEFAULT",
+                "color": "5865F2"
+            },
+            {
+                "name": "400",
+                "color": "606CF5"
+            },
+            {
+                "name": "300",
+                "color": "6A76F8"
+            },
+            {
+                "name": "200",
+                "color": "7883FA"
+            },
+            {
+                "name": "100",
+                "color": "9099FC"
+            },
+            {
+                "name": "50",
+                "color": "B9BFFE"
+            }
+        ]
+    },
+    {
+        "paletteName": "strawberry",
+        "swatches": [
+            {
+                "name": "950",
+                "color": "33050C"
+            },
+            {
+                "name": "900",
+                "color": "6D1420"
+            },
+            {
+                "name": "800",
+                "color": "99202F"
+            },
+            {
+                "name": "700",
+                "color": "A92532"
+            },
+            {
+                "name": "600",
+                "color": "AE2732"
+            },
+            {
+                "name": "500",
+                "color": "B62A34"
+            },
+            {
+                "name": "400",
+                "color": "C53038"
+            },
+            {
+                "name": "300",
+                "color": "DA373C"
+            },
+            {
+                "name": "DEFAULT",
+                "color": "DA373C"
+            },
+            {
+                "name": "200",
+                "color": "F23F42"
+            },
+            {
+                "name": "100",
+                "color": "FB4D4D"
+            },
+            {
+                "name": "50",
+                "color": "FF6C6C"
+            }
+        ]
+    }
+]

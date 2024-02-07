@@ -1,0 +1,43 @@
+{
+    "files.exclude": {
+        "**/.git": true,
+        "**/.DS_Store": true,
+        ".pnpm-store": true,
+        "**/node_modules": true,
+        //"**/.svelte-kit": true,
+        "**/tsconfig.tsbuildinfo": true,
+    },
+    "files.associations": {
+        "*.css": "tailwindcss",
+        "**/rush.json": "jsonc",
+        "**/common/config/rush/*.json": "jsonc"
+    },
+    "tailwindCSS.files.exclude": [
+        "**/.git/**",
+        "**/node_modules/**",
+        "**/.hg/**",
+        "**/.svn/**",
+        "packages/**"
+    ],
+    "tailwindCSS.classAttributes": [
+        "class",
+        "className",
+        "padding",
+        "contentClass",
+        "spanClass",
+        "divClass",
+        "hoverClass",
+        "backgroundClass",
+        "backdropClass",
+        "ngClass"
+    ],
+    "editor.quickSuggestions": {
+        "other": "on",
+        "comments": "off",
+        "strings": "on"
+    },
+    "svelte.enable-ts-plugin": true,
+    "cSpell.words": [
+        "sveltejs"
+    ]
+}
