@@ -1,0 +1,9 @@
+{
+    "name": "thatsa.gg",
+    "devDependencies": {
+        "app": "workspace:*"
+    },
+    "scripts": {
+        "dev": "pnpm -C app dev"
+    }
+}
