@@ -1,9 +1,9 @@
 import { error } from "@sveltejs/kit"
-import { User } from "$lib/server/database"
+import { Users } from "$lib/server/database"
 import { AppUrl } from "$lib/server"
 
 export async function load({ locals: { connection }, params }){
-    const user = await User.findByName(connection, params.user)
+    const user = await Users.FindByName(connection, params.user)
     if(!user)
         return error(404, `User not found: ${params.user}`)
     return {
