@@ -1,6 +1,9 @@
 <script lang="ts">
-    export let size: '32' | '64' | '128' | '256' | '512' | 32 | 64 | 128 | 256 | 512 = '32'
-    export let id: string | undefined = undefined;
+    type StringOrNumber<T extends number> = T | `${T}`
+    let { size = "32", id }: {
+        size: StringOrNumber<32 | 64 | 128 | 256 | 512>
+        id?: string
+    } = $props()
 </script>
 
 <img

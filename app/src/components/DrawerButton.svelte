@@ -1,30 +1,41 @@
 <script lang="ts">
-    let classes: string | undefined = undefined
-    export let href: string | undefined = undefined
-    export let label: string | undefined = undefined
-    export let spanClass: string = "inline-block"
-    export { classes as class }
-
-    export let hoverClass: `hover:bg-${string}` | false = "hover:bg-primary-500"
-    export let backgroundClass: `bg-${string}` | undefined = undefined
+    import type { Snippet } from "svelte"
+    let {
+        href, label, class: classes, backgroundClass,
+        spanClass = "inline-block",
+        hoverClass = "hover:bg-primary-500",
+        onclick,
+        children, leader, trailer
+    }: {
+        href?: string
+        label?: string
+        class?: string
+        spanClass?: string
+        hoverClass?: `hover:bg-${string}` | false
+        backgroundClass?: `bg-${string}`
+        onclick?: () => void,
+        leader?: Snippet,
+        children: Snippet,
+        trailer?: Snippet,
+    } = $props()
 
     let classList = [classes, hoverClass, backgroundClass].filter(a => a).join(" ")
 </script>
 
 <li>
     {#if href}
-        <a {href} class={classList} title={label} aria-label={label} on:click>
-            {#if $$slots.leader}
-                <span class="leader" aria-hidden="true"><slot name="leader"/></span>
+        <a {href} class={classList} title={label} aria-label={label} {onclick}>
+            {#if leader}
+                <span class="leader" aria-hidden="true">{@render leader()}</span>
             {/if}
-            <span class={["content", spanClass].filter(a => a).join(" ")}><slot /></span>
-            {#if $$slots.trailer}
-                <span class="trailer" aria-hidden="true"><slot name="trailer"/></span>
+            <span class={["content", spanClass].filter(a => a).join(" ")}>{@render children()}</span>
+            {#if trailer}
+                <span class="trailer" aria-hidden="true">{@render trailer()}</span>
             {/if}
         </a>
     {:else}
-        <button class={classList} on:click aria-label={label}>
-            <span class={spanClass}><slot /></span>
+        <button class={classList} {onclick} aria-label={label}>
+            <span class={spanClass}>{@render children()}</span>
         </button>
     {/if}
 </li>

@@ -42,27 +42,28 @@
     <ScrollPane class="flex-grow">
         <nav>
             <ul class="p-4">
-                <DrawerButton href={user.url.user}>
-                    <Icon icon={IconUser} class="text-xl" slot="leader" />
-                    Your Profile
-                </DrawerButton>
-                <DrawerButton href={user.url.logs}>
-                    <Icon icon={IconLog} class="text-xl" slot="leader" />
-                    Your Logs
-                </DrawerButton>
+                {#snippet link({icon, href, text})}
+                    <DrawerButton {href}>
+                        {#snippet leader()}
+                            <Icon {icon} class="text-xl" />
+                        {/snippet}
+                        {text}
+                    </DrawerButton>
+                {/snippet}
+                {#snippet button({ icon, href, text })}
+                    <DrawerButton {href} onclick={() => drawer.setState(false)}>
+                        {#snippet leader()}
+                            <Icon {icon} class="text-xl" />
+                        {/snippet}
+                        {text}
+                    </DrawerButton>
+                {/snippet}
+                {@render link({ href: user.url.user, icon: IconUser, text: "Your Profile" })}
+                {@render link({ href: user.url.logs, icon: IconLog, text: "Your Logs" })}
                 <DrawerDivider />
-                <DrawerButton href={ClientAppUrl.Settings} on:click={() => drawer.setState(false)}>
-                    <Icon icon={IconSettingsCog} class="text-xl" slot="leader" />
-                    Account Settings
-                </DrawerButton>
-                <DrawerButton href={ClientAppUrl.SettingsBuilds} on:click={() => drawer.setState(false)}>
-                    <Icon icon={IconTools} class="text-xl" slot="leader" />
-                    Builds
-                </DrawerButton>
-                <DrawerButton href={ClientAppUrl.SettingsAccounts} on:click={() => drawer.setState(false)}>
-                    <Icon icon={IconKey} class="text-xl" slot="leader" />
-                    Accounts &amp; API Keys
-                </DrawerButton>
+                {@render button({ href: ClientAppUrl.Settings, icon: IconSettingsCog, text: "Account Settings" })}
+                {@render button({ href: ClientAppUrl.SettingsBuilds, icon: IconTools, text: "Builds" })}
+                {@render button({ href: ClientAppUrl.SettingsAccounts, icon: IconKey, text: "Accounts & API Keys" })}
             </ul>
         </nav>
     </ScrollPane>
@@ -75,10 +76,12 @@
                             group transition-colors duration-100
                             hover:text-gray-200 hover:font-semibold
                         ">
-                <span slot=leader>
-                    <Icon icon={IconLogOutHover} class="text-2xl motion-safe:group-hover:hidden" />
-                    <Icon icon={IconLogOut} class="text-2xl hidden motion-safe:group-hover:block" />
-                </span>
+                {#snippet leader()}
+                    <span>
+                        <Icon icon={IconLogOutHover} class="text-2xl motion-safe:group-hover:hidden" />
+                        <Icon icon={IconLogOut} class="text-2xl hidden motion-safe:group-hover:block" />
+                    </span>
+                {/snippet}
                 Sign Out
             </DrawerButton>
         </ul>

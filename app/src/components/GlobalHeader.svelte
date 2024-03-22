@@ -13,14 +13,16 @@
     import IconMenu from "@iconify-icons/majesticons/menu"
 
     // Properties
-    export let primaryDrawer: Drawer
-    export let profileDrawer: Drawer
+    let { primaryDrawer, profileDrawer }: {
+        primaryDrawer: Drawer
+        profileDrawer: Drawer
+    } = $props()
     let context = $page.data.context
     let user = $page.data.sessionUser
 </script>
 <div class="flex flex-row p-4 gap-2 pb-2 last:pb-4">
     <div class="flex flex-row flex-auto gap-2 h-8">
-        <button on:click={() => primaryDrawer.setState(true)} class="
+        <button onclick={() => primaryDrawer.setState(true)} class="
             mr-2
             border border-primary-500 rounded-md hover:border-primary-50
             transition-colors duration-100
@@ -51,7 +53,7 @@
     <div class="flex flex-row gap-2">
         <button>TODO search</button>
         {#if user}
-            <button on:click={() => profileDrawer.setState(true)} aria-label="Open user account menu">
+            <button onclick={() => profileDrawer.setState(true)} aria-label="Open user account menu">
                 <UserIcon {user} size=32 />
             </button>
         {:else}
