@@ -1,10 +1,16 @@
 <script lang="ts">
-    export let layout: "none" | "grid" | "grid-header" | "row" = "none"
-    export let style: "simple" | "hero" = "simple"
-    let classes: string | undefined = undefined
-    export {
-        classes as class
-    }
+    import type { Snippet } from "svelte"
+    let {
+        class: classes,
+        layout = "none",
+        style = "simple",
+        children
+    }: {
+        class?: string
+        layout?: "none" | "grid" | "grid-header" | "row"
+        style?: "simple" | "hero"
+        children: Snippet
+    } = $props()
 </script>
 
 <section class="
@@ -18,7 +24,7 @@
         : ""}
     {classes}
 ">
-    <slot />
+    {@render children()}
 </section>
 
 <style lang="postcss">

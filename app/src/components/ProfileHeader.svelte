@@ -12,8 +12,8 @@
     import IconLogs from "@iconify-icons/octicon/log-16"
 
     // Properties
-    export let user: Glenna.User = $page.data.sessionUser!
-    $: isSelf = user.name === $page.data.sessionUser?.name
+    let { user = $page.data.sessionUser! }: { user?: Glenna.User } = $props()
+    let isSelf = $derived(user.name === $page.data.sessionUser?.name)
 </script>
 
 <LocalHeader>

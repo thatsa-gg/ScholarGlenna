@@ -1,7 +1,6 @@
 <script lang="ts">
-    export let guild: Glenna.Guild
-
-    let src: string | null = guild.url.icon?.static ?? null
+    let { guild }: { guild: Glenna.Guild } = $props()
+    let src: string | null = $state(guild.url.icon?.static ?? null)
 </script>
 
 <div class="transition-rounded rounded-half hover:rounded-third bg-clip-content overflow-hidden w-32 h-32 bg-primary-900">

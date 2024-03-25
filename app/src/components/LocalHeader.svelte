@@ -1,19 +1,24 @@
 <script lang="ts">
+    import type { Snippet } from "svelte"
+
     // Components
     import LocalHeaderRow from "./LocalHeaderRow.svelte"
 
     // Properties
-    export let label: string | undefined = undefined
-    export let multirow: boolean = false
+    let { label, multirow = false, children }: {
+        label?: string
+        multirow?: boolean
+        children: Snippet
+    } = $props()
 </script>
 
 <div class="flex flex-row gap-2 pl-4 pr-16 sm:pr-4">
     <nav class="flex flex-row flex-wrap justify-start w-full gap-y-1" aria-label={label}>
         {#if multirow}
-            <slot />
+            {@render children()}
         {:else}
             <LocalHeaderRow>
-                <slot />
+                {@render children()}
             </LocalHeaderRow>
         {/if}
     </nav>

@@ -3,7 +3,7 @@
     import IconClose from "@iconify-icons/octicon/x-16"
 
     import type Drawer from "./Drawer.svelte"
-    export let drawer: Drawer
+    let { drawer }: { drawer: Drawer } = $props()
 </script>
 <button class="transition-colors duration-100
                 flex items-center justify-center

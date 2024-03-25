@@ -1,7 +1,7 @@
 <script lang="ts">
-    type StringOrNumber<T extends number> = T | `${T}`
+    import type { Size } from "$lib/client/size"
     let { size = "32", id }: {
-        size: StringOrNumber<32 | 64 | 128 | 256 | 512>
+        size: Size<32 | 64 | 128 | 256 | 512>
         id?: string
     } = $props()
 </script>

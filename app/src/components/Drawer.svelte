@@ -1,18 +1,26 @@
 <script lang="ts">
-    export let id: string
-    export let placement: "left" | "right" = "left"
+    import type { Snippet } from "svelte"
 
-    let sided = {
-        "left": "inset-y-0 left-0 drawer-fly-in-left border-l rounded-r-lg",
-        "right": "inset-y-0 right-0 drawer-fly-in-right border-r rounded-l-lg",
-    }[placement]
-    let visible: boolean = false
+    let visible: boolean = $state(false)
     export function setState(open: boolean){
         visible = open
     }
 
-    let classes: string = ""
-    export { classes as class }
+    let {
+        class: classes = "",
+        id,
+        placement = "left",
+        children,
+    }: {
+        class?: string
+        id: string
+        placement?: "left" | "right"
+        children: Snippet
+    } = $props()
+    let sided = {
+        "left": "inset-y-0 left-0 drawer-fly-in-left border-l rounded-r-lg",
+        "right": "inset-y-0 right-0 drawer-fly-in-right border-r rounded-l-lg",
+    }[placement]
 </script>
 
 {#if visible}
@@ -25,7 +33,9 @@
         flex flex-col
         bg-primary-900 border-primary-500
     " aria-controls={id} aria-labelledby={id}>
-        <slot hidden={!visible} />
+        {#if visible}
+            {@render children()}
+        {/if}
     </div>
 {/if}
 

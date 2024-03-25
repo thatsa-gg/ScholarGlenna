@@ -28,12 +28,16 @@
             <ul class="p-4">
                 {#if user}
                     <DrawerButton href={user.url.user}>
-                        <Icon icon={IconHome} class="text-2xl" slot="leader" />
+                        {#snippet leader()}
+                            <Icon icon={IconHome} class="text-2xl" />
+                        {/snippet}
                         My Profile
                     </DrawerButton>
                 {:else}
                     <DrawerButton href="/">
-                        <Icon icon={IconHome} class="text-2xl" slot="leader" />
+                        {#snippet leader()}
+                            <Icon icon={IconHome} class="text-2xl" />
+                        {/snippet}
                         Home
                     </DrawerButton>
                 {/if}

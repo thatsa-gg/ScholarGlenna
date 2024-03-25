@@ -1,7 +1,9 @@
 <script lang="ts">
-    export let user: Glenna.User
-    export let size: Optional<'16' | 16 | '32' | 32 | '64' | 64 | '128' | 128 | '256' | 256> = undefined
-
+    import type { Size } from "$lib/client/size"
+    let { user, size }: {
+        user: Glenna.User
+        size?: Size<16 | 32 | 64 | 128 | 256>
+    } = $props()
     let src = size ? `${user.url.avatar}?size=${size}` : user.url.avatar
 </script>
 

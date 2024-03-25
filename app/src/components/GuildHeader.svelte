@@ -12,7 +12,7 @@
     import IconLogs from "@iconify-icons/octicon/log-16"
 
     // Properties
-    export let guild: Glenna.Guild
+    let { guild }: { guild: Glenna.Guild } = $props()
 </script>
 
 <LocalHeader multirow>

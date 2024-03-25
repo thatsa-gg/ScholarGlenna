@@ -23,6 +23,8 @@
     // Properties
     export let drawer: Drawer = undefined! // bound below
     let user = $page.data.sessionUser
+
+    //let { drawer }: { drawer: Drawer } = $props
 </script>
 
 <Drawer id="profile-drawer" bind:this={drawer} placement="right">

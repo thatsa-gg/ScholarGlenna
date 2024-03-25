@@ -16,10 +16,15 @@
     import IconUnknownRegion from "@iconify-icons/octicon/circle-slash-16"
 
     // Properties
-    export let guild: Glenna.Guild
-    export let showGuildPageLink: boolean = false
-    export let style: "simple" | "hero" = "simple"
-
+    let {
+        guild,
+        showGuildPageLink = false,
+        style = "simple",
+    }: {
+        guild: Glenna.Guild
+        showGuildPageLink?: boolean
+        style?: "simple" | "hero"
+    } = $props()
     let isNARegion = guild.serverRegion?.includes("na") ?? false
     let isEURegion = guild.serverRegion?.includes("eu") ?? false
 </script>

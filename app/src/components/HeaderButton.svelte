@@ -1,17 +1,26 @@
 <script lang="ts">
+    import type { Snippet } from "svelte"
     import { page } from "$app/stores"
 
     // Components
     import Icon, { type IconifyIcon } from "@iconify/svelte"
 
     // Properties
-    export let href: string
-    export let icon: IconifyIcon | undefined = undefined
-    export let activeOn: (url: URL) => boolean = url => url.pathname == href
-    let classes: string | undefined = undefined
-    export { classes as class }
+    let {
+        href,
+        icon,
+        activeOn = url => url.pathname == href,
+        class: classes,
+        children
+    }: {
+        href: string
+        icon?: IconifyIcon
+        activeOn?: (url: URL) => boolean
+        class?: string
+        children: Snippet
+    } = $props()
 
-    $: active = activeOn($page.url)
+    let active = $derived(activeOn($page.url))
 </script>
 
 <li class:active class="
@@ -28,9 +37,9 @@
     ">
         {#if icon}
             <Icon {icon} class="fill-primary-100" />
-            <span><slot /></span>
+            <span>{@render children()}</span>
         {:else}
-            <slot />
+            {@render children()}
         {/if}
     </a>
 </li>

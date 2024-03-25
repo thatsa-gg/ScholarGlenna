@@ -1,5 +1,11 @@
 <script lang="ts">
-    export let scrollStyle: 'auto' | 'thin' | 'none' = 'thin'
+    import type { Snippet } from "svelte"
+
+    let { scrollStyle = "thin", class: classes, children }: {
+        scrollStyle?: 'auto' | 'thin' | 'none'
+        class?: string
+        children: Snippet
+    } = $props()
     const scrollClass = {
         auto: 'scroll-w-auto',
         thin: 'scroll-w-thin',
@@ -7,7 +13,7 @@
     }[scrollStyle]
 </script>
 
-<div class="flex flex-col h-0 {$$restProps.class}">
+<div class="flex flex-col h-0 {classes}">
     <div class="flex-auto overflow-y-auto {scrollClass}">
         <slot />
     </div>

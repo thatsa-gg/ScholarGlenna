@@ -1,20 +1,27 @@
 <script lang="ts">
-    export let href: string
-    export let label: string | undefined = undefined
-    export let padding: string = "px-md py-sm"
-    export let external: boolean = false
-
-    let classes: string = ""
-    export {
-        classes as class
-    }
+    import type { Snippet } from "svelte"
+    let {
+        class: classes = "",
+        href,
+        label,
+        padding = "px-md py-sm",
+        external = false,
+        children
+    }: {
+        class?: string
+        href: string
+        label?: string
+        padding?: string
+        external?: boolean
+        children: Snippet
+    } = $props()
 </script>
 
 <a {href} title={label} aria-label={label}
     class="{padding} {classes}"
     target={external ? "_blank" : undefined}
 >
-    <slot />
+    {@render children()}
 </a>
 
 <style lang="postcss">

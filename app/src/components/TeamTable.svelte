@@ -1,6 +1,5 @@
 <script lang="ts">
     import type { TeamKind } from "$lib/server/database/types"
-    import { JsonBinaryToken } from "slonik/dist/tokens";
 
     // Properties
     export let teams: Record<string, {

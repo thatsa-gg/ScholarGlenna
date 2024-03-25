@@ -1,6 +1,10 @@
 <script lang="ts">
-    export let href: string | undefined = undefined
-    export let label: string | undefined = undefined
+    import type { Snippet } from "svelte"
+    let { href, label, children }: {
+        href?: string
+        label?: string
+        children: Snippet
+    } = $props()
 </script>
 
 {#if href}
@@ -11,7 +15,7 @@
             flex items-center h-8 px-md py-sm
             rounded-md overflow-hidden
             text-ellipsis whitespace-nowrap
-    "><slot /></a>
+    ">{@render children()}</a>
 {:else}
     <span
         title={label} aria-label={label}
@@ -19,5 +23,5 @@
             flex items-center h-8 px-md py-sm
             rounded-md overflow-hidden
             text-ellipsis whitespace-nowrap
-    "><slot /></span>
+    ">{@render children()}</span>
 {/if}
