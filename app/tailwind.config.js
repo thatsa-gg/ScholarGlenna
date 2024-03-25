@@ -54,6 +54,15 @@ export default {
                     right: 'right'
                 }}
             )
+
+            matchUtilities(
+                { "scroll-w": value => ({ scrollbarWidth: value }) },
+                { values: {
+                    auto: "auto",
+                    thin: "thin",
+                    none: "none"
+                }}
+            )
         })
     ],
 }

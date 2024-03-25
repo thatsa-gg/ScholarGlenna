@@ -32,17 +32,3 @@
         @apply box-border;
     }
 }
-
-@layer utilities {
-    .scroll-w-auto {
-        scrollbar-width: auto;
-    }
-
-    .scroll-w-thin {
-        scrollbar-width: thin;
-    }
-
-    .scroll-w-none {
-        scrollbar-width: none;
-    }
-}
