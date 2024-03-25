@@ -1,17 +1,17 @@
 <script lang="ts">
     // Components
-    import type Drawer from "./Drawer.svelte"
+    import { drawerState, type DrawerState } from "./Drawer.svelte"
     import PrimaryDrawer from "./PrimaryDrawer.svelte"
     import ProfileDrawer from "./ProfileDrawer.svelte"
     import GlobalHeader from "./GlobalHeader.svelte"
 
     // Properties
-    let primaryDrawer: Drawer
-    let profileDrawer: Drawer
+    let primaryDrawer = drawerState()
+    let profileDrawer = drawerState()
 </script>
 
-<PrimaryDrawer bind:drawer={primaryDrawer} />
-<ProfileDrawer bind:drawer={profileDrawer} />
+<PrimaryDrawer state={primaryDrawer} />
+<ProfileDrawer state={profileDrawer} />
 
 <header class="
     bg-primary-950 border-b border-primary-750 mb-4

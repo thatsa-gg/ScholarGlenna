@@ -4,7 +4,7 @@
     import CardHeader from "./CardHeader.svelte"
     import ButtonLink from "./ButtonLink.svelte"
     import GuildIcon from "./GuildIcon.svelte"
-    import Icon from "@iconify/svelte"
+    import Icon from "./Icon.svelte"
     import LabeledBox from "./LabeledBox.svelte"
 
     // Icons

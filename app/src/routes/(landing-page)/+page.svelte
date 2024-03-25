@@ -2,7 +2,7 @@
     // Components
     import App from "$components/App.svelte"
     import DiscordLoginButtonLink from "$components/DiscordLoginButtonLink.svelte"
-    import Icon from "@iconify/svelte"
+    import Icon from "$components/Icon.svelte"
 
     // Icons
     import IconArrowRight from "@iconify-icons/majesticons/arrow-right"

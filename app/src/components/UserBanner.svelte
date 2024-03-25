@@ -2,8 +2,10 @@
     import Card from "./Card.svelte"
     import UserIcon from "./UserIcon.svelte"
 
-    export let hero: boolean = false
-    export let user: Glenna.User
+    let { hero = false, user }: {
+        hero?: boolean
+        user: Glenna.User
+    } = $props()
 </script>
 
 <Card>

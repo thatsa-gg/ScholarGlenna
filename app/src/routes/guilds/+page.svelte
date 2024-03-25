@@ -1,8 +1,9 @@
 <script lang="ts">
+    import type { PageData } from "./$types"
     // Components
     import App from "$components/App.svelte"
-    import Card from "$components/Card.svelte";
-    import CardSeparator from "$components/CardSeparator.svelte";
+    import Card from "$components/Card.svelte"
+    import CardSeparator from "$components/CardSeparator.svelte"
     import CenterColumn from "$components/CenterColumn.svelte"
     import DiscordLoginButtonLink from "$components/DiscordLoginButtonLink.svelte"
     import GuildInfoCard from "$components/GuildInfoCard.svelte"
@@ -10,8 +11,7 @@
     // Icons
 
     // Properties
-    import type { PageData } from "./$types"
-    export let data: PageData
+    let { data }: { data: PageData } = $props()
     let user = data.sessionUser
     let ownGuilds = data.guilds.filter(guild => guild.isMember)
     let publicGuilds = data.guilds.filter(guild => !guild.isMember)

@@ -3,10 +3,10 @@
 
     // Components
     import BrandingLogo from "./BrandingLogo.svelte"
-    import Drawer from "./Drawer.svelte"
+    import Drawer, { type DrawerState } from "./Drawer.svelte"
     import DrawerButton from "./DrawerButton.svelte"
     import DrawerDivider from "./DrawerDivider.svelte"
-    import Icon from "@iconify/svelte"
+    import Icon from "./Icon.svelte"
     import ScrollPane from "./ScrollPane.svelte"
     import CloseDrawerButton from "./CloseDrawerButton.svelte"
 
@@ -14,14 +14,14 @@
     import IconHome from "@iconify-icons/octicon/home-16"
 
     // Properties
-    export let drawer: Drawer = undefined! // bound below
     let user = $page.data.sessionUser
+    let { state }: { state: DrawerState } = $props()
 </script>
 
-<Drawer id="primary-drawer" bind:this={drawer}>
+<Drawer id="primary-drawer" {state}>
     <div class="flex justify-between p-4 pb-0">
         <BrandingLogo size="32" />
-        <CloseDrawerButton {drawer} />
+        <CloseDrawerButton {state} />
     </div>
     <ScrollPane class="flex-grow">
         <nav>

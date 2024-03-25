@@ -2,27 +2,27 @@
     import { page } from "$app/stores"
 
     // Components
-    import type Drawer from "./Drawer.svelte"
+    import type { DrawerState } from "./Drawer.svelte"
     import BrandingLogo from "./BrandingLogo.svelte"
     import Crumb from "./Crumb.svelte"
     import UserIcon from "./UserIcon.svelte"
     import DiscordLoginButtonLink from "./DiscordLoginButtonLink.svelte"
-    import Icon from "@iconify/svelte"
+    import Icon from "./Icon.svelte"
 
     // Icons
     import IconMenu from "@iconify-icons/majesticons/menu"
 
     // Properties
     let { primaryDrawer, profileDrawer }: {
-        primaryDrawer: Drawer
-        profileDrawer: Drawer
+        primaryDrawer: DrawerState
+        profileDrawer: DrawerState
     } = $props()
     let context = $page.data.context
     let user = $page.data.sessionUser
 </script>
 <div class="flex flex-row p-4 gap-2 pb-2 last:pb-4">
     <div class="flex flex-row flex-auto gap-2 h-8">
-        <button onclick={() => primaryDrawer.setState(true)} class="
+        <button onclick={() => primaryDrawer.open()} class="
             mr-2
             border border-primary-500 rounded-md hover:border-primary-50
             transition-colors duration-100
@@ -53,7 +53,7 @@
     <div class="flex flex-row gap-2">
         <button>TODO search</button>
         {#if user}
-            <button onclick={() => profileDrawer.setState(true)} aria-label="Open user account menu">
+            <button onclick={() => profileDrawer.open()} aria-label="Open user account menu">
                 <UserIcon {user} size=32 />
             </button>
         {:else}

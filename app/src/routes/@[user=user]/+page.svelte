@@ -1,15 +1,16 @@
 <script lang="ts">
+    import type { PageData } from "./$types"
+
     // Components
     import App from "$components/App.svelte"
-    import CenterColumn from "$components/CenterColumn.svelte";
+    import CenterColumn from "$components/CenterColumn.svelte"
     import LogView from "$components/LogView.svelte"
     import ProfileHeader from "$components/ProfileHeader.svelte"
     import UserBanner from "$components/UserBanner.svelte"
     import UserRoles from "$components/UserRoles.svelte"
 
     // Properties
-    import type { PageData } from "./$types"
-    export let data: PageData
+    let { data }: { data: PageData } = $props()
 </script>
 
 <svelte:head>

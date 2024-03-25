@@ -3,7 +3,7 @@
     import { page } from "$app/stores"
     import { ClientAppUrl } from "$lib/url"
     import ButtonLink from "./ButtonLink.svelte"
-    import Icon from "@iconify/svelte"
+    import Icon from "./Icon.svelte"
     import IconDiscord from "@iconify-icons/bi/discord"
 
     let href = $derived(ClientAppUrl.login($page.url))

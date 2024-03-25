@@ -3,7 +3,8 @@
     import { page } from "$app/stores"
 
     // Components
-    import Icon, { type IconifyIcon } from "@iconify/svelte"
+    import type { IconifyIcon } from "@iconify/utils"
+    import Icon from "./Icon.svelte"
 
     // Properties
     let {

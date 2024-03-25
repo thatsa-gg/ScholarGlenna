@@ -9,7 +9,7 @@
     import SettingsHeader from "$components/SettingsHeader.svelte"
 
     // Properties
-    export let data: PageData
+    let { data }: { data: PageData } = $props()
 
     afterNavigate(nav => {
         disableScrollHandling()

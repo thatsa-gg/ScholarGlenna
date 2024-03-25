@@ -1,20 +1,29 @@
-<script lang="ts">
-    import type { Snippet } from "svelte"
-
-    let visible: boolean = $state(false)
-    export function setState(open: boolean){
-        visible = open
+<script lang="ts" context="module">
+    export function drawerState(){
+        let visible = $state(false)
+        return {
+            get visible(){ return visible },
+            open(){ visible = true },
+            close(){ visible = false },
+        }
     }
 
+    export type DrawerState = ReturnType<typeof drawerState>
+</script>
+
+<script lang="ts">
+    import type { Snippet } from "svelte"
     let {
         class: classes = "",
         id,
         placement = "left",
+        state,
         children,
     }: {
         class?: string
         id: string
         placement?: "left" | "right"
+        state: DrawerState
         children: Snippet
     } = $props()
     let sided = {
@@ -23,19 +32,17 @@
     }[placement]
 </script>
 
-{#if visible}
+{#if state.visible}
     <div role="presentation"
          class="bg-black bg-opacity-80 fixed top-0 left-0 z-50 w-full h-full"
-         on:click={() => visible = false}/>
+         on:click={() => state.close()}/>
     <div {id} class="
         {classes} {sided}
         fixed w-80 h-full z-50 overflow-hidden
         flex flex-col
         bg-primary-900 border-primary-500
     " aria-controls={id} aria-labelledby={id}>
-        {#if visible}
-            {@render children()}
-        {/if}
+        {@render children()}
     </div>
 {/if}
 

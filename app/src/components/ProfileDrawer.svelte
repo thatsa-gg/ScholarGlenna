@@ -3,9 +3,9 @@
     import { page } from "$app/stores"
 
     // Components
-    import Drawer from "./Drawer.svelte"
+    import Drawer, { type DrawerState } from "./Drawer.svelte"
     import UserIcon from "./UserIcon.svelte"
-    import Icon from "@iconify/svelte"
+    import Icon from "./Icon.svelte"
     import ScrollPane from "./ScrollPane.svelte"
     import DrawerButton from "./DrawerButton.svelte"
     import DrawerDivider from "./DrawerDivider.svelte"
@@ -21,13 +21,11 @@
     import IconUser from "@iconify-icons/octicon/person-16"
 
     // Properties
-    export let drawer: Drawer = undefined! // bound below
     let user = $page.data.sessionUser
-
-    //let { drawer }: { drawer: Drawer } = $props
+    let { state }: { state: DrawerState } = $props()
 </script>
 
-<Drawer id="profile-drawer" bind:this={drawer} placement="right">
+<Drawer id="profile-drawer" {state} placement="right">
     {#if user}
     <div class="flex justify-between items-center p-4">
         <span class="flex gap-2 items-center">
@@ -38,7 +36,7 @@
                 font-semibold
             ">{user.name}</span>
         </span>
-        <CloseDrawerButton {drawer} />
+        <CloseDrawerButton {state} />
     </div>
 
     <ScrollPane class="flex-grow">
@@ -53,7 +51,7 @@
                     </DrawerButton>
                 {/snippet}
                 {#snippet button({ icon, href, text })}
-                    <DrawerButton {href} onclick={() => drawer.setState(false)}>
+                    <DrawerButton {href} onclick={() => state.close()}>
                         {#snippet leader()}
                             <Icon {icon} class="text-xl" />
                         {/snippet}

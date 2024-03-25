@@ -2,7 +2,7 @@
     // Components
     import App from "$components/App.svelte"
     import CenterColumn from "$components/CenterColumn.svelte"
-    import Icon from "@iconify/svelte"
+    import Icon from "$components/Icon.svelte"
 
     // Icons
     import IconAlert from "@iconify-icons/octicon/alert-fill-24"
