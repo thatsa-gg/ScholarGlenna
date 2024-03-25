@@ -42,6 +42,10 @@ export default {
             screens: {
                 short: { raw: '(min-height: 480px)' }
             },
+
+            scrollMargin: {
+                "auto-header": "var(--app-header-height)"
+            }
         },
     },
     plugins: [

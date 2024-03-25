@@ -7,10 +7,11 @@
     import App from "$components/App.svelte"
     import CenterColumn from "$components/CenterColumn.svelte"
     import SettingsHeader from "$components/SettingsHeader.svelte"
+    import SectionCard from "$components/SectionCard.svelte"
+    import Builds from "./(builds)/Builds.svelte"
 
     // Properties
     let { data }: { data: PageData } = $props()
-
     afterNavigate(nav => {
         disableScrollHandling()
         const isInPage = nav.from?.url.pathname.startsWith(ClientAppUrl.Settings) ?? false
@@ -23,26 +24,23 @@
     })
 </script>
 
+<svelte:head>
+    <title>{data.title} | Scholar Glenna</title>
+</svelte:head>
+
 <App>
-    <SettingsHeader slot="header" />
+    {#snippet header()}
+        <SettingsHeader />
+    {/snippet}
     <CenterColumn>
         <pre>
         Current section: {data.pageSection ?? "(none)"}
-
-        individual user settings
-
-        - accounts
-        - builds
         </pre>
 
-        <div id="builds" class="bg-slate-600 h-96 mb-12">
-            <h2>Builds</h2>
-            todo
-        </div>
-
-        <div id="accounts" class="bg-slate-600 h-96">
+        <Builds />
+        <SectionCard id="accounts">
             <h2>Accounts</h2>
             todo
-        </div>
+        </SectionCard>
     </CenterColumn>
 </App>
