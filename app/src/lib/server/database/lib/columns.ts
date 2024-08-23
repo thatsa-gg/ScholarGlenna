@@ -2,6 +2,7 @@ import type { ExtendedTable, Table } from "./table"
 import { ZodNullable, ZodOptional, z } from "zod"
 import { Column, ColumnFlags, ColumnMode } from "./column"
 import type { IdentifierSqlToken, SqlFragment } from "slonik"
+import { PermissionRole } from "../schema/table-permissionrole"
 
 type ColumnSqlType = string | IdentifierSqlToken
 export type AnyColumnBuilder = ColumnBuilder<string, ColumnSqlType, z.ZodTypeAny, z.ZodTypeAny, ColumnMode>
@@ -20,7 +21,7 @@ export class ColumnBuilder<
 
     Flags: ColumnFlags = ColumnFlags.None
     DefaultValue: z.input<TInput> | SqlFragment | undefined = undefined
-    ReferenceColumn: Column | undefined = undefined
+    ReferenceColumn: () => (Column<string, string, TOutput, TInput, ColumnMode.PrimaryKey> | undefined) = () => undefined
 
     constructor(name: TName, mode: TMode, sqlType: TSqlType, zodType: TInput | TOutput){
         this.Name = name
@@ -59,18 +60,20 @@ export class ColumnBuilder<
         return self
     }
 
-    References<TTable extends Table>(table: () => [ TTable, string ]){
+    References(column: () => Column<string, string, TOutput, TInput, ColumnMode.PrimaryKey>){
         this.Flags |= ColumnFlags.References
-        const self = this as unknown
+        this.ReferenceColumn = column
 
         // TODO: column
         return this
     }
 
     Default(value: z.input<TInput> | SqlFragment){
-        this.Flags |= ColumnFlags.Default
-        this.DefaultValue = value
-        return this
+        const self = this as unknown as ColumnBuilder<TName, TSqlType, TOutput, ZodOptional<TInput>, ColumnMode.Optional>
+        self.Flags |= ColumnFlags.Default
+        self.DefaultValue = value
+        self.InputType = this.InputType.optional()
+        return self
     }
 
     Accept<TAccept extends z.ZodTypeAny>(accept: TAccept){
@@ -114,6 +117,12 @@ export namespace Columns {
     export function DiscordId<T extends string>(name: T){
         return new ColumnBuilder(name, ColumnMode.Normal, "bigint", z.bigint())
             .Accept(z.bigint().or(z.string()))
+    }
+
+    export function Permission<T extends string>(name: T){
+        return Integer(name)
+            .References(() => PermissionRole.PermissionRoleId)
+            .Nullable().Default(null)
     }
 
     export function Text<T extends string>(name: T){

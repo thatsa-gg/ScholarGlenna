@@ -21,4 +21,7 @@ export const Team = AppSchema.Table("team", {
 
     Color: Columns.Integer("color").Optional(),
     Icon: Columns.Text("icon").Optional(),
+
+    // Permissions
+    PermissionRead: Columns.Permission("permission_read"),
 })

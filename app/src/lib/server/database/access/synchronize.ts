@@ -1,23 +1,29 @@
 import type { APIGuild, RESTAPIPartialCurrentUserGuild } from "discord-api-types/v10"
-import { Sql } from "./lib/sql"
-import { Guild, TempGuild } from "./schema"
-import { Guilds, TempGuilds } from "./helpers"
+import { Sql } from "../lib/sql"
+import { TempGuild } from "../schema/table-tempguild"
+import { TempGuilds } from "../helpers/tempguilds"
+import { Guild } from "../schema/table-guild"
+import { Guilds } from "../helpers/guilds"
 
-export namespace App {
-    export async function prepareSynchronize(connection: DatabaseConnection){
+/**
+ * Used in /api/synchronize
+ */
+export namespace Synchronize {
+    export async function Prepare(connection: DatabaseConnection){
         await connection.query(Sql.Truncate(TempGuild))
         await connection.query(Sql.Void`
             ${TempGuild.InsertFragment("GuildId", "DiscordId")}
             select
             ${Sql.Columns({
                 GuildId: Guild.GuildId,
-                DiscordId: Guild.DiscordId,
+                DiscordId: Guild.DiscordId
             })}
-            from ${Guild.GetSql()}
+            from ${Guild.AsSql()}
         `)
     }
 
-    export async function markActiveGuild(connection: DatabaseConnection, guilds: (APIGuild | RESTAPIPartialCurrentUserGuild)[]){
+    type ImportGuild = APIGuild | RESTAPIPartialCurrentUserGuild
+    export async function MarkGuildsActive(connection: DatabaseConnection, guilds: ImportGuild[]){
         await connection.query(Sql.Void`
             ${TempGuild.DeleteFragment()}
             where
@@ -25,7 +31,7 @@ export namespace App {
         `)
     }
 
-    export async function markInactiveGuilds(connection: DatabaseConnection){
+    export async function MarkInactiveGuilds(connection: DatabaseConnection){
         await connection.query(Sql.Void`
             ${Guild.UpdateValuesFragment({
                 LastSeen: Sql.Now,
@@ -34,7 +40,7 @@ export namespace App {
         `)
     }
 
-    export async function cleanupOldGuilds(connection: DatabaseConnection){
+    export async function PruneOldGuilds(connection: DatabaseConnection){
         await connection.query(Sql.Void`
             ${Guild.DeleteFragment()}
             where

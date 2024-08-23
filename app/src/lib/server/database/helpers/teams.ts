@@ -26,6 +26,12 @@ export namespace Teams {
             Guilds.MatchesGuild(guild)))
     }
 
+    export async function GetManagementTeam(connection: DatabaseConnection, guild: Glenna.Id.Guild){
+        return await connection.one(Sql.Select({
+            teamId: Team.TeamId,
+        }, Team, IsManagementFor(guild)))
+    }
+
     export async function SetRole(connection: DatabaseConnection, team: Glenna.Id.Team, role: Nullable<APIRole>){
         await connection.query(Team.Update({
             SyncedRole: role?.id ?? null,

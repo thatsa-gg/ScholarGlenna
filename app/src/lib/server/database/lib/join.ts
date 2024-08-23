@@ -21,29 +21,29 @@ export class Join implements Selectable {
         return this.Add("left", to, on)
     }
 
-    GetSql(): SqlFragment {
-        let result: SqlFragment = this.BaseTable.GetSql() as unknown as SqlFragment
+    AsSql(): SqlFragment {
+        let result: SqlFragment = this.BaseTable.AsSql() as unknown as SqlFragment
         for(const { type, to, on } of this.Entries){
             switch(type){
                 case "inner":
                     result = null === on
-                        ? sql.fragment`${result} inner join ${to.GetSql()}`
-                        : sql.fragment`${result} inner join ${to.GetSql()} on ${on}`
+                        ? sql.fragment`${result} inner join ${to.AsSql()}`
+                        : sql.fragment`${result} inner join ${to.AsSql()} on ${on}`
                     continue
                 case "left":
                     result = null === on
-                        ? sql.fragment`${result} left outer join ${to.GetSql()}`
-                        : sql.fragment`${result} left outer join ${to.GetSql()} on ${on}`
+                        ? sql.fragment`${result} left outer join ${to.AsSql()}`
+                        : sql.fragment`${result} left outer join ${to.AsSql()} on ${on}`
                     continue
                 case "right":
                     result = null === on
-                        ? sql.fragment`${result} right outer join ${to.GetSql()}`
-                        : sql.fragment`${result} right outer join ${to.GetSql()} on ${on}`
+                        ? sql.fragment`${result} right outer join ${to.AsSql()}`
+                        : sql.fragment`${result} right outer join ${to.AsSql()} on ${on}`
                     continue
                 case "cross":
                     result = null === on
-                        ? sql.fragment`${result} cross join ${to.GetSql()}`
-                        : sql.fragment`${result} cross join ${to.GetSql()} on ${on}`
+                        ? sql.fragment`${result} cross join ${to.AsSql()}`
+                        : sql.fragment`${result} cross join ${to.AsSql()} on ${on}`
                     continue
             }
         }

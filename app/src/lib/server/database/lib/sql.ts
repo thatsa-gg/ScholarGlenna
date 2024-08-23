@@ -19,11 +19,12 @@ export namespace Sql {
 
     export function Truncate<TTable extends Tables>(table: TTable){
         return sql.type(VoidType)`
-            truncate ${table.GetSql()}
+            truncate ${table.AsSql()}
         `
     }
 
     export const Void = sql.type(VoidType)
+    export const Typed = sql.type
     export const Fragment = sql.fragment
     export const Now = sql.fragment`NOW()`
 
@@ -31,7 +32,7 @@ export namespace Sql {
         return sql.join(
             Object.entries(columns)
                 .map(([ key, column ]) =>
-                    sql.fragment`${column.GetSql()} as ${sql.identifier([ key ])}`),
+                    sql.fragment`${column.AsSql()} as ${sql.identifier([ key ])}`),
             sql.fragment`, `
         )
     }
@@ -46,7 +47,7 @@ export namespace Sql {
                 }>
         return sql.type(type)`
             select ${Columns(columns)}
-            from ${from.GetSql()}
+            from ${from.AsSql()}
             ${where ? sql.fragment`where ${where}` : sql.fragment``}
         `
     }
@@ -61,7 +62,7 @@ export namespace Sql {
                 }>
         return sql.type(type)`
             select distinct ${Columns(columns)}
-            from ${from.GetSql()}
+            from ${from.AsSql()}
             ${where ? sql.fragment`where ${where}` : sql.fragment``}
         `
     }
@@ -96,7 +97,7 @@ export namespace Sql {
         const conflictingCols = conflicting.map(a => sql.identifier([ table._.Columns[a as any]._.ColumnName ]))
         const updateCols = Object.keys(values).map(key => table._.Columns[key as any]._.ColumnName)
         const returningCols = Object.entries(returning).map(([property, column]) =>
-            sql.fragment`${sql.identifier([ column._.ColumnName ])} as ${sql.identifier([ property ])}`)
+            sql.fragment`${column.AsSql("plain")} as ${sql.identifier([ property ])}`)
 
         if(updateCols.length <= 0)
             throw "Must set one or more columns in upsert."
@@ -142,7 +143,7 @@ export namespace Sql {
 
     export function As(item: SqlFragment | Column, name: string){
         if(item instanceof Column)
-            return sql.fragment`${item.GetSql()} as ${sql.identifier([ name ])}`
+            return sql.fragment`${item.AsSql()} as ${sql.identifier([ name ])}`
         else
             return sql.fragment`(${item}) as ${sql.identifier([ name ])}`
     }
@@ -151,7 +152,7 @@ export namespace Sql {
         return sql.fragment`
             not exists (
                 select 1 from
-                    ${target.GetSql()}
+                    ${target.AsSql()}
                 where
                     ${condition}
             )

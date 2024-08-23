@@ -63,11 +63,12 @@ export class Column<
         }
     }
 
-    GetSql(style?: "full" | "plain"): IdentifierSqlToken
-    GetSql(style: "reference"): SqlFragment
-    GetSql(style: "full" | "plain" | "reference" = "full"): IdentifierSqlToken | SqlFragment {
+    AsSql(style?: "full" | "plain" | "excluded"): IdentifierSqlToken
+    AsSql(style: "reference"): SqlFragment
+    AsSql(style: "full" | "plain" | "excluded" | "reference" = "full"): IdentifierSqlToken | SqlFragment {
         switch(style){
             case "plain": return sql.identifier([ this._.ColumnName ])
+            case "excluded": return sql.identifier([ "excluded", this._.ColumnName ])
             case "full":
                 return sql.identifier([
                     this._.Table._.Schema.Name,
@@ -75,7 +76,7 @@ export class Column<
                     this._.ColumnName,
                 ])
             case "reference":
-                return sql.fragment`${this._.Table.GetSql()}(${sql.identifier([ this._.ColumnName ])})`
+                return sql.fragment`${this._.Table.AsSql()}(${sql.identifier([ this._.ColumnName ])})`
         }
     }
 
@@ -84,30 +85,30 @@ export class Column<
     Condition(condition: Condition, value?: ConditionValue<TInput, TOutput>): SqlFragment {
         switch(condition){
             case "is null":
-                return sql.fragment`(${this.GetSql()} is null)`
+                return sql.fragment`(${this.AsSql()} is null)`
             case "is not null":
-                return sql.fragment`(${this.GetSql()} is not null)`
+                return sql.fragment`(${this.AsSql()} is not null)`
             default:
                 if(value === undefined)
                     throw "Cannot supply an undefined value."
                 if(isSqlToken(value) && (value as SqlToken).type === ArrayToken){
                     value = sql.fragment`ANY(${value})`
                 } else if(value instanceof Column){
-                    value = value.GetSql("full")
+                    value = value.AsSql("full")
                 }
                 switch(condition){
                     case "=":
-                        return sql.fragment`(${this.GetSql()} = ${value})`
+                        return sql.fragment`(${this.AsSql()} = ${value})`
                     case "<>":
-                        return sql.fragment`(${this.GetSql()} <> ${value})`
+                        return sql.fragment`(${this.AsSql()} <> ${value})`
                     case "<":
-                        return sql.fragment`(${this.GetSql()} < ${value})`
+                        return sql.fragment`(${this.AsSql()} < ${value})`
                     case ">":
-                        return sql.fragment`(${this.GetSql()} > ${value})`
+                        return sql.fragment`(${this.AsSql()} > ${value})`
                     case "<=":
-                        return sql.fragment`(${this.GetSql()} <= ${value})`
+                        return sql.fragment`(${this.AsSql()} <= ${value})`
                     case ">=":
-                        return sql.fragment`(${this.GetSql()} >= ${value})`
+                        return sql.fragment`(${this.AsSql()} >= ${value})`
                 }
         }
     }

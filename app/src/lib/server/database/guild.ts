@@ -3,14 +3,14 @@ import type { APIGuildMemberWithUser } from "../discord"
 import { createSqlTag, type DatabaseTransactionConnection } from "slonik"
 import { z } from "zod"
 import { Role } from "./role"
-import { Team } from "./team"
 import { Discord } from "../discord"
 import { TeamMember } from "./teammember"
 import { GuildMember } from "./guildmember"
-import { User } from "./schema/table-user"
-import { GuildTable, GuildReadView, GuildMemberTable, GuildInfoView, type PickColumns, ColumnSet, Column, type AllColumns, GuildUpdateView } from "./tables"
+import { GuildTable, GuildReadView, GuildMemberTable, GuildInfoView, ColumnSet, type AllColumns, GuildUpdateView } from "./tables"
 import { RoleKind, TeamKind } from "./types"
 import { AppUrl, Database, batch } from "../index"
+import { Teams, Users } from "./helpers"
+import { Team } from "./schema/table-team"
 
 const common = new ColumnSet({
     // IDs
@@ -96,8 +96,8 @@ export namespace Guild {
             })
         } else {
             const dbGuild = await update(connection, guild, owner)
-            const teams = await Team.getAllByDiscordGuild(connection, guild)
-            const roles = new Set(teams.map(team => team.syncedRole?.toString())
+            const teams = await Teams.GetAllByDiscordGuild(connection, guild)
+            const roles = new Set(teams.map(team => team.SyncedRole?.toString())
                             .filter((a: string | undefined): a is string => a !== undefined))
             const membersByRole = new Map<string, APIGuildMemberWithUser[]>()
             for(const role of roles)
@@ -112,18 +112,18 @@ export namespace Guild {
                 }
             }
             for(const team of teams){
-                if(team.syncedRole){
-                    const role = guild.roles.find(role => BigInt(role.id) == team.syncedRole)
+                if(team.SyncedRole){
+                    const role = guild.roles.find(role => BigInt(role.id) == team.SyncedRole)
                     if(role){
                         // the team has a role, and it's still present
-                        await Team.setColorAndIcon(connection, team, role)
+                        await Teams.SetRole(connection, team, role)
                         await TeamMember.setFromList(connection, team, membersByRole.get(role.id) ?? [])
 
                         // TODO: notify if a user was removed because
                         //       they're no longer in the discord
                     } else {
                         // the team had a role, but it was deleted
-                        await Team.setRole(connection, team, null)
+                        await Teams.SetRole(connection, team, null)
                         await TeamMember.removeAll(connection, team)
 
                         // if a team was unlinked from its role, it doesn't matter
@@ -145,7 +145,7 @@ export namespace Guild {
             }
 
             await GuildMember.prune(connection, guild)
-            await User.prune(connection)
+            await Users.Prune(connection)
         }
     }
 
@@ -165,7 +165,7 @@ export namespace Guild {
             `)
 
             const ownerGuildMember = await GuildMember.createOrUpdateWithUser(transact, dbGuild, owner)
-            const managementTeam = await Team.getManagementTeam(transact, dbGuild)
+            const managementTeam = await Teams.GetManagementTeam(transact, dbGuild)
             const ownerRole = await Role.getTeamRole(transact, managementTeam, RoleKind.TeamOwner)
             const [ existingOwner ] = await Role.getDirectUsers(transact, ownerRole)
             if(ownerGuildMember.userId !== existingOwner?.userId){

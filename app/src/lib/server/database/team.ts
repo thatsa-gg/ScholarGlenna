@@ -1,7 +1,7 @@
 import type { APIGuild, APIRole } from "discord-api-types/v10"
 import { createSqlTag, type DatabaseTransactionConnection } from "slonik"
 import { z } from "zod"
-import { ColumnSet, TeamMemberTable, TeamTable, type PickColumns, TeamInfoView, TeamReadView } from "./tables"
+import { ColumnSet, TeamMemberTable, type PickColumns, TeamInfoView, TeamReadView } from "./tables"
 import { TeamKind } from "./types"
 
 const common = new ColumnSet({
@@ -17,7 +17,7 @@ const common = new ColumnSet({
 const sql = createSqlTag({
     typeAliases: {
         teamId: z.object({
-            teamId: TeamTable.TeamId.Type
+            teamId: TeamTable.TeamId.OutputType
         }).strict(),
         team: common.Type.strict(),
         visibleTeam: common.Type.extend({
@@ -27,12 +27,12 @@ const sql = createSqlTag({
     }
 })
 
-import { Team } from "./schema/table-team"
+import { Team as TeamTable } from "./schema/table-team"
 import { Sql } from "./lib/sql"
 import { Teams } from "./helpers"
 export namespace Team2 {
     export async function setColorAndIcon(connection: DatabaseConnection, team: { teamId: number }, role: Pick<APIRole, 'color' | 'icon'>){
-        await connection.query(Team.Update({
+        await connection.query(TeamTable.Update({
             Color: role?.color ?? null, // TODO: format for web
             Icon: role?.icon ?? null,
         }, Teams.Matches(team)))
@@ -46,8 +46,8 @@ export namespace Team2 {
             kind?: TeamKind,
         }
     ){
-        Team.TeamId.Condition("=", 0)
-        return await connection.one(Team.Insert({
+        TeamTable.TeamId.Condition("=", 0)
+        return await connection.one(TeamTable.Insert({
             GuildId: guild.guildId,
             Name: properties.name,
             Kind: properties.kind ?? TeamKind.Squad,
@@ -70,30 +70,21 @@ export namespace Team2 {
         `)
     }
 
-    export async function getManagementTeam(
-        connection: DatabaseTransactionConnection,
-        guild: Glenna.Id.Guild
-    ){
-        return await connection.one(Sql.Select({
-            teamId: Team.TeamId,
-        }, Team, Teams.IsManagementFor(guild)))
-    }
-
     export async function getVisible(
         connection: DatabaseConnection,
         user: Nullable<Glenna.Id.User>,
         guild: Glenna.Id.Guild,
     ){
         const team = await connection.many(Sql.SelectDistinct({
-            teamId: Team.TeamId,
-            syncedRole: Team.SyncedRole,
-            kind: Team.Kind,
-            name: Team.Name,
-            focus: Team.Focus,
-            level: Team.Level,
+            teamId: TeamTable.TeamId,
+            syncedRole: TeamTable.SyncedRole,
+            kind: TeamTable.Kind,
+            name: TeamTable.Name,
+            focus: TeamTable.Focus,
+            level: TeamTable.Level,
             leaugeName: null!,
         },
-            Team.InnerJoin("TeamId", TeamReadView.TeamId)))
+            TeamTable.InnerJoin("TeamId", TeamReadView.TeamId)))
         const teams = await connection.any(sql.typeAlias("visibleTeam")`
             select distinct
                 ${common.Select()},

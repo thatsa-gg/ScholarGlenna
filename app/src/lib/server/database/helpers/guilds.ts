@@ -11,10 +11,20 @@ export namespace Guilds {
         return Guild.DiscordId.Condition("=", guild.id)
     }
 
+    export function Matches(guild: Glenna.Id.Guild){
+        return Guild.GuildId.Condition("=", guild.guildId)
+    }
+
     export function MatchesSlug(slug: string){
         return Sql.Or(
             Guild.VanityCode.Condition("=", slug),
             Guild.LookupAlias.Condition("=", slug)
         )
+    }
+
+    export function ByDiscordId(guild: Pick<APIGuild, "id">){
+        return Sql.Select({
+            GuildId: Guild.GuildId
+        }, Guild, MatchesGuild(guild))
     }
 }
